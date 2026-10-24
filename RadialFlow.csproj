@@ -16,11 +16,15 @@
   <!-- Identidade do produto (aparece nas propriedades do .exe, no log e na janela "Sobre"). -->
   <PropertyGroup>
     <Version>1.2.0</Version>
+    <FileVersion>$(Version).0</FileVersion>
+    <AssemblyVersion>$(Version).0</AssemblyVersion>
+    <InformationalVersion>$(Version)</InformationalVersion>
     <Product>RadialFlow</Product>
     <AssemblyTitle>RadialFlow</AssemblyTitle>
-    <Description>Menu radial contextual de alto desempenho para Windows.</Description>
-    <Company>RadialFlow</Company>
-    <Copyright>Copyright © 2026 RadialFlow</Copyright>
+    <Description>Menu radial para o Windows</Description>
+    <Authors>Pedro Lucas Ferreira Bosa</Authors>
+    <Company>Pedro Lucas Ferreira Bosa</Company>
+    <Copyright>Copyright © 2026 Pedro Lucas Ferreira Bosa</Copyright>
     <!-- Sem o hash do commit no número da versão exibido. -->
     <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
   </PropertyGroup>

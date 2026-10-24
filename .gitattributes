@@ -2,6 +2,9 @@
 * text=auto
 
 *.sln   text eol=crlf
+# Scripts do Windows PowerShell 5.1: CRLF e UTF-8 COM BOM (sem BOM, ele lê acentos como ANSI e o script quebra).
+*.ps1   text eol=crlf
+*.iss   text eol=crlf
 *.cs    text diff=csharp
 *.xaml  text
 *.md    text diff=markdown

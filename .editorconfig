@@ -13,6 +13,11 @@ indent_size = 2
 [*.md]
 trim_trailing_whitespace = false
 
+# Windows PowerShell 5.1 só lê acentos corretamente com BOM.
+[*.ps1]
+charset = utf-8-bom
+end_of_line = crlf
+
 # ----------------------------------------------------------------------------
 # C#
 # ----------------------------------------------------------------------------
