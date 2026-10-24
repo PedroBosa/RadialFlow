@@ -81,9 +81,10 @@ Name: "{autodesktop}\{#AppName}"; Filename: "{app}\{#AppExe}"; Tasks: desktopico
 Type: filesandordirs; Name: "{autoprograms}\{#AppName}"
 
 [Run]
-; O app exige administrador (manifesto); o instalador já é administrador, então ele abre sem perguntar de novo.
-; "runasoriginaluser" NÃO serve aqui: o app recusaria abrir sem elevação.
-Filename: "{app}\{#AppExe}"; Description: "{cm:OpenNow}"; Flags: nowait postinstall skipifsilent
+; O app exige administrador (manifesto). Uma caixa "postinstall" roda, por padrão, com as credenciais SEM
+; administrador de quem abriu o instalador, e aí o Windows recusa abrir o app (erro 740). "runascurrentuser"
+; usa as credenciais do próprio instalador, que já é administrador: o app abre sem perguntar de novo.
+Filename: "{app}\{#AppExe}"; Description: "{cm:OpenNow}"; Flags: nowait postinstall skipifsilent runascurrentuser
 
 [UninstallRun]
 ; Remove a tarefa "Iniciar com o Windows" criada pelo app (se não existir, o erro é ignorado).
