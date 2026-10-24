@@ -1,0 +1,19 @@
+<Project>
+
+  <!-- Configurações comuns ao aplicativo e aos testes. -->
+  <PropertyGroup>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <!-- Desligado de propósito: System.IO.Path conflitaria com System.Windows.Shapes.Path. Todos os imports são explícitos. -->
+    <ImplicitUsings>disable</ImplicitUsings>
+
+    <!-- Qualidade: nenhum aviso passa despercebido. Um aviso novo quebra o build. -->
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <AnalysisLevel>latest</AnalysisLevel>
+
+    <!-- Builds reproduzíveis. -->
+    <Deterministic>true</Deterministic>
+    <ContinuousIntegrationBuild Condition="'$(CI)' == 'true'">true</ContinuousIntegrationBuild>
+  </PropertyGroup>
+
+</Project>

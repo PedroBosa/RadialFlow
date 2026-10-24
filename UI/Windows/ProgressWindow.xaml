@@ -1,0 +1,68 @@
+<Window x:Class="RadialFlow.UI.ProgressWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="RadialFlow — Operação em andamento"
+        Width="480" Height="250"
+        WindowStartupLocation="CenterScreen"
+        WindowStyle="None" AllowsTransparency="True"
+        Background="Transparent"
+        Topmost="True" ShowInTaskbar="True"
+        FontFamily="Segoe UI Variable Text, Segoe UI"
+        UseLayoutRounding="True">
+
+    <!-- Estilos e cores: Theme/Controls.xaml + UiTheme (instalados no construtor). A margem de 20 abriga a sombra. -->
+    <Grid Margin="20">
+        <Border Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource CardBorderBrush}"
+                BorderThickness="1" CornerRadius="16" Padding="24,22,24,20" MouseLeftButtonDown="Card_MouseLeftButtonDown">
+            <Border.Effect>
+                <DropShadowEffect BlurRadius="26" ShadowDepth="5" Opacity="0.45" Color="Black"/>
+            </Border.Effect>
+
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <!-- Título -->
+                <Grid Grid.Row="0" Margin="0,0,0,18">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid Width="34" Height="34" Margin="0,0,14,0" VerticalAlignment="Center">
+                        <Ellipse x:Name="IconDisc" Fill="{DynamicResource AccentBrush}"/>
+                        <TextBlock x:Name="IconGlyph" Text="&#xE9F5;" FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets" FontSize="17"
+                                   Foreground="{DynamicResource AccentInkBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Grid>
+                    <TextBlock Grid.Column="1" x:Name="TxtTitle" Text="Processando…" FontSize="16" FontWeight="SemiBold"
+                               Foreground="{DynamicResource TextBrush}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                </Grid>
+
+                <!-- Barra -->
+                <ProgressBar Grid.Row="1" x:Name="PrgBar" Value="0" Margin="0,0,0,12"/>
+
+                <!-- Status e percentual -->
+                <Grid Grid.Row="2" Margin="0,0,0,18">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0" x:Name="TxtStatus" Text="Iniciando…" FontSize="12.5"
+                               Foreground="{DynamicResource TextDimBrush}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
+                    <TextBlock Grid.Column="1" x:Name="TxtPercent" Text="0%" FontSize="13" FontWeight="Bold" Margin="12,0,0,0"
+                               Foreground="{DynamicResource AccentTextBrush}" VerticalAlignment="Center"/>
+                </Grid>
+
+                <!-- Ações -->
+                <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Bottom">
+                    <Button x:Name="BtnOpenFolder" Content="Abrir pasta" Style="{StaticResource PrimaryButton}" Visibility="Collapsed"
+                            MinWidth="110" Margin="0,0,8,0" Click="BtnOpenFolder_Click"/>
+                    <Button x:Name="BtnCancel" Content="Cancelar" MinWidth="96" Click="BtnCancel_Click"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+    </Grid>
+</Window>

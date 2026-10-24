@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Gera Assets/RadialFlow.ico a partir do MESMO código que desenha os ícones do app
+    (UI/Tray/AppIconRenderer.cs + a geometria da roda em UI/Radial/RadialModels.cs).
+    Uso, na raiz do repositório: "dotnet run" no projeto tools/IconGenerator, passando o caminho de saída
+    (padrão: Assets/RadialFlow.ico). Rode de novo sempre que o desenho do ícone mudar;
+    um teste avisa se o arquivo ficou desatualizado.
+  -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <RootNamespace>RadialFlow.Tools</RootNamespace>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\..\UI\Tray\AppIconRenderer.cs" Link="Shared\AppIconRenderer.cs" />
+    <Compile Include="..\..\UI\Radial\RadialModels.cs" Link="Shared\RadialModels.cs" />
+  </ItemGroup>
+
+</Project>

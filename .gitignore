@@ -1,0 +1,35 @@
+# Saída de build e de publicação (publish.ps1 grava em dist/)
+[Bb]in/
+[Oo]bj/
+[Pp]ublish/
+dist/
+artifacts/
+*.nupkg
+
+# IDEs e ferramentas
+.vs/
+.vscode/
+.idea/
+*.user
+*.suo
+*.DotSettings.user
+
+# Testes e cobertura
+TestResults/
+coverage/
+*.trx
+*.coverage
+*.coveragexml
+
+# Logs e temporários
+*.log
+*.tmp
+
+# Sistema
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+# Backups locais
+*.zip
+*.bak

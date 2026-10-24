@@ -1,0 +1,43 @@
+root = true
+
+[*]
+charset = utf-8
+indent_style = space
+indent_size = 4
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+[*.{xaml,xml,csproj,props,targets,json,yml,yaml}]
+indent_size = 2
+
+[*.md]
+trim_trailing_whitespace = false
+
+# ----------------------------------------------------------------------------
+# C#
+# ----------------------------------------------------------------------------
+[*.cs]
+csharp_style_namespace_declarations = file_scoped:warning
+csharp_using_directive_placement = outside_namespace
+dotnet_sort_system_directives_first = true
+csharp_prefer_braces = when_multiline
+
+# Política de análise (AnalysisMode=Recommended no projeto do app). Cada exceção tem um motivo:
+
+# Arrays constantes passados como argumento: só aparecem em caminhos frios (montar argumentos de ferramenta,
+# listas de teste). Trocar por campos estáticos pioraria a leitura sem ganho mensurável.
+dotnet_diagnostic.CA1861.severity = none
+
+# Resultado ignorado: chamadas Win32 "melhor esforço" (SetWindowPos, PostMessage, ShowWindow...) cujo
+# fracasso não tem recuperação possível. Falhas que importam já são verificadas e registradas no log.
+dotnet_diagnostic.CA1806.severity = suggestion
+
+# StringBuilder em P/Invoke: mantido só onde a API exige buffer gravável de uso único (linha de comando do
+# CreateProcess). Os caminhos quentes (a cada troca de janela) usam buffers na pilha.
+dotnet_diagnostic.CA1838.severity = suggestion
+
+# ----------------------------------------------------------------------------
+# Testes: nomes em português com sublinhados são intencionais (descrevem o comportamento).
+# ----------------------------------------------------------------------------
+[RadialFlow.Tests/**.cs]
+dotnet_diagnostic.CA1707.severity = none

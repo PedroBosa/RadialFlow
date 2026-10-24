@@ -1,0 +1,39 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <RootNamespace>RadialFlow</RootNamespace>
+    <!-- Ícone do executável (gerado por tools/IconGenerator a partir do mesmo código que desenha a bandeja). -->
+    <ApplicationIcon>Assets\RadialFlow.ico</ApplicationIcon>
+    <!-- Projetos irmãos que moram dentro desta pasta: sem isso, os .cs deles entrariam no app. -->
+    <DefaultItemExcludes>$(DefaultItemExcludes);RadialFlow.Tests\**;tools\**</DefaultItemExcludes>
+  </PropertyGroup>
+
+  <!-- Identidade do produto (aparece nas propriedades do .exe, no log e na janela "Sobre"). -->
+  <PropertyGroup>
+    <Version>1.2.0</Version>
+    <Product>RadialFlow</Product>
+    <AssemblyTitle>RadialFlow</AssemblyTitle>
+    <Description>Menu radial contextual de alto desempenho para Windows.</Description>
+    <Company>RadialFlow</Company>
+    <Copyright>Copyright © 2026 RadialFlow</Copyright>
+    <!-- Sem o hash do commit no número da versão exibido. -->
+    <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
+  </PropertyGroup>
+
+  <!-- Qualidade: análise recomendada. A política de exceções (com motivo) está no .editorconfig. -->
+  <PropertyGroup>
+    <AnalysisMode>Recommended</AnalysisMode>
+    <EnableNETAnalyzers>true</EnableNETAnalyzers>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Regras puras (ActionRouter.Logic, ToolLocator, validações) são internal e testadas diretamente. -->
+    <InternalsVisibleTo Include="RadialFlow.Tests" />
+  </ItemGroup>
+
+</Project>
