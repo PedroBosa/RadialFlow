@@ -117,6 +117,35 @@ public sealed class SingleInstanceTests
     }
 
     [Fact]
+    public void SegundaCopiaQueChegaJunto_SempreConsegueSinalizar()
+    {
+        // Regressão: a trava era criada antes do evento. Uma segunda cópia que chegasse nesse intervalo via a trava,
+        // não achava o evento e o pedido de abrir as Configurações se perdia (WaitHandleCannotBeOpenedException).
+        for (int i = 0; i < 50; i++)
+        {
+            string name = UniqueName();
+            using SingleInstance first = SingleInstance.TryAcquire(name)!;
+
+            Assert.Null(SingleInstance.TryAcquire(name));        // a segunda cópia vê a trava...
+            Assert.True(SingleInstance.SignalExisting(name));    // ...e o evento já existe
+        }
+    }
+
+    [Fact]
+    public void SinalEnviadoAntesDeComecarAOuvir_NaoSePerde()
+    {
+        // A primeira cópia só começa a ouvir depois de iniciar tudo; um pedido que chegue antes fica guardado.
+        string name = UniqueName();
+        using SingleInstance first = SingleInstance.TryAcquire(name)!;
+        Assert.True(SingleInstance.SignalExisting(name));
+
+        using var received = new ManualResetEventSlim(false);
+        first.StartListening(received.Set);
+
+        Assert.True(received.Wait(TimeSpan.FromSeconds(5)), "o pedido feito antes da escuta deveria ser entregue");
+    }
+
+    [Fact]
     public void DepoisDoDispose_NaoHaMaisEntrega()
     {
         string name = UniqueName();

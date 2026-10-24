@@ -243,9 +243,15 @@ public static class AppLog
 {
     private static readonly Lazy<FileLogSink> Sink = new(() => new FileLogSink(DirectoryPath), LazyThreadSafetyMode.ExecutionAndPublication);
 
-    /// <summary>%LocalAppData%\RadialFlow\logs</summary>
-    public static string DirectoryPath =>
+    /// <summary>%LocalAppData%\RadialFlow\logs (ou a pasta definida em <see cref="DirectoryOverride"/>).</summary>
+    public static string DirectoryPath => DirectoryOverride ??
         Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "RadialFlow", "logs");
+
+    /// <summary>
+    /// Só para testes: grava o log em outra pasta. Precisa ser definido ANTES do primeiro registro (o arquivo é aberto
+    /// uma vez por processo).
+    /// </summary>
+    internal static string? DirectoryOverride { get; set; }
 
     /// <summary>Arquivo ativo do log.</summary>
     public static string FilePath => Path.Combine(DirectoryPath, "radialflow.log");

@@ -246,12 +246,31 @@ public sealed class FileLogSinkTests : IDisposable
     // ------------------------------------------------------------------
 
     [Fact]
-    public void AppLog_CaminhosFicamEmLocalAppDataRadialFlowLogs()
+    public void AppLog_NosTestes_GravaForaDoLogRealDoUsuario()
     {
-        string expected = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "RadialFlow", "logs");
+        string real = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "RadialFlow", "logs");
 
-        Assert.Equal(expected, AppLog.DirectoryPath);
-        Assert.Equal(Path.Combine(expected, "radialflow.log"), AppLog.FilePath);
+        Assert.NotNull(AppLog.DirectoryOverride);                    // TestLogIsolation redireciona
+        Assert.NotEqual(real, AppLog.DirectoryPath, StringComparer.OrdinalIgnoreCase);
+        Assert.Equal(Path.Combine(AppLog.DirectoryPath, "radialflow.log"), AppLog.FilePath);
+    }
+
+    [Fact]
+    public void AppLog_SemRedirecionamento_UsaLocalAppDataRadialFlowLogs()
+    {
+        string? original = AppLog.DirectoryOverride;
+        try
+        {
+            AppLog.DirectoryOverride = null;
+            string expected = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "RadialFlow", "logs");
+
+            Assert.Equal(expected, AppLog.DirectoryPath);
+            Assert.Equal(Path.Combine(expected, "radialflow.log"), AppLog.FilePath);
+        }
+        finally
+        {
+            AppLog.DirectoryOverride = original;
+        }
     }
 
     [Fact]

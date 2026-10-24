@@ -51,14 +51,19 @@ public sealed class SingleInstance : IDisposable
         EventWaitHandle? activate = null;
         try
         {
+            // O evento vem ANTES da trava: assim, sempre que a trava existe, o evento também existe, e uma segunda
+            // cópia que chegue no mesmo instante consegue sinalizar. (Na ordem inversa havia uma janela de alguns ms
+            // em que a segunda cópia via a trava, não achava o evento e o pedido de "abrir as Configurações" se perdia.)
+            activate = new EventWaitHandle(initialState: false, EventResetMode.AutoReset, ActivateName(name));
+
             mutex = new Mutex(initiallyOwned: false, LockName(name), out bool createdNew);
             if (!createdNew)
             {
                 mutex.Dispose();
+                activate.Dispose();
                 return null;
             }
 
-            activate = new EventWaitHandle(initialState: false, EventResetMode.AutoReset, ActivateName(name));
             return new SingleInstance(mutex, activate);
         }
         catch (Exception ex) when (ex is UnauthorizedAccessException or WaitHandleCannotBeOpenedException or IOException)
