@@ -319,7 +319,7 @@ public static class ConversionService
                 args.Add(destination);
 
                 await RunProcessAsync(magick, args, progress, ct).ConfigureAwait(false);
-                progress?.Report(new ProgressReport(100.0, "Conversão concluída via ImageMagick!"));
+                progress?.Report(new ProgressReport(100.0, "Conversão concluída."));
                 break;
             }
 
@@ -329,7 +329,7 @@ public static class ConversionService
                 await RunProcessAsync(ffmpeg,
                     new[] { "-hide_banner", "-nostdin", "-loglevel", "error", "-y", "-i", source, destination },
                     progress, ct).ConfigureAwait(false);
-                progress?.Report(new ProgressReport(100.0, "Conversão concluída via FFmpeg!"));
+                progress?.Report(new ProgressReport(100.0, "Conversão concluída."));
                 break;
             }
 
@@ -516,13 +516,13 @@ public static class ConversionService
                 if (target == "txt") { args.Add("-t"); args.Add("plain"); }
 
                 await RunProcessAsync(pandoc, args, progress, ct).ConfigureAwait(false);
-                progress?.Report(new ProgressReport(100.0, "Conversão concluída via Pandoc!"));
+                progress?.Report(new ProgressReport(100.0, "Conversão concluída."));
                 break;
             }
 
             case Engine.LibreOffice:
                 await ConvertWithLibreOfficeAsync(source, target, destination, progress, ct).ConfigureAwait(false);
-                progress?.Report(new ProgressReport(100.0, "Conversão concluída via LibreOffice!"));
+                progress?.Report(new ProgressReport(100.0, "Conversão concluída."));
                 break;
 
             default:

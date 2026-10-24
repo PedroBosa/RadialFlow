@@ -103,12 +103,12 @@ public static class SliceFactory
 
         return new[]
         {
-            new RadialSlice("Comprimir",      "\uF012", () => actions.Run(RadialAction.Compress, c), null, "Compactar em .ZIP"),
-            new RadialSlice("Converter",      "\uE8AB", () => actions.Run(RadialAction.Convert, c), convertSubSlices, "Formatos de Conversão"),
-            new RadialSlice("Copiar caminho", "\uE71B", () => actions.Run(RadialAction.CopyPath, c), null, "Copiar caminho completo"),
+            new RadialSlice("Comprimir",      "\uF012", () => actions.Run(RadialAction.Compress, c), null, "Compactar em .zip (ou extrair, se já for .zip)"),
+            new RadialSlice("Converter",      "\uE8AB", () => actions.Run(RadialAction.Convert, c), convertSubSlices, "Converter para outro formato"),
+            new RadialSlice("Copiar caminho", "\uE71B", () => actions.Run(RadialAction.CopyPath, c), null, "Copiar o caminho completo"),
             new RadialSlice("Mover para",     "\uE838", () => actions.Run(RadialAction.MoveTo, c), null, "Mover para outra pasta"),
-            new RadialSlice("Enviar para",    "\uE724", () => actions.Run(RadialAction.SendTo, c), null, "Anexar ou enviar arquivo"),
-            new RadialSlice("Renomear",       "\uE8AC", () => actions.Run(RadialAction.Rename, c), null, "Renomear arquivo"),
+            new RadialSlice("Enviar para",    "\uE724", () => actions.Run(RadialAction.SendTo, c), null, "Copiar o arquivo para colar em outro app"),
+            new RadialSlice("Renomear",       "\uE8AC", () => actions.Run(RadialAction.Rename, c), null, "Renomear"),
         };
     }
 
@@ -140,10 +140,10 @@ public static class SliceFactory
 
         return new[]
         {
-            new RadialSlice("Apps favoritos",  "\uE734", () => actions.Run(RadialAction.FavoriteApps, c), favoriteSubSlices, "Aplicativos Favoritos"),
-            new RadialSlice("Sistema",         "\uE713", () => actions.Run(RadialAction.SystemControls, c), null, "Painel de Controle / Ações"),
-            new RadialSlice("Área de transf.", "\uE81C", () => actions.Run(RadialAction.ClipboardHistory, c), null, "Histórico da Área de Transferência"),
-            new RadialSlice("Bloquear",        "\uE72E", () => actions.Run(RadialAction.LockScreen, c), null, "Bloquear estação de trabalho"),
+            new RadialSlice("Apps favoritos",  "\uE734", () => actions.Run(RadialAction.FavoriteApps, c), favoriteSubSlices, "Abrir um app favorito"),
+            new RadialSlice("Sistema",         "\uE713", () => actions.Run(RadialAction.SystemControls, c), null, "Configurações rápidas do Windows"),
+            new RadialSlice("Área de transf.", "\uE81C", () => actions.Run(RadialAction.ClipboardHistory, c), null, "Histórico da área de transferência"),
+            new RadialSlice("Bloquear",        "\uE72E", () => actions.Run(RadialAction.LockScreen, c), null, "Bloquear o computador"),
         };
     }
 
@@ -152,13 +152,13 @@ public static class SliceFactory
     // ------------------------------------------------------------------
     private static RadialSlice[] TitleBarSlices(ContextInfo c, ISliceActions actions) => new[]
     {
-        new RadialSlice("Maximizar",     "\uE922", () => actions.Run(RadialAction.Maximize, c), null, "Maximizar / Restaurar"),
-        new RadialSlice("Snap dir.",     "\uE72A", () => actions.Run(RadialAction.SnapRight, c), null, "Encaixar à Direita"),
-        new RadialSlice("Fechar",        "\uE8BB", () => actions.Run(RadialAction.Close, c), null, "Fechar Janela"),
-        new RadialSlice("Transparência", "\uE706", () => actions.Run(RadialAction.Transparency, c), null, "Alternar Transparência"),
-        new RadialSlice("Sempre no topo","\uE718", () => actions.Run(RadialAction.AlwaysOnTop, c), null, "Fixar Acima de Todas"),
-        new RadialSlice("Minimizar",     "\uE921", () => actions.Run(RadialAction.Minimize, c), null, "Minimizar Janela"),
-        new RadialSlice("Snap esq.",     "\uE72B", () => actions.Run(RadialAction.SnapLeft, c), null, "Encaixar à Esquerda"),
+        new RadialSlice("Maximizar",     "\uE922", () => actions.Run(RadialAction.Maximize, c), null, "Maximizar ou restaurar"),
+        new RadialSlice("Snap dir.",     "\uE72A", () => actions.Run(RadialAction.SnapRight, c), null, "Ocupar a metade direita da tela"),
+        new RadialSlice("Fechar",        "\uE8BB", () => actions.Run(RadialAction.Close, c), null, "Fechar a janela"),
+        new RadialSlice("Transparência", "\uE706", () => actions.Run(RadialAction.Transparency, c), null, "Deixar a janela translúcida"),
+        new RadialSlice("Sempre no topo","\uE718", () => actions.Run(RadialAction.AlwaysOnTop, c), null, "Manter acima das outras janelas"),
+        new RadialSlice("Minimizar",     "\uE921", () => actions.Run(RadialAction.Minimize, c), null, "Minimizar a janela"),
+        new RadialSlice("Snap esq.",     "\uE72B", () => actions.Run(RadialAction.SnapLeft, c), null, "Ocupar a metade esquerda da tela"),
     };
 
     // ------------------------------------------------------------------
@@ -166,11 +166,11 @@ public static class SliceFactory
     // ------------------------------------------------------------------
     private static RadialSlice[] TextFieldSlices(ContextInfo c, ISliceActions actions) => new[]
     {
-        new RadialSlice("Colar",     "\uE77F", () => actions.Run(RadialAction.Paste, c), null, "Colar texto"),
-        new RadialSlice("Traduzir",  "\uE774", () => actions.Run(RadialAction.Translate, c), null, "Traduzir seleção no Google"),
-        new RadialSlice("Pesquisar", "\uE721", () => actions.Run(RadialAction.SearchWeb, c), null, "Pesquisar texto na Web"),
-        new RadialSlice("Formatar",  "\uE8DD", () => actions.Run(RadialAction.Format, c), null, "Aplicar Negrito"),
-        new RadialSlice("Limpar",    "\uE894", () => actions.Run(RadialAction.Clear, c), null, "Apagar todo o texto"),
+        new RadialSlice("Colar",     "\uE77F", () => actions.Run(RadialAction.Paste, c), null, "Colar"),
+        new RadialSlice("Traduzir",  "\uE774", () => actions.Run(RadialAction.Translate, c), null, "Traduzir o texto selecionado"),
+        new RadialSlice("Pesquisar", "\uE721", () => actions.Run(RadialAction.SearchWeb, c), null, "Pesquisar o texto selecionado na web"),
+        new RadialSlice("Formatar",  "\uE8DD", () => actions.Run(RadialAction.Format, c), null, "Negrito (Ctrl+B)"),
+        new RadialSlice("Limpar",    "\uE894", () => actions.Run(RadialAction.Clear, c), null, "Apagar todo o texto do campo"),
     };
 
     internal static string GetFormatGlyph(string format) => format.ToLowerInvariant() switch

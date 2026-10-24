@@ -44,8 +44,8 @@ public partial class ConversionWindow : Window
         else
         {
             BtnConvert.IsEnabled = false;
-            TxtCategory.Text += "\nNenhum conversor disponível. Instale FFmpeg, ImageMagick, Pandoc ou LibreOffice " +
-                                "em C:\\Program Files (por segurança, pastas graváveis por usuários comuns são ignoradas).";
+            TxtCategory.Text += "\nNão há conversor para este arquivo. Instale o FFmpeg, o ImageMagick, o Pandoc ou o LibreOffice " +
+                                "na pasta C:\\Program Files (ferramentas instaladas em outros lugares são ignoradas por segurança).";
         }
     }
 

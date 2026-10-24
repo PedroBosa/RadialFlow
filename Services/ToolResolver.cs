@@ -131,9 +131,9 @@ internal sealed class ToolLocator(ToolSearchEnvironment environment)
         lock (_gate) _rejected.TryGetValue(toolName, out rejectedPath);
 
         return rejectedPath is null
-            ? $"'{toolName}' não foi encontrado. Instale {friendly} em C:\\Program Files (ou adicione ao PATH em uma pasta protegida)."
-            : $"'{toolName}' foi encontrado em '{rejectedPath}', mas foi ignorado por segurança: " +
-              "a pasta pode ser alterada por usuários comuns. Instale em C:\\Program Files.";
+            ? $"O {friendly} não está instalado. Instale-o na pasta C:\\Program Files e tente de novo."
+            : $"O {friendly} foi encontrado em '{rejectedPath}', mas não foi usado por segurança: " +
+              "essa pasta pode ser alterada sem permissão de administrador. Instale-o na pasta C:\\Program Files.";
     }
 
     public void ResetCache()

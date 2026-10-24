@@ -128,7 +128,7 @@ public sealed class ToolResolverTests : IDisposable
 
         string message = locator.DescribeMissing("pandoc.exe");
         Assert.Contains(untrusted, message);
-        Assert.Contains("ignorado por segurança", message);
+        Assert.Contains("não foi usado por segurança", message);
     }
 
     [Fact]
@@ -137,7 +137,7 @@ public sealed class ToolResolverTests : IDisposable
         var locator = CreateLocator();
 
         Assert.Null(locator.FindTool("soffice.exe"));
-        Assert.Contains("não foi encontrado", locator.DescribeMissing("soffice.exe"));
+        Assert.Contains("não está instalado", locator.DescribeMissing("soffice.exe"));
     }
 
     [Fact]
