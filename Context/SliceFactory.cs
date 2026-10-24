@@ -141,7 +141,7 @@ public static class SliceFactory
         return new[]
         {
             new RadialSlice("Apps favoritos",  "\uE734", () => actions.Run(RadialAction.FavoriteApps, c), favoriteSubSlices, "Abrir um app favorito"),
-            new RadialSlice("Sistema",         "\uE713", () => actions.Run(RadialAction.SystemControls, c), null, "Configurações rápidas do Windows"),
+            new RadialSlice("Ajustes rápidos", "\uE713", () => actions.Run(RadialAction.SystemControls, c), null, "Configurações rápidas do Windows"),
             new RadialSlice("Área de transf.", "\uE81C", () => actions.Run(RadialAction.ClipboardHistory, c), null, "Histórico da área de transferência"),
             new RadialSlice("Bloquear",        "\uE72E", () => actions.Run(RadialAction.LockScreen, c), null, "Bloquear o computador"),
         };

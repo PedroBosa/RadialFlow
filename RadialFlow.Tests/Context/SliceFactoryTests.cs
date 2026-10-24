@@ -59,12 +59,12 @@ public sealed class SliceFactoryTests
         },
         {
             RadialContextKind.DesktopBackground,
-            ["Apps favoritos", "Sistema", "Área de transf.", "Bloquear"],
+            ["Apps favoritos", "Ajustes rápidos", "Área de transf.", "Bloquear"],
             [RadialAction.FavoriteApps, RadialAction.SystemControls, RadialAction.ClipboardHistory, RadialAction.LockScreen]
         },
         {
             RadialContextKind.Generic,
-            ["Apps favoritos", "Sistema", "Área de transf.", "Bloquear"],
+            ["Apps favoritos", "Ajustes rápidos", "Área de transf.", "Bloquear"],
             [RadialAction.FavoriteApps, RadialAction.SystemControls, RadialAction.ClipboardHistory, RadialAction.LockScreen]
         },
     };

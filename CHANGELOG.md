@@ -1,86 +1,75 @@
-# Changelog
+# Novidades
 
-Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/). A versão vem de `RadialFlow.csproj`.
+Cada versão, da mais nova para a mais antiga. O número da versão está em `RadialFlow.csproj`.
 
-## [1.2.0] — 2026-10-24
+## 1.2.0 — 24/10/2026
 
-### Adicionado
-- **Ícone do aplicativo**: o próprio pie (anel de fatias com cantos arredondados, uma em azul, miolo no centro),
-  desenhado com a mesma geometria da roda. Usado no executável, na barra de tarefas, nas janelas e na bandeja.
-  O arquivo `Assets/RadialFlow.ico` (9 tamanhos, 16–256 px) é **gerado** por `tools/IconGenerator`, e um teste falha
-  se ele ficar diferente do que o código desenha. Abaixo de 28 px o anel tem 4 fatias e uma fresta mais larga, para
-  continuar legível.
-- Ícone da **bandeja** no tamanho exato do sistema para o DPI (antes era um 32 px fixo, esticado), com o anel claro ou
-  escuro conforme o tema da barra de tarefas, e em cinza quando pausado. Troca de tema renova o ícone.
-- **Log em arquivo** (`%LocalAppData%\RadialFlow\logs\radialflow.log`): fila assíncrona, rotação por tamanho e nunca
-  bloqueia o hook do mouse. Substitui 87 `Debug.WriteLine`, que não faziam nada em Release. Exceções globais, falhas
-  de ação, de hook e de ferramentas agora deixam rastro.
-- **Instância única**: abrir uma segunda cópia (ex.: atalho + "Iniciar com o Windows") não instala um segundo hook; a
-  segunda pede à primeira para abrir as Configurações e encerra.
-- **Ícone da bandeja volta** quando o Explorer reinicia (`TaskbarCreated`, liberado no UIPI porque o app é administrador).
-- Menu da bandeja: **Abrir pasta de logs**. Aba *Sobre*: versão real, caminho do log, abrir e copiar.
-- **Roda no estilo "pie"**: anel contínuo de vidro fosco (o fundo é capturado e desfocado), cantos arredondados, cor de
-  destaque configurável (ou a do Windows), tema claro/escuro do sistema. Ícone e nome acompanham a fatia ativa e o miolo
-  mostra o ícone da ação.
-- **Tempo para abrir submenus configurável** (200–2000 ms; padrão 650 ms, antes fixo em 260 ms), com um traço na borda
-  da fatia mostrando o tempo restante.
-- A roda é **deslocada para caber na tela** perto de bordas e da barra de tarefas (o cursor acompanha).
-- `UnelevatedLauncher.ExecuteAsync`: executa ferramentas de conversão **sem elevação** (token do shell), captura
-  stdout/stderr em tempo real e cancela de verdade (Job Object encerra a árvore de processos).
-- Projeto de testes `RadialFlow.Tests` (xUnit) com 700+ testes.
-- **Distribuição**: `publish.ps1` gera um executável único e autocontido, um zip portátil, hashes SHA-256 e, se o
-  Inno Setup 6 estiver instalado, um instalador (`RadialFlow.iss`) que instala em `C:\Program Files` e remove a
-  tarefa de inicialização ao desinstalar.
+### Novo
 
-### Alterado
-- **Janelas redesenhadas** (Configurações, Progresso, Conversão, diálogos, seletor de favoritos) com um único sistema de
-  estilo: cores do tema, chaves liga/desliga, sliders, bolinhas de cor e abas em pílula. As `MessageBox` brancas foram
-  trocadas por diálogos no mesmo estilo (validação de nome dentro do próprio diálogo).
-- **Configurações**: cada aba rola (antes o conteúdo era cortado), organizadas em Sistema / Gesto / Aparência.
-- Fechar a janela de progresso no meio **cancela** a operação (antes ela seguia rodando invisível).
-- Qualidade: análise de código recomendada ligada e avisos tratados como erro (`Directory.Build.props`).
-- Estrutura de pastas por responsabilidade: `UI/Radial`, `UI/Windows`, `UI/Tray`, `UI/Theme`; os testes espelham o app.
+- **Visual novo da roda.** Um anel de fatias com efeito de vidro fosco, que segue o tema claro ou escuro do Windows.
+  A fatia sob o cursor fica na cor de destaque (você escolhe a cor nas configurações) e o centro mostra o ícone da
+  ação.
+- **Tempo para abrir as opções extras é configurável**, de 0,2 a 2 segundos (o padrão subiu de 0,26 para 0,65 s). Um
+  traço na borda da fatia mostra quando as opções vão aparecer.
+- **A roda sempre cabe na tela.** Perto das bordas ou da barra de tarefas, ela se desloca para dentro e o cursor vai
+  junto.
+- **Ícone novo**, no formato da própria roda, no programa, nas janelas e perto do relógio. Ali ele fica claro ou escuro
+  conforme a barra de tarefas, e cinza quando o RadialFlow está pausado.
+- **Instalador** em português, que coloca o programa em `C:\Program Files`. Há também uma versão portátil em `.zip`.
+- **Registro de eventos** (`%LocalAppData%\RadialFlow\logs`), aberto pelo menu do ícone ou pela aba Sobre, para
+  entender o que deu errado quando algo falha.
+- Abrir o RadialFlow de novo não cria uma segunda cópia: só mostra as configurações da que já está aberta.
+- O ícone volta sozinho perto do relógio se o Windows Explorer reiniciar.
 
-### Corrigido
-- **Configurações não se perdem mais**: gravação atômica (arquivo temporário + troca) com cópia `.bak`. Antes, um
-  `settings.json` corrompido era sobrescrito pelos padrões, apagando blacklist e favoritos; agora o arquivo ruim é
-  guardado como `settings.corrompido-AAAAMMDD-HHMMSS.json` e a cópia anterior é usada.
-- Caminhos vindos do Explorer, de configurações e de diálogos são validados (`TrustedPath.TryGetSafeFullPath`): sem
-  travessia (`..`), streams alternativos, nomes reservados (CON, NUL…) nem namespaces de dispositivo.
-- Renomear não aceita mais nome com caminho (`..\..\x`) — o app roda como administrador.
-- `schtasks` (Iniciar com o Windows) lê o XML de uma pasta só de administradores, não de `%TEMP%`.
-- "Abrir pasta" da janela de progresso abre o Explorer **sem elevação** e com o caminho validado.
+### Melhorias
+
+- Configurações, janela de progresso, janela de conversão e avisos ganharam o mesmo visual da roda. As caixas de
+  mensagem brancas do Windows foram trocadas por avisos no mesmo estilo.
+- As configurações agora rolam: antes, parte das opções ficava cortada.
+- Fechar a janela de progresso no meio cancela a operação. Antes ela continuava escondida, sem como parar.
+- A opção **Sistema** da área de trabalho virou **Ajustes rápidos** e abre as Configurações rápidas do Windows.
+
+### Correções
+
+- **As configurações não se perdem mais.** Antes, se o arquivo de configurações estragasse (por exemplo, numa queda
+  de energia), o programa voltava aos padrões e apagava sua blacklist e seus favoritos. Agora ele usa a cópia
+  anterior e guarda o arquivo estragado ao lado, sem apagar nada.
+- Renomear não aceita mais um nome que leve o arquivo para outra pasta.
 
 ### Segurança
-- Nenhuma ferramenta de conversão externa roda como administrador; o executável é validado em `TrustedPath` (dono +
-  ACL de arquivo, pasta e ancestrais) imediatamente antes de ser iniciado. Se não houver token não elevado disponível
-  (ex.: UAC desligado), a conversão externa é recusada em vez de rodar elevada.
 
-## [1.1.0] — 2026-10-23 (correções dos itens 1 a 7 e migração para .NET 10)
+- Os programas de conversão (FFmpeg, ImageMagick, Pandoc, LibreOffice) agora rodam **sem** permissão de
+  administrador, e cancelar uma conversão encerra o programa e tudo o que ele abriu.
+- Antes de executar qualquer um deles, o RadialFlow confere se ele está numa pasta protegida, como
+  `C:\Program Files`.
+- Caminhos de arquivo vindos do Explorer, das configurações e das janelas são conferidos antes de serem usados.
+- Abrir uma pasta pela janela de progresso não dá mais permissão de administrador ao Explorer.
 
-### Adicionado
-- `Security/TrustedPath.cs` — só executa ferramentas em locais que usuários comuns não podem alterar (dono + ACL).
-- `Services/UnelevatedLauncher.cs` — abre navegador e apps favoritos sem herdar a elevação (token do shell).
-- `Services/FileNaming.cs` — nome único `nome (1).ext`; nada é sobrescrito sem perguntar.
-- `Context/TextTarget.cs` — foca o campo certo (UIA `SetFocus` na origem do gesto) antes de enviar teclas.
-- `Context/WindowFocus.cs` — foco por `AttachThreadInput` (sem o truque do Alt) e checagem da janela em primeiro plano.
+## 1.1.0 — 23/10/2026
 
-### Alterado
-- `net8.0-windows` → `net10.0-windows` (o .NET 8 sai de suporte em 10/11/2026).
-- Hook do mouse em **thread dedicada** com message loop próprio e watchdog que reinstala o hook a cada 10 s.
-- "Iniciar com o Windows" via **Tarefa Agendada** (privilégios mais altos); remove a chave `Run` antiga.
-- Conversão: opções conforme as ferramentas reais; FLAC/OGG/AAC com codec correto; roteamento Pandoc × LibreOffice;
-  PNG transparente → JPEG com fundo branco; saída parcial apagada.
-- Colar/Limpar/Formatar/Traduzir/Pesquisar focam o campo certo e abortam se a janela errada estiver em foco; "Limpar"
-  pede confirmação em documentos; "Mover" restaura o destino em caso de falha e suporta outro volume.
+### Melhorias
 
-### Corrigido
-- Zip Slip na extração; zip parcial apagado ao cancelar ou falhar; pastas vazias entram no zip.
-- `ToolResolver` sem `where.exe`; só ferramentas confiáveis; cache de "não encontrado" expira em 30 s.
+- O programa passou a usar o .NET 10 (o .NET 8 deixa de receber atualizações em novembro de 2026).
+- **Iniciar com o Windows** agora funciona mesmo exigindo administrador: virou uma tarefa agendada, sem pedir
+  permissão a cada entrada no Windows.
+- O controle do mouse roda separado do resto do programa, então o mouse não trava se outra parte do RadialFlow
+  demorar. Se o Windows desligar esse controle, o RadialFlow o religa sozinho.
+- Colar, Limpar, Negrito, Traduzir e Pesquisar agem no campo certo e não fazem nada se outra janela estiver na
+  frente. **Limpar** pede confirmação em documentos.
+- **Mover** pergunta o que fazer quando já existe um arquivo com o mesmo nome: parar, manter os dois ou substituir.
+  Também funciona entre discos diferentes.
+- Conversão: só aparecem os formatos que o seu computador consegue gerar, e áudio em FLAC, OGG e AAC sai certo.
+  Imagens PNG com fundo transparente viram JPG com fundo branco. Converter a partir de PDF deixou de ser oferecido,
+  porque nenhum dos conversores lê PDF bem.
 
-### Comportamentos que mudaram
-- Ferramentas (ffmpeg, magick, pandoc, soffice) em pastas do usuário (ex.: `C:\ffmpeg`, WinGet) são **ignoradas** de
-  propósito. Instale em `C:\Program Files`.
-- Conversão que cairia em arquivo existente gera `nome (1).ext`.
-- "Mover" pergunta o que fazer no conflito: parar, manter os dois ou substituir.
-- Converter a partir de PDF não é mais oferecido (nenhum motor lê PDF com fidelidade).
+### Correções
+
+- Extrair um `.zip` malicioso não consegue mais gravar fora da pasta escolhida.
+- Cancelar ou falhar uma compactação ou conversão apaga o arquivo pela metade. Pastas vazias entram no `.zip`.
+- Nada é sobrescrito sem perguntar: se o nome já existe, o novo arquivo vira `nome (1).ext`.
+
+### Segurança
+
+- Navegador, apps favoritos e pastas abertos pela roda não recebem permissão de administrador.
+- Programas de conversão instalados em pastas do usuário (como `C:\ffmpeg`) são ignorados de propósito. Instale-os
+  em `C:\Program Files`.

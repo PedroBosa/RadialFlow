@@ -1,126 +1,192 @@
 # RadialFlow
 
-Menu radial contextual para Windows. **Segure e arraste o botão direito** do mouse e uma roda de ações aparece
-sob o cursor; solte sobre uma fatia para executá-la. O que a roda oferece depende do que está sob o cursor.
+Um menu em forma de roda para o Windows. Segure o botão direito do mouse, arraste um pouco e a roda aparece
+embaixo do cursor. Solte sobre uma opção e pronto.
 
-| Sob o cursor | Fatias |
+![A roda do RadialFlow aberta sobre um arquivo, com a opção Converter destacada](docs/images/roda.png)
+
+As opções mudam conforme o que está embaixo do cursor:
+
+| Onde você abre a roda | O que aparece |
 |---|---|
-| Arquivo ou pasta | Comprimir · Converter (submenu de formatos) · Copiar caminho · Mover para · Enviar para · Renomear |
-| Barra de título | Maximizar · Snap esquerda/direita · Transparência · Sempre no topo · Minimizar · Fechar |
-| Campo de texto | Colar · Traduzir · Pesquisar · Formatar · Limpar |
-| Área de trabalho / fundo | Apps favoritos · Sistema · Área de transferência · Bloquear |
+| Um arquivo ou pasta | Comprimir, Converter, Copiar caminho, Mover para, Enviar para, Renomear |
+| A barra de título de uma janela | Maximizar, encaixar à esquerda ou à direita, Transparência, Sempre no topo, Minimizar, Fechar |
+| Um campo de texto | Colar, Traduzir, Pesquisar, Negrito, Limpar |
+| A área de trabalho ou um espaço vazio | Apps favoritos, Ajustes rápidos (as Configurações rápidas do Windows), Histórico da área de transferência, Bloquear |
 
-Um clique direito simples, sem arrastar, continua abrindo o menu normal do Windows. Fatias com a seta ⌄ têm submenu:
-mantenha o cursor sobre elas (o tempo é configurável) e um traço na borda mostra quando ele abre.
+O clique direito normal, sem arrastar, continua abrindo o menu de sempre do Windows.
 
-## Requisitos
+Algumas opções, como **Converter**, têm uma setinha ⌄. Deixe o cursor parado sobre elas: um traço azul vai se
+completando na borda e, quando fecha, aparecem mais opções (os formatos de conversão, por exemplo). Para voltar,
+deixe o cursor parado no centro da roda.
 
-- Windows 10 ou 11 (a roda usa o tema claro/escuro e a cor de destaque do sistema).
-- [.NET 10 SDK](https://dotnet.microsoft.com/download) para compilar (o `global.json` fixa a faixa do SDK).
-- Para **converter** arquivos, instale as ferramentas que quiser usar em `C:\Program Files`: FFmpeg, ImageMagick,
-  Pandoc e/ou LibreOffice. Imagens PNG/JPG/BMP/TIFF/GIF convertem sem instalar nada.
+## Instalar
 
-## Compilar, testar e executar
+1. Baixe o `RadialFlow-1.2.0-Setup.exe` na página **Releases** deste repositório.
+2. Abra o arquivo e siga o assistente. O RadialFlow é instalado em `C:\Program Files\RadialFlow`.
+3. No fim, deixe marcado **Abrir o RadialFlow agora**.
+
+Ele fica no canto da barra de tarefas, perto do relógio (o ícone é uma rodinha). Se não estiver aparecendo, clique
+na setinha **^** ao lado do relógio. Clicando no ícone você abre as configurações; com o botão direito, pode pausar
+ou fechar o programa.
+
+O RadialFlow pede permissão de administrador sempre que abre. É isso que deixa a roda funcionar também em cima de
+janelas do sistema, como o Gerenciador de Tarefas.
+
+Prefere não instalar? Existe também a versão portátil (`RadialFlow-1.2.0-win-x64.zip`). Extraia **todos** os
+arquivos numa pasta e abra o `RadialFlow.exe`. O instalador continua sendo a opção recomendada, porque coloca o
+programa numa pasta que outros programas não conseguem alterar.
+
+### O Windows protegeu o computador
+
+Na primeira vez, o Windows pode mostrar uma tela azul dizendo **"O Windows protegeu o computador"**. Isso acontece
+porque o RadialFlow ainda não tem assinatura digital: o Windows não sabe quem fez o programa e avisa por precaução.
+Não quer dizer que ele tenha vírus.
+
+Para continuar:
+
+1. Clique em **Mais informações**.
+2. Clique em **Executar assim mesmo**.
+
+Logo depois, o Windows pergunta se o programa pode fazer alterações, mostrando **Editor: Desconhecido**. Clique em
+**Sim**.
+
+Esse aviso deve continuar aparecendo enquanto o programa não for assinado. Mesmo depois de assinado, ele pode
+aparecer por algum tempo, até o Windows passar a reconhecer o programa. Se quiser conferir se o arquivo que você
+baixou é o original, compare o hash dele com o do arquivo `SHA256SUMS.txt` publicado junto:
 
 ```powershell
-dotnet build                 # aplicativo + testes + gerador de ícone; avisos são erros
-dotnet test                  # suíte completa (xUnit)
-dotnet build -c Release
-.\bin\Release\net10.0-windows\RadialFlow.exe
+Get-FileHash .\RadialFlow-1.2.0-Setup.exe
 ```
 
-O aplicativo **exige administrador** (`app.manifest`): é o que permite interceptar o mouse sobre janelas elevadas,
-como o Gerenciador de Tarefas. Rode o `.exe` com "Executar como administrador". `dotnet run` num terminal sem
-elevação falha com o erro 740, por causa do manifesto.
+## Configurar
 
-Ele vive na **bandeja do sistema** (anel azul-e-branco). Clique no ícone para abrir as Configurações; o menu de
-contexto tem Pausar/Retomar, Configurações, Abrir pasta de logs e Sair. Abrir uma segunda cópia apenas pede à
-primeira para mostrar as Configurações.
+Clique no ícone do RadialFlow perto do relógio.
 
-## Distribuir
+- **Geral**: iniciar com o Windows, pausar em jogos e vídeos em tela cheia, quanto é preciso arrastar para a roda
+  abrir, quanto tempo esperar para as opções extras aparecerem e a cor da roda.
+- **Blacklist**: programas em que a roda nunca abre (útil em programas 3D e jogos, que usam o botão direito).
+- **Apps favoritos**: os atalhos que aparecem quando você abre a roda na área de trabalho.
+
+Para **converter vídeos, áudios e documentos**, o RadialFlow usa programas gratuitos que você instala à parte:
+[FFmpeg](https://ffmpeg.org), [ImageMagick](https://imagemagick.org), [Pandoc](https://pandoc.org) e
+[LibreOffice](https://www.libreoffice.org). Instale-os na pasta `C:\Program Files`, que é onde o RadialFlow procura.
+Imagens PNG, JPG, BMP, TIFF e GIF convertem sem instalar nada.
+
+## Problemas comuns
+
+**A roda não abre.** Veja se o ícone está perto do relógio e se não está pausado (cinza). A roda também não abre em
+jogos e vídeos em tela cheia, nem nos programas da Blacklist. E é preciso arrastar um pouco: um clique parado abre o
+menu normal do Windows.
+
+**A opção Converter não oferece o formato que eu queria.** O programa que faz essa conversão não foi encontrado.
+Instale o FFmpeg, o ImageMagick, o Pandoc ou o LibreOffice na pasta `C:\Program Files`. Programas instalados em
+outras pastas são ignorados por segurança.
+
+**Abri o RadialFlow de novo e só apareceram as configurações.** É o esperado: ele já estava aberto. Só uma cópia
+roda por vez.
+
+**O ícone sumiu do canto da barra de tarefas.** Clique na setinha **^** ao lado do relógio. Se o RadialFlow tiver
+sido fechado, abra-o de novo pelo menu Iniciar.
+
+**Algo deu errado e eu quero saber o quê.** Nas configurações, aba **Sobre**, clique em **Abrir pasta de logs**. O
+arquivo `radialflow.log` registra o que o programa fez e os erros que aconteceram.
+
+## Desinstalar
+
+Abra **Configurações do Windows → Aplicativos → Aplicativos instalados**, procure **RadialFlow** e clique em
+**Desinstalar**. O desinstalador fecha o programa e remove a opção de iniciar com o Windows.
+
+Suas configurações e os logs ficam guardados em `%LocalAppData%\RadialFlow`, caso você instale de novo. Para
+apagar tudo, apague essa pasta depois de desinstalar.
+
+---
+
+## Para desenvolvedores
+
+### O que você precisa
+
+- Windows 10 ou 11
+- [.NET 10 SDK](https://dotnet.microsoft.com/download)
+- [Inno Setup 6](https://jrsoftware.org/isinfo.php), só para gerar o instalador
+
+### Compilar e testar
+
+```powershell
+dotnet build              # app, testes e gerador de ícone; qualquer aviso conta como erro
+dotnet test               # todos os testes
+```
+
+Para rodar, abra `bin\Debug\net10.0-windows\RadialFlow.exe` como administrador. O `dotnet run` num terminal comum
+falha com o erro 740, porque o programa exige administrador.
+
+### Gerar os arquivos de distribuição
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\publish.ps1
 ```
 
-O script roda os testes e, se passarem, gera em `dist\` (pasta fora do controle de versão):
+O script roda os testes e, se passarem, cria a pasta `dist\` (que fica fora do Git) com:
 
-- `RadialFlow-<versão>-win-x64\RadialFlow.exe`: executável único e autocontido (não exige o .NET instalado);
+- `RadialFlow-<versão>-win-x64\`: o programa pronto, sem precisar instalar o .NET;
 - `RadialFlow-<versão>-win-x64.zip`: a versão portátil;
-- `RadialFlow-<versão>-Setup.exe`: instalador, só se o [Inno Setup 6](https://jrsoftware.org/isinfo.php) estiver
-  instalado (`RadialFlow.iss`);
-- `SHA256SUMS.txt`: hashes para conferir a integridade.
+- `RadialFlow-<versão>-Setup.exe`: o instalador (precisa do Inno Setup);
+- `SHA256SUMS.txt`: os hashes dos arquivos acima.
 
-A versão vem do `<Version>` do `RadialFlow.csproj`. Prefira o instalador: ele coloca o app em `C:\Program Files`,
-uma pasta que usuários comuns não podem alterar. Isso importa porque o app roda como administrador, e a tarefa
-"Iniciar com o Windows" o abre com privilégios altos.
+A versão vem do `<Version>` em `RadialFlow.csproj`. Feche o RadialFlow antes de rodar o script: se ele estiver
+aberto a partir da pasta `bin\`, o build não consegue substituir o `.exe`.
 
-## Onde ficam os dados
+**Assinatura digital (opcional).** Sem certificado, os arquivos saem sem assinatura e o Windows mostra o aviso do
+SmartScreen. Se você tiver um certificado de assinatura de código instalado no Windows, informe a impressão digital
+dele e o script assina o programa, o instalador e o desinstalador, com carimbo de tempo:
 
-| O quê | Onde |
-|---|---|
-| Configurações | `%LocalAppData%\RadialFlow\settings.json` (gravação atômica; cópia anterior em `settings.json.bak`) |
-| Configuração corrompida | guardada como `settings.corrompido-AAAAMMDD-HHMMSS.json` ao lado (nunca é apagada) |
-| Logs | `%LocalAppData%\RadialFlow\logs\radialflow.log` (rotação por tamanho; nível via `RADIALFLOW_LOG=debug`) |
-
-## Segurança
-
-O aplicativo roda como administrador e age sobre caminhos e processos de terceiros, então:
-
-- **Ferramentas de conversão nunca rodam como administrador.** São iniciadas com o token não elevado do Explorer
-  (`UnelevatedLauncher.ExecuteAsync`), dentro de um Job Object que encerra a árvore de processos ao cancelar. Se não
-  houver token não elevado disponível (ex.: UAC desligado), a conversão externa é recusada.
-- **Só executa programas em locais que usuários comuns não podem alterar** (`TrustedPath`: dono, ACL do arquivo, da
-  pasta e dos ancestrais). Por isso ferramentas em pastas do usuário (`C:\ffmpeg`, WinGet…) são ignoradas de
-  propósito: instale em `C:\Program Files`.
-- Todo caminho vindo do Explorer, de configurações ou de diálogos é validado: sem `..`, streams alternativos
-  (`arquivo:x`), nomes reservados (CON, NUL…) nem namespaces de dispositivo (`\\?\`).
-- Extração de `.zip` à prova de *Zip Slip*. Nada é sobrescrito sem perguntar (`nome (1).ext`).
-
-## Estrutura
-
+```powershell
+.\publish.ps1 -CertThumbprint "<impressão digital do certificado>"
 ```
-RadialFlow.sln
-├─ RadialFlow.csproj          o aplicativo (WPF, net10.0-windows)
-├─ App.xaml(.cs)              partida: instância única, serviços, tratamento global de exceções
-├─ Input/                     hook global do mouse (thread própria) e lista de programas ignorados
-├─ Context/                   detecção do que está sob o cursor, fatias e ações
-├─ Services/                  conversão, compactação, ferramentas externas, lançador sem elevação
-├─ Security/                  TrustedPath: validação de caminhos e de executáveis
-├─ Config/                    configurações e persistência atômica
-├─ Infrastructure/            log em arquivo, instância única, versão
-├─ UI/
-│  ├─ Radial/                 a roda (janela, geometria, vidro fosco, posicionamento, tema)
-│  ├─ Windows/                Configurações, Progresso, Conversão e diálogos
-│  ├─ Tray/                   ícone da bandeja e renderizador do ícone do aplicativo
-│  └─ Theme/                  estilos e paleta compartilhados por todas as janelas
-├─ Assets/RadialFlow.ico      ícone do executável (gerado; ver abaixo)
-├─ tools/IconGenerator/       gera o .ico a partir do mesmo código que desenha a bandeja
-├─ publish.ps1, RadialFlow.iss  publicação (exe único, zip portátil) e instalador Inno Setup
-└─ RadialFlow.Tests/          testes (espelham a estrutura do aplicativo)
-```
+
+Também dá para definir a variável de ambiente `RADIALFLOW_SIGN_THUMBPRINT`. A assinatura precisa do `signtool.exe`,
+que vem com o Windows SDK.
 
 ### Ícone
 
-O ícone é o próprio pie: um anel de fatias com uma fatia ativa em azul, desenhado com a mesma geometria da roda real
-(`UI/Tray/AppIconRenderer.cs`). O arquivo `Assets/RadialFlow.ico` é **gerado**, não desenhado à mão:
+O ícone é desenhado pelo próprio código, com a mesma geometria da roda (`UI/Tray/AppIconRenderer.cs`). Depois de
+mudar o desenho, gere o arquivo de novo:
 
 ```powershell
 dotnet run --project tools/IconGenerator
 ```
 
-Um teste (`ArquivoIcoVersionado_ConfereComOQueOCodigoDesenha`) falha se o `.ico` ficar desatualizado em relação ao código.
+Um teste falha se `Assets/RadialFlow.ico` ficar diferente do que o código desenha.
 
-## Convenções
+### Como o código está organizado
 
-- C# moderno com *nullable* ligado; imports explícitos (`ImplicitUsings` desligado, para não colidir
-  `System.IO.Path` com `System.Windows.Shapes.Path`).
-- Análise de código no modo recomendado e avisos tratados como erro (`Directory.Build.props`); as exceções à política
-  estão documentadas, com o motivo, no `.editorconfig`.
-- Callbacks do Win32 rodam fora da thread de UI: devem apenas enfileirar trabalho no `Dispatcher`, nunca bloquear e
-  nunca deixar uma exceção escapar. Todo handle nativo tem dono claro e é liberado de forma determinística.
-- Mudanças relevantes entram no [CHANGELOG](CHANGELOG.md).
+| Pasta | O que tem |
+|---|---|
+| `Input/` | o hook do mouse e a blacklist |
+| `Context/` | descobre o que está sob o cursor, monta as fatias e executa as ações |
+| `Services/` | conversão, compactação e o lançador de programas sem administrador |
+| `Security/` | validação de caminhos e de executáveis |
+| `Config/` | configurações e como elas são salvas |
+| `Infrastructure/` | log, instância única e versão |
+| `UI/` | a roda, as janelas, o ícone da bandeja e o tema |
+| `RadialFlow.Tests/` | os testes, na mesma organização do app |
+| `tools/IconGenerator/` | gera o `Assets/RadialFlow.ico` |
+
+### Segurança
+
+O RadialFlow roda como administrador e mexe em arquivos e programas de outros, então ele toma alguns cuidados:
+
+- Os programas de conversão (FFmpeg e outros) **nunca** rodam como administrador. Se o Windows não oferecer um jeito
+  de rodá-los sem esses privilégios (por exemplo, com o Controle de Conta de Usuário desligado), a conversão é
+  recusada.
+- Só executa programas de pastas que um usuário comum não consegue alterar. Por isso ferramentas fora de
+  `C:\Program Files` são ignoradas.
+- Todo caminho de arquivo é conferido antes de ser usado: nada de `..`, de nomes reservados do Windows ou de
+  truques com `:`.
+- Nada é sobrescrito sem perguntar: se já existe um arquivo com o mesmo nome, o novo vira `nome (1).ext`.
+
+As mudanças de cada versão estão no [CHANGELOG](CHANGELOG.md).
 
 ## Licença
 
-Ainda não definida. Antes de publicar ou distribuir, escolha uma licença e adicione um arquivo `LICENSE`.
+Ainda não definida.
