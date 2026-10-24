@@ -1,5 +1,5 @@
 // ============================================================================
-// RadialFlow - Módulo 4: Blacklist de aplicações
+// RadialFlow - Programas em que o gesto fica desligado (blacklist)
 // ----------------------------------------------------------------------------
 // Desativa o hook (MouseHookService.Enabled = false) quando a janela em
 // primeiro plano pertence a um jogo, Blender, AutoCAD ou outro app 3D que
@@ -15,8 +15,8 @@
 //   2) O campo volátil MouseHookService.Enabled é setado a partir do cache,
 //      de modo que o hook só lê um bool: O(1), sem alocação, sem syscall.
 //
-// A lista configurável fica em BlacklistEntry[]. O Módulo 6 (configurações)
-// salvará/carregará em JSON; por enquanto usamos defaults hardcoded.
+// A lista vem das configurações (aba Blacklist, salva em settings.json);
+// DefaultEntries é a lista de fábrica, usada no primeiro uso e em "Restaurar padrões".
 //
 // Detecção de tela cheia exclusiva (ex.: jogo em modo exclusivo):
 //   * Compara o RECT da janela com o RECT do monitor. Se coincidem E a janela
@@ -26,9 +26,9 @@
 //
 // NOTA sobre tela cheia "borderless" (Chrome F11, PowerPoint, players de
 // vídeo): essas janelas removem WS_CAPTION e cobrem o monitor inteiro, sendo
-// detectadas como "exclusiva". A propriedade BlockExclusiveFullscreen permite
-// desativar globalmente. Para controle por app, adicione o processo à lista
-// com FullscreenPolicy = Allow (o Módulo 6 vai expor isso na UI).
+// detectadas como "exclusiva". A opção "Pausar em tela cheia exclusiva"
+// (BlockExclusiveFullscreen) liga ou desliga isso para todos os apps de uma vez;
+// ainda não existe exceção por app.
 //
 // Janelas do shell (Desktop, Taskbar) são IGNORADAS pela detecção de tela
 // cheia: Progman, WorkerW, Shell_TrayWnd e Shell_SecondaryTrayWnd sempre
@@ -57,7 +57,7 @@ public sealed class ForegroundBlacklist : IDisposable
     public sealed record BlacklistEntry(string ProcessName, string Description);
 
     /// <summary>
-    /// Lista padrão. O Módulo 6 (configurações) permitirá editá-la.
+    /// Lista de fábrica (o usuário edita a sua na aba Blacklist).
     /// Inclui apps 3D, modelagem e CAD. Launchers (Steam, Epic) NÃO entram:
     /// eles não usam RMB para câmera, e os jogos em si são pegos pela
     /// detecção de tela cheia exclusiva.
@@ -135,8 +135,7 @@ public sealed class ForegroundBlacklist : IDisposable
     ///
     /// NOTA: apps como Chrome em F11, PowerPoint em apresentação e players de
     /// vídeo em fullscreen borderless também são pegos. Para permitir o RadialFlow
-    /// nesses cenários, desative esta propriedade ou adicione exceções por app
-    /// (será implementado no Módulo 6).
+    /// nesses cenários, desative esta propriedade (não há exceção por app).
     /// </summary>
     public bool BlockExclusiveFullscreen { get; set; } = true;
 

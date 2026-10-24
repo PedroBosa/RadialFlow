@@ -1,5 +1,5 @@
 // ============================================================================
-// RadialFlow - Módulo 3 & 7: Fatias dinâmicas e sub-fatias contextuais
+// RadialFlow - Fatias da roda e submenus por contexto
 // ----------------------------------------------------------------------------
 // Gera as fatias radiais adaptadas ao contexto sob o cursor.
 // Suporta navegação hierárquica (SubSlices):

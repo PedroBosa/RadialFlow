@@ -1,5 +1,5 @@
 // ============================================================================
-// RadialFlow - Módulo 7: Janela Flutuante de Progresso Assíncrono
+// RadialFlow - Janela de progresso
 // ----------------------------------------------------------------------------
 // Exibe barra de progresso suave em segundo plano para compactações e
 // conversões sem travar a interface gráfica nem a roda radial.

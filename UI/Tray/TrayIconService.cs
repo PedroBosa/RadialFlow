@@ -1,5 +1,5 @@
 // ============================================================================
-// RadialFlow - Módulo 6: Ícone na Bandeja do Sistema (NotifyIcon)
+// RadialFlow - Ícone na bandeja do sistema
 // ----------------------------------------------------------------------------
 // Implementa o NotifyIcon nativo usando a API Win32 Shell_NotifyIcon.
 //

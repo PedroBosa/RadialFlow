@@ -1,5 +1,5 @@
 // ============================================================================
-// RadialFlow - Módulo 3 (parte 3): Do item de UI Automation ao caminho real
+// RadialFlow - Do item de UI Automation ao caminho real
 //
 // Por que isso é necessário: o gesto engole o RMB Down, então o Explorer
 // NUNCA seleciona o item sob o cursor. Não dá para confiar na seleção do

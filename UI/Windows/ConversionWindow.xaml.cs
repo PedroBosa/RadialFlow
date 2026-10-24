@@ -1,5 +1,5 @@
 // ============================================================================
-// RadialFlow - Módulo 7: Janela de Seleção de Formato para Conversão
+// RadialFlow - Janela de conversão (formato e pasta de destino)
 // ----------------------------------------------------------------------------
 // Apresenta ao usuário os formatos de destino suportados para o arquivo sob
 // o cursor e permite selecionar o diretório de saída.

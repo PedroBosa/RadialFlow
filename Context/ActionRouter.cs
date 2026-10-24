@@ -1,8 +1,8 @@
 // ============================================================================
-// RadialFlow - Módulo 5: ActionRouter real
+// RadialFlow - Roteador de ações
 // ----------------------------------------------------------------------------
-// Substitui o ActionRouter provisório. Cada RadialAction é despachada para
-// o handler correto, que usa o ContextInfo (RootWindow, Paths, ProcessName).
+// Cada RadialAction é despachada para o handler correto, que usa o
+// ContextInfo (RootWindow, Paths, ProcessName).
 //
 // Regras de threading:
 //   * Run() é chamado na thread de UI (por DragCompleted no RadialController).
@@ -11,9 +11,6 @@
 //   * Ações que tocam o clipboard usam Dispatcher.Invoke (exige STA).
 //   * Ações com diálogo (Rename, MoveTo) abrem a janela via Dispatcher.
 //   * Nenhuma ação bloqueia a roda: ela já foi descartada antes de Run().
-//
-// Stubs claros para: Compress, Convert (Módulo 7) e SendTo, FavoriteApps,
-// SystemControls (Módulo 6).
 //
 // Segurança: Run() valida o contexto (ActionRouter.Logic.TryValidate) ANTES
 // de qualquer efeito: caminhos canônicos via TrustedPath, janela presente.
@@ -115,7 +112,7 @@ public static partial class ActionRouter
             case RadialAction.LockScreen:       LockWorkStation(); break;
             case RadialAction.ClipboardHistory: SimulateKeys(VK_LWIN, VK_V); break;
             case RadialAction.FavoriteApps:     return LaunchFavoriteAppsAsync(ctx);
-            case RadialAction.SystemControls:   StubAction(action, "Módulo 6 — abrindo Central de Ações"); SimulateKeys(VK_LWIN, VK_A); break;
+            case RadialAction.SystemControls:   OpenQuickSettings(); break;
 
             default:
                 AppLog.Warning("Action", $"Ação desconhecida: {action}");
@@ -1036,12 +1033,6 @@ public static partial class ActionRouter
             keybd_event(vks[i], 0, KEYEVENTF_KEYUP, 0);
     }
 
-    /// <summary>
-    /// Coloca a janela em primeiro plano via AttachThreadInput (sem enviar o Alt,
-    /// que podia ativar a barra de menus do app alvo).
-    /// </summary>
-    private static void ForceForeground(IntPtr hwnd) => WindowFocus.ForceForeground(hwnd);
-
     /// <summary>Abre URL no navegador padrão.</summary>
     private static void OpenUrl(string url)
     {
@@ -1055,19 +1046,18 @@ public static partial class ActionRouter
         }
     }
 
-    /// <summary>Log para ações ainda não implementadas (stubs dos módulos futuros).</summary>
-    private static void StubAction(RadialAction action, string module)
+    /// <summary>Abre as Configurações rápidas do Windows (Wi-Fi, volume, brilho...), o mesmo que Win+A.</summary>
+    private static void OpenQuickSettings()
     {
-        AppLog.Debug("Action", $"STUB: {action} — aguardando {module}.");
+        SimulateKeys(VK_LWIN, VK_A);
+        AppLog.Debug("Action", "Configurações rápidas (Win+A)");
     }
 
     // ------------------------------------------------------------------
     // Virtual Key Codes
     // ------------------------------------------------------------------
 
-    private const byte VK_BACK    = 0x08;
     private const byte VK_CONTROL = 0x11;
-    private const byte VK_MENU    = 0x12; // Alt
     private const byte VK_DELETE  = 0x2E;
     private const byte VK_LWIN    = 0x5B;
     private const byte VK_A       = 0x41;
@@ -1160,13 +1150,6 @@ public static partial class ActionRouter
     [DllImport("user32.dll")]
     [return: MarshalAs(UnmanagedType.Bool)]
     private static extern bool SetLayeredWindowAttributes(IntPtr hwnd, uint crKey, byte bAlpha, byte dwFlags);
-
-    [DllImport("user32.dll")]
-    [return: MarshalAs(UnmanagedType.Bool)]
-    private static extern bool SetForegroundWindow(IntPtr hWnd);
-
-    [DllImport("user32.dll")]
-    private static extern IntPtr GetForegroundWindow();
 
     [DllImport("user32.dll")]
     private static extern void keybd_event(byte bVk, byte bScan, uint dwFlags, nuint dwExtraInfo);

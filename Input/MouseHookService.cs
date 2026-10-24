@@ -1,5 +1,5 @@
 // ============================================================================
-// RadialFlow - Módulo 1: Global Mouse Hook + Lógica de Deadzone
+// RadialFlow - Hook global do mouse e zona morta do gesto
 // ----------------------------------------------------------------------------
 // MUDANÇA IMPORTANTE: o hook agora roda em uma THREAD DEDICADA, com message
 // loop próprio. Antes ele vivia na thread de UI do WPF: qualquer bloqueio ali

@@ -1,5 +1,5 @@
 // ============================================================================
-// RadialFlow - Módulo 2 (parte 1): Modelo + Matemática da roda
+// RadialFlow - Modelo e geometria da roda
 // Sem dependência de janela: tudo aqui é puro e testável.
 // ============================================================================
 

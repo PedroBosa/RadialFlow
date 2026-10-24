@@ -1,5 +1,5 @@
 // ============================================================================
-// RadialFlow - Módulo 3 (parte 2): Detecção de contexto
+// RadialFlow - Detecção de contexto
 //
 // Duas etapas, ambas FORA da thread de UI (Task.Run):
 //

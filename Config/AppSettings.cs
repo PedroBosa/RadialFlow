@@ -1,5 +1,5 @@
 // ============================================================================
-// RadialFlow - Módulo 6: Configurações persistentes (JSON) e Inicialização
+// RadialFlow - Configurações e inicialização com o Windows
 // ----------------------------------------------------------------------------
 // Gerencia a serialização em JSON (%LocalAppData%\RadialFlow\settings.json)
 // e a inicialização automática com o Windows via TAREFA AGENDADA.

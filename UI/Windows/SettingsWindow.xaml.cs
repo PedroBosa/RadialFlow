@@ -1,5 +1,5 @@
 // ============================================================================
-// RadialFlow - Módulo 6: Janela de Configurações
+// RadialFlow - Janela de Configurações
 // ----------------------------------------------------------------------------
 // Interface gráfica para personalização da Blacklist, Apps Favoritos,
 // Sensibilidade do arrasto e Inicialização com o Windows.
