@@ -3,10 +3,14 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="RadialFlow Overlay"
         Width="440" Height="440"
-        WindowStyle="None" AllowsTransparency="True" Background="Transparent"
+        WindowStyle="None" AllowsTransparency="True" Background="#01000000"
         Topmost="True" ShowInTaskbar="False" ShowActivated="False"
         ResizeMode="NoResize" Focusable="False" IsHitTestVisible="False"
         WindowStartupLocation="Manual">
+
+    <!-- Fundo #01000000 (opacidade 1/255, invisível): numa janela com transparência por pixel, o Windows deixa o mouse
+         atravessar os pixels 100% transparentes. Com este fundo, o quadrado inteiro da roda "segura" o mouse e o
+         programa de baixo não mostra dicas nem destaques enquanto a roda está aberta. -->
 
     <Grid x:Name="Root" Width="440" Height="440"
           RenderTransformOrigin="0.5,0.5" Opacity="0">

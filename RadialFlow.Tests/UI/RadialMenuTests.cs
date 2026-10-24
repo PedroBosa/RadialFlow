@@ -1,7 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Threading;
+using System.Windows.Interop;
+using System.Windows.Media;
 using System.Windows.Threading;
 using RadialFlow.Config;
 using RadialFlow.UI;
@@ -199,6 +202,78 @@ public sealed class RadialMenuTests
 
             Pump(700);
             Assert.False(IsSubmenu(wheel));  // voltou
+            wheel.Close();
+        });
+    }
+
+    // ------------------------------------------------------------------
+    // O programa de baixo não "vê" o mouse enquanto a roda está aberta
+    // ------------------------------------------------------------------
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct NativePoint { public int X; public int Y; }
+
+    [DllImport("user32.dll")] private static extern IntPtr WindowFromPoint(NativePoint point);
+    [DllImport("user32.dll")] private static extern IntPtr GetAncestor(IntPtr hwnd, uint flags);
+    [DllImport("user32.dll")] private static extern int GetWindowLong(IntPtr hwnd, int index);
+
+    /// <summary>A janela de nível superior que o Windows considera "sob o mouse" no ponto (a que recebe hover e dicas).</summary>
+    private static IntPtr TopLevelAt(int x, int y) => GetAncestor(WindowFromPoint(new NativePoint { X = x, Y = y }), 2 /* GA_ROOT */);
+
+    [Fact]
+    public void RodaAberta_SeguraOMouseEmTodoOQuadrado_InclusiveNasAreasVazias()
+    {
+        // Regressão: a roda deixava o mouse passar (WS_EX_TRANSPARENT + fundo 100% transparente). Com o cursor parado
+        // numa opção, o Explorer embaixo achava que ele estava parado sobre um arquivo e mostrava a dica por cima da roda.
+        RunSta(() =>
+        {
+            RadialMenuWindow wheel = CreateWheel(dwellMilliseconds: 650);
+            IntPtr hwnd = new WindowInteropHelper(wheel).Handle;
+            double scale = RadialMenuWindow.GetMonitorScale(OriginX, OriginY);
+            int Px(double dip) => (int)Math.Round(dip * scale);
+
+            Assert.Equal(hwnd, TopLevelAt(OriginX, OriginY));                         // miolo
+            Assert.Equal(hwnd, TopLevelAt(OriginX + Px(110), OriginY));               // sobre uma fatia
+            Assert.Equal(hwnd, TopLevelAt(OriginX - Px(205), OriginY - Px(205)));     // canto vazio do quadrado (fora do anel)
+            Assert.NotEqual(hwnd, TopLevelAt(OriginX + Px(300), OriginY));            // fora da roda: volta a ser o que estiver lá
+
+            wheel.Close();
+        });
+    }
+
+    [Fact]
+    public void RodaFechada_DevolveOMouseParaOQueEstaEmbaixo()
+    {
+        RunSta(() =>
+        {
+            RadialMenuWindow wheel = CreateWheel(dwellMilliseconds: 650);
+            IntPtr hwnd = new WindowInteropHelper(wheel).Handle;
+            Assert.Equal(hwnd, TopLevelAt(OriginX, OriginY));
+
+            wheel.Dismiss(OriginX, OriginY);
+            Pump(50);
+
+            Assert.NotEqual(hwnd, TopLevelAt(OriginX, OriginY));
+            wheel.Close();
+        });
+    }
+
+    [Fact]
+    public void Roda_NaoRoubaOFocoENaoAtravessaOMouse()
+    {
+        RunSta(() =>
+        {
+            RadialMenuWindow wheel = CreateWheel(dwellMilliseconds: 650);
+            int ex = GetWindowLong(new WindowInteropHelper(wheel).Handle, -20 /* GWL_EXSTYLE */);
+
+            Assert.True((ex & 0x08000000) != 0, "WS_EX_NOACTIVATE: a roda não pode roubar o foco do programa de baixo");
+            Assert.True((ex & 0x00000080) != 0, "WS_EX_TOOLWINDOW: sem botão na barra de tarefas nem no Alt+Tab");
+            Assert.True((ex & 0x00000020) == 0, "WS_EX_TRANSPARENT faria o mouse atravessar a roda");
+
+            // O fundo que segura o mouse precisa ser invisível: opacidade de no máximo 2/255.
+            var background = Assert.IsType<SolidColorBrush>(wheel.Background);
+            Assert.InRange(background.Color.A, (byte)1, (byte)2);
+
             wheel.Close();
         });
     }

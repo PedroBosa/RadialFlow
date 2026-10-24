@@ -86,8 +86,12 @@ public partial class RadialMenuWindow : Window
         base.OnSourceInitialized(e);
         _hwnd = new WindowInteropHelper(this).Handle;
 
+        // Sem WS_EX_TRANSPARENT: enquanto a roda está aberta, o mouse fica NELA, e não no programa de baixo.
+        // Antes, o cursor parado numa opção era, para o Explorer, o cursor parado sobre um arquivo, e a dica dele
+        // ("Tipo de item, Tamanho...") aparecia por cima da roda. NOACTIVATE continua: a roda nunca rouba o foco,
+        // nem quando clicada. O hook do mouse não é afetado (ele vê os eventos antes de qualquer janela).
         int ex = GetWindowLong(_hwnd, GWL_EXSTYLE);
-        SetWindowLong(_hwnd, GWL_EXSTYLE, ex | WS_EX_NOACTIVATE | WS_EX_TOOLWINDOW | WS_EX_TRANSPARENT);
+        SetWindowLong(_hwnd, GWL_EXSTYLE, (ex | WS_EX_NOACTIVATE | WS_EX_TOOLWINDOW) & ~WS_EX_TRANSPARENT);
     }
 
     public void Prewarm()
