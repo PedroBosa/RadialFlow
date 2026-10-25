@@ -357,13 +357,36 @@ public static class ConversionService
         return new ToolResult(exitCode, errorTail);
     }
 
+    /// <summary>
+    /// Limite para documentos e imagens (Pandoc, LibreOffice, ImageMagick): um arquivo estranho pode travar a ferramenta
+    /// em vez de falhar. Não vale para o FFmpeg, em que um vídeo longo demora mesmo (e o progresso mostra que anda).
+    /// </summary>
+    internal static readonly TimeSpan ToolTimeout = TimeSpan.FromMinutes(5);
+
     /// <summary>Executa uma ferramenta e falha com o resumo do stderr se o código de saída não for 0.</summary>
-    private static async Task RunProcessAsync(string executable, IReadOnlyList<string> args,
-        IProgress<ProgressReport>? progress, CancellationToken ct, string? workingDirectory = null)
+    /// <param name="timeout">Limite de tempo; padrão <see cref="ToolTimeout"/>.</param>
+    internal static async Task RunProcessAsync(string executable, IReadOnlyList<string> args,
+        IProgress<ProgressReport>? progress, CancellationToken ct, string? workingDirectory = null, TimeSpan? timeout = null)
     {
         progress?.Report(new ProgressReport(40.0, $"Convertendo com o {Path.GetFileNameWithoutExtension(executable)}..."));
 
-        ToolResult result = await RunToolAsync(executable, args, workingDirectory, onErrorLine: null, ct).ConfigureAwait(false);
+        TimeSpan limitAfter = timeout ?? ToolTimeout;
+        using var limit = CancellationTokenSource.CreateLinkedTokenSource(ct);
+        limit.CancelAfter(limitAfter);
+
+        ToolResult result;
+        try
+        {
+            result = await RunToolAsync(executable, args, workingDirectory, onErrorLine: null, limit.Token).ConfigureAwait(false);
+        }
+        catch (OperationCanceledException) when (!ct.IsCancellationRequested)
+        {
+            // O launcher já encerrou a ferramenta e os processos filhos dela.
+            string time = limitAfter.TotalMinutes >= 1 ? $"{limitAfter.TotalMinutes:0} minutos" : $"{limitAfter.TotalSeconds:0} segundos";
+            throw new TimeoutException(
+                $"O {Path.GetFileNameWithoutExtension(executable)} não terminou em {time} e foi encerrado. " +
+                "O arquivo pode ter algo que ele não consegue converter.");
+        }
 
         if (result.ExitCode != 0)
             throw new InvalidOperationException(

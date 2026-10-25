@@ -308,8 +308,9 @@ internal static class ConversionFormats
         }
 
         // HTML e Word/ODT/RTF: o LibreOffice preserva melhor o layout; o Pandoc cobre o resto.
+        // TXT só pelo Pandoc: a exportação para texto do LibreOffice trava em documentos com tabela (verificado na 26.8).
         bool pandocReads = ext != ".doc";
-        if (target is "md" or "epub") return pandoc && pandocReads ? ConversionEngine.Pandoc : ConversionEngine.None;
+        if (target is "md" or "epub" or "txt") return pandoc && pandocReads ? ConversionEngine.Pandoc : ConversionEngine.None;
         if (office) return ConversionEngine.LibreOffice;
         return pandoc && pandocReads && target != "pdf" ? ConversionEngine.Pandoc : ConversionEngine.None;
     }
@@ -409,7 +410,6 @@ internal static class ConversionFormats
         "docx" => "docx:MS Word 2007 XML",
         "odt" => "odt:writer8",
         "rtf" => "rtf:Rich Text Format",
-        "txt" => "txt:Text (encoded):UTF8",
         "html" => "html:HTML (StarWriter)",
         "xlsx" => "xlsx:Calc Office Open XML",
         "ods" => "ods:calc8",

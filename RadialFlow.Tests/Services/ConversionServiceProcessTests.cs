@@ -228,6 +228,29 @@ public sealed class ConversionServiceProcessTests : IDisposable
         Assert.False(File.Exists(partial), "O arquivo parcial ficou para trás.");
     }
 
+    [Fact]
+    public async Task FerramentaTravada_EhEncerradaNoLimite_ComMensagemClara()
+    {
+        // Encerrar a árvore de processos ao cancelar é garantia do launcher (Cancelar_EncerraAFerramentaEApagaOArquivoParcial).
+        var sw = System.Diagnostics.Stopwatch.StartNew();
+
+        var error = await Assert.ThrowsAsync<TimeoutException>(() =>
+            ConversionService.RunProcessAsync(Cmd, ["/c", "ping -n 60 127.0.0.1"], null, CancellationToken.None,
+                timeout: TimeSpan.FromSeconds(2)));
+
+        Assert.InRange(sw.Elapsed.TotalSeconds, 1.5, 20);
+        Assert.Contains("não terminou em 2 segundos", error.Message);
+    }
+
+    [Fact]
+    public async Task CanceladoPeloUsuario_ContinuaSendoCancelamento_NaoLimite()
+    {
+        using var cts = new CancellationTokenSource(TimeSpan.FromMilliseconds(500));
+
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() =>
+            ConversionService.RunProcessAsync(Cmd, ["/c", "ping -n 60 127.0.0.1"], null, cts.Token, timeout: TimeSpan.FromMinutes(5)));
+    }
+
     private static async Task WaitUntilAsync(Func<bool> condition, TimeSpan timeout)
     {
         DateTime limit = DateTime.UtcNow + timeout;

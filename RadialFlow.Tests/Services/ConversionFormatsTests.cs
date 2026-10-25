@@ -142,8 +142,11 @@ public sealed class ConversionFormatsTests
     {
         var office = Nothing with { HasLibreOffice = true };
 
-        Assert.Equal(new[] { "pdf", "odt", "rtf", "txt", "html" }, Offered(".docx", office));
-        Assert.Equal(new[] { "pdf", "docx", "odt", "rtf", "txt", "html" }, Offered(".doc", office));
+        // Sem TXT: a exportação para texto do LibreOffice trava em documentos com tabela; TXT vem do Pandoc.
+        Assert.Equal(new[] { "pdf", "odt", "rtf", "html" }, Offered(".docx", office));
+        Assert.Equal(new[] { "pdf", "docx", "odt", "rtf", "html" }, Offered(".doc", office));
+        Assert.Equal(ConversionEngine.Pandoc, ConversionFormats.Plan(".docx", "txt", Everything));
+        Assert.Equal(ConversionEngine.None, ConversionFormats.Plan(".doc", "txt", Everything));
         Assert.Equal(ConversionEngine.Pandoc, ConversionFormats.Plan(".docx", "md", Everything));
         Assert.Equal(ConversionEngine.None, ConversionFormats.Plan(".doc", "md", Everything));   // o Pandoc não lê .doc
         Assert.Equal(ConversionEngine.LibreOffice, ConversionFormats.Plan(".docx", "pdf", Everything));
@@ -172,7 +175,6 @@ public sealed class ConversionFormatsTests
     [InlineData(".xlsx", "pdf", "pdf:calc_pdf_Export")]
     [InlineData(".pptx", "pdf", "pdf:impress_pdf_Export")]
     [InlineData(".odt", "docx", "docx:MS Word 2007 XML")]
-    [InlineData(".docx", "txt", "txt:Text (encoded):UTF8")]
     [InlineData(".xlsx", "csv", "csv:Text - txt - csv (StarCalc):44,34,76,1")]
     [InlineData(".ods", "xlsx", "xlsx:Calc Office Open XML")]
     [InlineData(".odp", "pptx", "pptx:Impress MS PowerPoint 2007 XML")]
