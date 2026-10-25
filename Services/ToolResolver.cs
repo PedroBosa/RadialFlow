@@ -132,9 +132,9 @@ internal sealed class ToolLocator(ToolSearchEnvironment environment)
         lock (_gate) _rejected.TryGetValue(toolName, out rejectedPath);
 
         return rejectedPath is null
-            ? $"O {friendly} não está instalado. Instale-o na pasta C:\\Program Files e tente de novo."
+            ? $"O {friendly} não está instalado. Instale-o em Configurações > Conversores (um clique) e tente de novo."
             : $"O {friendly} foi encontrado em '{rejectedPath}', mas não foi usado por segurança: " +
-              "essa pasta pode ser alterada sem permissão de administrador. Instale-o na pasta C:\\Program Files.";
+              "essa pasta pode ser alterada sem permissão de administrador. Instale-o em Configurações > Conversores.";
     }
 
     public void ResetCache()
@@ -153,6 +153,8 @@ internal sealed class ToolLocator(ToolSearchEnvironment environment)
         {
             yield return Path.Combine(environment.BaseDirectory, exeName);
             yield return Path.Combine(environment.BaseDirectory, "tools", exeName);
+            // Onde a aba Conversores (e o instalador) extrai o FFmpeg: <app>\tools\ffmpeg\ffmpeg.exe.
+            yield return Path.Combine(environment.BaseDirectory, "tools", Path.GetFileNameWithoutExtension(exeName), exeName);
         }
 
         foreach (string root in environment.ProgramFilesRoots)

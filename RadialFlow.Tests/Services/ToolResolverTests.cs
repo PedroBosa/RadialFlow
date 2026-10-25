@@ -74,6 +74,7 @@ public sealed class ToolResolverTests : IDisposable
         {
             Path.Combine(BaseDir, "magick.exe"),
             Path.Combine(BaseDir, "tools", "magick.exe"),
+            Path.Combine(BaseDir, "tools", "magick", "magick.exe"),
             Path.Combine(ProgramFiles, "ffmpeg", "bin", "magick.exe"),
             Path.Combine(ProgramFiles, "Pandoc", "magick.exe"),
             Path.Combine(ProgramFiles, "LibreOffice", "program", "magick.exe"),
@@ -90,7 +91,7 @@ public sealed class ToolResolverTests : IDisposable
         var candidates = CreateLocator(@"relativo;.\local;..\acima;C:sem-raiz").EnumerateCandidates("ffmpeg.exe").ToList();
 
         // Só sobram candidatos da sandbox (pasta do app + Arquivos de Programas): nenhum relativo ao diretório atual.
-        Assert.Equal(6, candidates.Count);
+        Assert.Equal(7, candidates.Count);
         Assert.All(candidates, c => Assert.StartsWith(_temp.Root, c, StringComparison.OrdinalIgnoreCase));
     }
 
