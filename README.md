@@ -14,7 +14,7 @@ embaixo do cursor. Solte sobre uma opção e pronto.
   <img src="docs/images/roda.gif" width="760" alt="A roda do RadialFlow aberta sobre um vídeo no Explorer: o cursor passa por Comprimir e Copiar caminho, segura em Converter, escolhe GIF e a conversão termina">
 </p>
 
-**Neste guia:** [Instalar](#instalar) · [Configurar](#configurar) · [Converter arquivos](#converter-arquivos) · [Problemas comuns](#problemas-comuns) · [Desinstalar](#desinstalar) · [Para desenvolvedores](#para-desenvolvedores) · [Licença](#licença)
+**Neste guia:** [Instalar](#instalar) · [Configurar](#configurar) · [Menus personalizados](#menus-personalizados) · [Converter arquivos](#converter-arquivos) · [Problemas comuns](#problemas-comuns) · [Desinstalar](#desinstalar) · [Para desenvolvedores](#para-desenvolvedores) · [Licença](#licença)
 
 As opções mudam conforme o que está embaixo do cursor:
 
@@ -79,7 +79,54 @@ Clique no ícone do RadialFlow perto do relógio.
   abrir, quanto tempo esperar para as opções extras aparecerem e a cor da roda.
 - **Blacklist**: programas em que a roda nunca abre (útil em programas 3D e jogos, que usam o botão direito).
 - **Apps favoritos**: os atalhos que aparecem quando você abre a roda na área de trabalho.
+- **Menus**: itens extras que aparecem só em certos aplicativos, janelas ou contextos (veja abaixo).
 - **Conversores**: instala os programas de conversão (veja abaixo).
+
+## Menus personalizados
+
+Além das opções automáticas, você pode criar os seus menus em **Configurações → Menus**. Cada menu vale só onde você
+escolher, e os itens dele **somam** à roda daquele contexto.
+
+Para criar, clique em **Novo**, dê um nome e preencha as condições (todas são opcionais):
+
+- **Processo**: o aplicativo onde o menu vale, sem o `.exe` (por exemplo, `notepad`). Vazio vale para qualquer um.
+- **Título contém**: um trecho do título da janela (por exemplo, o nome de uma aba do navegador). Vazio vale para
+  qualquer título.
+- **Contextos**: arquivos e pastas, área de trabalho, barra de título, campos de texto ou genérico. Nenhum marcado
+  vale para todos.
+- **Prioridade**: quando vários menus valem ao mesmo tempo, todos os itens entram. A prioridade decide a ordem: os
+  menus com número maior são considerados primeiro, o que importa quando a roda não tem espaço para tudo.
+
+Depois, adicione os itens. Cada um pode ser:
+
+| Tipo de item | O que faz | Observação |
+|---|---|---|
+| Ação do RadialFlow | Executa uma opção que já existe | Se a ação já estiver na roda automática sem setinha de opções extras, o seu item assume o lugar dela, com o nome e o ícone que você escolher. |
+| Abrir executável | Abre um programa | Só de pastas protegidas (como `C:\Program Files` e `System32`) e sem argumentos. |
+| Abrir site | Abre um endereço no navegador | Só `http://` e `https://`. |
+| Abrir arquivo ou pasta | Abre com o programa padrão | Executáveis, scripts e atalhos são recusados aqui. |
+| Enviar atalho | Envia uma combinação de teclas, como `Ctrl+Shift+P` | O foco precisa estar na janela onde a roda foi aberta. |
+| Colar texto | Cola um texto no campo em foco | Usa a área de transferência e tenta devolver o conteúdo anterior depois. |
+
+O editor mostra uma **prévia da roda**: as fatias em destaque vieram do seu menu e aparecem marcadas como
+**substitui** (assumiu o lugar de uma automática) ou **extra** (acrescentada). A roda cabe no máximo **8 fatias**: as
+automáticas que não forem substituídas continuam, e o que não couber fica de fora — a prévia avisa quantos itens serão
+ignorados. Cada menu aceita até 8 itens, e você pode ter até 20 menus.
+
+Salvar já vale para o próximo menu aberto, sem reiniciar o RadialFlow. Para voltar à roda automática, desative ou
+remova o menu.
+
+Exemplos:
+
+- Um menu com processo `notepad` e o item **Abrir executável** → `notepad.exe` aparece só quando você abre a roda no
+  Bloco de Notas.
+- Um menu só para **barra de título**, com a ação **Fechar** renomeada para “Fechar sem medo”, troca a fatia Fechar
+  das janelas pelo seu item, mantendo as outras fatias no lugar.
+
+Os itens externos rodam **sem** permissão de administrador, mesmo com o RadialFlow aberto como administrador. Por
+segurança, programas instalados na sua pasta de usuário (como `%LocalAppData%`) não são aceitos em **Abrir
+executável**; para esses, use **Apps favoritos**. Interpretadores como `cmd`, PowerShell e `wscript` são recusados
+mesmo estando em pastas protegidas: abrir um deles seria abrir um shell.
 
 ## Converter arquivos
 
@@ -248,6 +295,8 @@ O RadialFlow roda como administrador e mexe em arquivos e programas de outros, e
   numa pasta protegida; nada é instalado se o tamanho ou o SHA-256 não conferirem.
 - Todo caminho de arquivo é conferido antes de ser usado: nada de `..`, de nomes reservados do Windows ou de
   truques com `:`.
+- Os itens dos menus personalizados não ganham novos poderes: executáveis só de pastas protegidas, sem argumentos,
+  sites só em `http://` ou `https://` e arquivos executáveis recusados; tudo roda sem administrador.
 - Nada é sobrescrito sem perguntar: se já existe um arquivo com o mesmo nome, o novo vira `nome (1).ext`.
 
 As mudanças de cada versão estão no [CHANGELOG](CHANGELOG.md).

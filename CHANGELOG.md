@@ -2,6 +2,28 @@
 
 Cada versão, da mais nova para a mais antiga. O número da versão está em `RadialFlow.csproj`.
 
+## Não lançado
+
+### Novo
+
+- **Menus personalizados.** A nova aba **Configurações → Menus** permite criar menus que só aparecem em certos
+  aplicativos, janelas ou contextos. Cada item pode executar uma ação do RadialFlow, abrir um programa, um site, uma
+  pasta ou um arquivo, enviar um atalho de teclado ou colar um texto.
+  - Os itens **somam** à roda automática. Um item com a mesma ação de uma fatia automática sem opções extras assume
+    o lugar dela, mantendo as demais fatias.
+  - Condições por processo (sem `.exe`), trecho do título da janela, contexto e prioridade. Vários menus que casam
+    ao mesmo tempo somam seus itens.
+  - O editor mostra uma **prévia da roda**, marcando o que substitui uma fatia automática e o que é extra, e avisa
+    quando os itens passam do limite de 8 fatias da roda.
+
+### Segurança
+
+- Itens externos dos menus seguem as mesmas regras do resto do programa: executáveis só de pastas protegidas, **sem
+  argumentos** e com interpretadores (cmd, PowerShell, wscript etc.) bloqueados; sites só em `http://` ou
+  `https://`; executáveis, scripts e atalhos são recusados em **Abrir arquivo ou pasta**.
+- Programas abertos pelos menus rodam **sem** permissão de administrador. Apps instalados na pasta do usuário (como
+  `%LocalAppData%`) são recusados em **Abrir executável**; para esses, continue usando **Apps favoritos**.
+
 ## 1.2.0 — 24/10/2026
 
 ### Novo
