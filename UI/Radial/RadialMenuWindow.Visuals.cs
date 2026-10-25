@@ -38,6 +38,11 @@ public partial class RadialMenuWindow
     private const double IconPop = 1.12;            // o ícone cresce um pouco mais
     private const double DwellArcRadius = RingOuter * HoverPop + 8;
     private const double DwellArcThickness = 3.5;
+    private const double HubRadius = 40;            // metade do CenterHub (80 x 80) no XAML
+    internal const double BackDwellRadius = (HubRadius + RingInner) / 2;   // no meio do vão entre o miolo e as fatias
+
+    /// <summary>Comprimento do traço do "voltar" em múltiplos da espessura (unidade do StrokeDashArray), com folga.</summary>
+    private static readonly double BackDwellDash = 2 * Math.PI * BackDwellRadius / DwellArcThickness + 1;
 
     private static readonly FontFamily IconFont  = new("Segoe Fluent Icons, Segoe MDL2 Assets");
     private static readonly FontFamily LabelFont = new("Segoe UI Variable Text, Segoe UI");
@@ -77,6 +82,9 @@ public partial class RadialMenuWindow
         HubBg.Stroke = new SolidColorBrush(theme.HubBorder);
         IdleDot.Stroke = new SolidColorBrush(theme.HubInk);
         HubGlyph.Foreground = new SolidColorBrush(theme.HubInk);
+
+        BackDwellArc.Stroke = new SolidColorBrush(theme.DwellArc);
+        BackDwellGlow.Color = theme.DwellArc;
 
         HintPill.Background = new SolidColorBrush(theme.PillFill);
         HintPill.BorderBrush = new SolidColorBrush(theme.HubBorder);
@@ -291,5 +299,48 @@ public partial class RadialMenuWindow
             s.DwellArc.StrokeDashOffset = (double)s.DwellArc.Tag;
             s.DwellArc.Visibility = Visibility.Collapsed;
         }
+
+        BackDwellArc.BeginAnimation(Shape.StrokeDashOffsetProperty, null);
+        BackDwellArc.StrokeDashOffset = BackDwellDash;
+        BackDwellArc.Visibility = Visibility.Collapsed;
     }
+
+    /// <summary>
+    /// Círculo em volta do miolo, começando no topo e seguindo no sentido horário (como o traço das fatias).
+    /// Duas meias-voltas: um único ArcSegment não desenha um círculo inteiro.
+    /// </summary>
+    private static PathGeometry BuildBackDwellGeometry()
+    {
+        var top = RadialGeometry.Polar(Center, Center, BackDwellRadius, -90);
+        var bottom = RadialGeometry.Polar(Center, Center, BackDwellRadius, 90);
+        var size = new Size(BackDwellRadius, BackDwellRadius);
+
+        var figure = new PathFigure { StartPoint = top, IsClosed = false, IsFilled = false };
+        figure.Segments.Add(new ArcSegment(bottom, size, 0, false, SweepDirection.Clockwise, true));
+        figure.Segments.Add(new ArcSegment(top, size, 0, false, SweepDirection.Clockwise, true));
+
+        var geometry = new PathGeometry();
+        geometry.Figures.Add(figure);
+        geometry.Freeze();
+        return geometry;
+    }
+
+    private static readonly PathGeometry BackDwellGeometry = BuildBackDwellGeometry();
+
+    /// <summary>Desenha o círculo do "voltar" em volta do miolo ao longo de <paramref name="duration"/>.</summary>
+    private void StartBackDwellProgress(TimeSpan duration)
+    {
+        if (BackDwellArc.Data is null)
+        {
+            BackDwellArc.Data = BackDwellGeometry;
+            BackDwellArc.StrokeThickness = DwellArcThickness;
+            BackDwellArc.StrokeDashArray = new DoubleCollection { BackDwellDash, BackDwellDash };
+        }
+
+        BackDwellArc.Visibility = Visibility.Visible;
+        BackDwellArc.BeginAnimation(Shape.StrokeDashOffsetProperty, new DoubleAnimation(BackDwellDash, 0, duration));
+    }
+
+    /// <summary>true enquanto o círculo do "voltar" está sendo desenhado (testes).</summary>
+    internal bool IsBackDwellVisible => BackDwellArc.Visibility == Visibility.Visible;
 }

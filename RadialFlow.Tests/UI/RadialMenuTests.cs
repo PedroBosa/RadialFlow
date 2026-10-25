@@ -206,6 +206,67 @@ public sealed class RadialMenuTests
         });
     }
 
+    [Fact]
+    public void Voltar_CirculoDeEsperaApareceSoNoCentroDoSubmenu_ESomeAoSairOuAoVoltar()
+    {
+        RunSta(() =>
+        {
+            RadialMenuWindow wheel = CreateWheel(dwellMilliseconds: 400);
+
+            wheel.UpdateCursor(OriginX, OriginY);
+            Pump(100);
+            Assert.False(wheel.IsBackDwellVisible);   // menu principal: centro não volta para lugar nenhum
+
+            HoverConverter(wheel);
+            Pump(900);
+            Assert.True(IsSubmenu(wheel));
+            Assert.False(wheel.IsBackDwellVisible);   // sobre uma fatia, nada de "voltar"
+
+            wheel.UpdateCursor(OriginX, OriginY);
+            Pump(150);
+            Assert.True(wheel.IsBackDwellVisible);    // no centro do submenu: o círculo está sendo desenhado
+            double partial = wheel.BackDwellArc.StrokeDashOffset;
+            Pump(120);
+            Assert.True(wheel.BackDwellArc.StrokeDashOffset < partial, "O círculo não avançou com o tempo.");
+
+            HoverConverter(wheel);                    // sai do centro antes de completar
+            Pump(50);
+            Assert.False(wheel.IsBackDwellVisible);
+            Assert.True(IsSubmenu(wheel));
+
+            wheel.UpdateCursor(OriginX, OriginY);
+            Pump(800);                                // completa: volta ao menu principal
+            Assert.False(IsSubmenu(wheel));
+            Assert.False(wheel.IsBackDwellVisible);   // e o círculo não fica para trás
+            wheel.Close();
+        });
+    }
+
+    [Fact]
+    public void Voltar_CirculoFicaEntreOMioloEAsFatias()
+    {
+        RunSta(() =>
+        {
+            RadialMenuWindow wheel = CreateWheel(dwellMilliseconds: 400);
+            HoverConverter(wheel);
+            Pump(900);
+            wheel.UpdateCursor(OriginX, OriginY);
+            Pump(100);
+
+            System.Windows.Rect bounds = wheel.BackDwellArc.Data.Bounds;
+            double center = RadialMenuWindow.SizeDip / 2;
+            double radius = RadialMenuWindow.BackDwellRadius;
+
+            Assert.InRange(radius - wheel.BackDwellArc.StrokeThickness / 2, 40.5, 58);   // fora do miolo (raio 40)
+            Assert.InRange(radius + wheel.BackDwellArc.StrokeThickness / 2, 40, 57.5);   // dentro do furo das fatias (raio 58)
+            Assert.Equal(center - radius, bounds.Left, precision: 3);                     // círculo inteiro, centrado
+            Assert.Equal(center - radius, bounds.Top, precision: 3);
+            Assert.Equal(2 * radius, bounds.Width, precision: 3);
+            Assert.Equal(2 * radius, bounds.Height, precision: 3);
+            wheel.Close();
+        });
+    }
+
     // ------------------------------------------------------------------
     // O programa de baixo não "vê" o mouse enquanto a roda está aberta
     // ------------------------------------------------------------------

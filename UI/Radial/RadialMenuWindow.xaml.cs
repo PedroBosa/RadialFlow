@@ -8,7 +8,8 @@
 //
 // SUBMENUS: pairar sobre uma fatia com opções (ex.: "Converter") por
 // DwellMilliseconds abre o submenu; o traço azul na borda da fatia mostra o
-// tempo restante. Voltar ao centro pelo mesmo tempo retorna ao menu anterior.
+// tempo restante. Voltar ao centro pelo mesmo tempo retorna ao menu anterior;
+// ali, um círculo no mesmo estilo contorna o miolo enquanto o tempo corre.
 // ============================================================================
 
 using System;
@@ -244,6 +245,7 @@ public partial class RadialMenuWindow : Window
             // No centro, dentro de um submenu: segurar volta ao menu anterior.
             ShowHub(null);   // seta "voltar"
             ShowHint("Segure no centro para voltar");
+            StartBackDwellProgress(DwellDuration);   // o círculo fecha exatamente quando volta
             _backDwellTimer.Start();
         }
         else
@@ -266,6 +268,7 @@ public partial class RadialMenuWindow : Window
     private void OnBackDwellTimerTick(object? sender, EventArgs e)
     {
         _backDwellTimer.Stop();
+        HideAllDwellArcs();
         if (_hover == -1 && _navHistory.Count > 0) ReturnToParentMenu();
     }
 

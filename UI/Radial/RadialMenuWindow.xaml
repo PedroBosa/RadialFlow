@@ -54,6 +54,15 @@
             </TextBlock>
         </Grid>
 
+        <!-- Traço de espera do "voltar": contorna o miolo dentro de um submenu, no mesmo estilo do traço das fatias.
+             Geometria, cor e animação em RadialMenuWindow.Visuals.cs. -->
+        <Path x:Name="BackDwellArc" Width="440" Height="440" HorizontalAlignment="Left" VerticalAlignment="Top"
+              StrokeStartLineCap="Round" StrokeEndLineCap="Round" Visibility="Collapsed" IsHitTestVisible="False">
+            <Path.Effect>
+                <DropShadowEffect x:Name="BackDwellGlow" BlurRadius="10" ShadowDepth="0" Opacity="0.8" RenderingBias="Performance"/>
+            </Path.Effect>
+        </Path>
+
         <!-- Dica abaixo do anel -->
         <Border x:Name="HintPill" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,411,0,0"
                 CornerRadius="11" Padding="12,3,12,4" Opacity="0" BorderThickness="1">
