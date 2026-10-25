@@ -3,7 +3,7 @@
 Um menu em forma de roda para o Windows. Segure o botão direito do mouse, arraste um pouco e a roda aparece
 embaixo do cursor. Solte sobre uma opção e pronto.
 
-![A roda do RadialFlow aberta sobre um arquivo, com a opção Converter destacada](docs/images/roda.png)
+![A roda do RadialFlow aberta sobre um vídeo no Explorer: o cursor passa por Comprimir e Copiar caminho, segura em Converter, escolhe GIF e a conversão termina](docs/images/roda.gif)
 
 As opções mudam conforme o que está embaixo do cursor:
 
