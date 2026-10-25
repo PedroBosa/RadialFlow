@@ -10,7 +10,18 @@ Cada versão, da mais nova para a mais antiga. O número da versão está em `Ra
   A fatia sob o cursor fica na cor de destaque (você escolhe a cor nas configurações) e o centro mostra o ícone da
   ação.
 - **Tempo para abrir as opções extras é configurável**, de 0,2 a 2 segundos (o padrão subiu de 0,26 para 0,65 s). Um
-  traço na borda da fatia mostra quando as opções vão aparecer.
+  traço na borda da fatia mostra quando as opções vão aparecer. Dentro das opções extras, segurar no centro desenha um
+  círculo em volta do botão de voltar, no mesmo estilo.
+- **Converter ficou bem mais completo**, e só mostra o que funciona no seu computador:
+  - **Imagens** sem instalar nada: PNG, JPG, PDF, ICO (com todos os tamanhos de ícone), GIF, BMP e TIFF. Fotos WebP,
+    HEIC, AVIF e RAW de câmera também, se as extensões de imagem gratuitas da Microsoft Store estiverem instaladas, e
+    HEIC como destino quando o Windows consegue gravá-lo. Fotos de celular saem na orientação certa.
+  - **Vídeo**: MP4, MKV, WEBM, MOV, GIF animado e extração do áudio (MP3, M4A, WAV).
+  - **Áudio**: MP3, M4A, WAV, FLAC, OGG, OPUS, AAC e AIFF.
+  - **Documentos** (Word, ODT, RTF, TXT, HTML, Markdown, EPUB), **planilhas** (Excel, ODS, CSV) e **apresentações**
+    (PowerPoint, ODP), inclusive para PDF.
+- Quando não há nenhuma conversão possível para o item (uma pasta, um formato desconhecido ou um programa que falta),
+  a opção **Converter** nem aparece na roda.
 - **A roda sempre cabe na tela.** Perto das bordas ou da barra de tarefas, ela se desloca para dentro e o cursor vai
   junto.
 - **Ícone novo**, no formato da própria roda, no programa, nas janelas e perto do relógio. Ali ele fica claro ou escuro
@@ -35,13 +46,19 @@ Cada versão, da mais nova para a mais antiga. O número da versão está em `Ra
   de energia), o programa voltava aos padrões e apagava sua blacklist e seus favoritos. Agora ele usa a cópia
   anterior e guarda o arquivo estragado ao lado, sem apagar nada.
 - Renomear não aceita mais um nome que leve o arquivo para outra pasta.
+- A dica do Explorer ("Tipo de item, Tamanho...") não aparece mais por cima da roda aberta.
+- **Abrir o RadialFlow agora**, no fim da instalação, dava o erro 740. Agora abre normalmente.
+- Markdown para PDF não falha mais: antes o Pandoc exigia um programa extra (LaTeX) que quase ninguém tem; agora o
+  PDF é feito pelo LibreOffice.
+- CSV separado por ponto e vírgula (o padrão do Excel em português) abre com as colunas certas.
 
 ### Segurança
 
 - Os programas de conversão (FFmpeg, ImageMagick, Pandoc, LibreOffice) agora rodam **sem** permissão de
   administrador, e cancelar uma conversão encerra o programa e tudo o que ele abriu.
 - Antes de executar qualquer um deles, o RadialFlow confere se ele está numa pasta protegida, como
-  `C:\Program Files`.
+  `C:\Program Files`. Se o programa for um atalho do tipo link (como os que o winget cria), vale a pasta do arquivo
+  real, não a do atalho.
 - Caminhos de arquivo vindos do Explorer, das configurações e das janelas são conferidos antes de serem usados.
 - Abrir uma pasta pela janela de progresso não dá mais permissão de administrador ao Explorer.
 

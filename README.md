@@ -9,7 +9,7 @@ As opções mudam conforme o que está embaixo do cursor:
 
 | Onde você abre a roda | O que aparece |
 |---|---|
-| Um arquivo ou pasta | Comprimir, Converter, Copiar caminho, Mover para, Enviar para, Renomear |
+| Um arquivo ou pasta | Comprimir, Converter (só quando há para o que converter), Copiar caminho, Mover para, Enviar para, Renomear |
 | A barra de título de uma janela | Maximizar, encaixar à esquerda ou à direita, Transparência, Sempre no topo, Minimizar, Fechar |
 | Um campo de texto | Colar, Traduzir, Pesquisar, Negrito, Limpar |
 | A área de trabalho ou um espaço vazio | Apps favoritos, Ajustes rápidos (as Configurações rápidas do Windows), Histórico da área de transferência, Bloquear |
@@ -18,7 +18,7 @@ O clique direito normal, sem arrastar, continua abrindo o menu de sempre do Wind
 
 Algumas opções, como **Converter**, têm uma setinha ⌄. Deixe o cursor parado sobre elas: um traço azul vai se
 completando na borda e, quando fecha, aparecem mais opções (os formatos de conversão, por exemplo). Para voltar,
-deixe o cursor parado no centro da roda.
+deixe o cursor parado no centro da roda: um círculo se completa em volta do botão e a roda volta ao menu anterior.
 
 ## Instalar
 
@@ -68,10 +68,39 @@ Clique no ícone do RadialFlow perto do relógio.
 - **Blacklist**: programas em que a roda nunca abre (útil em programas 3D e jogos, que usam o botão direito).
 - **Apps favoritos**: os atalhos que aparecem quando você abre a roda na área de trabalho.
 
-Para **converter vídeos, áudios e documentos**, o RadialFlow usa programas gratuitos que você instala à parte:
-[FFmpeg](https://ffmpeg.org), [ImageMagick](https://imagemagick.org), [Pandoc](https://pandoc.org) e
-[LibreOffice](https://www.libreoffice.org). Instale-os na pasta `C:\Program Files`, que é onde o RadialFlow procura.
-Imagens PNG, JPG, BMP, TIFF e GIF convertem sem instalar nada.
+## Converter arquivos
+
+Abra a roda sobre um arquivo e segure em **Converter**: aparecem só os formatos que funcionam para aquele arquivo
+neste computador. Se nenhum funcionar, a opção Converter não aparece. O arquivo novo fica na mesma pasta, e nada é
+sobrescrito: se já existir um com o mesmo nome, o novo vira `nome (1).ext`.
+
+| Arquivo | Vira | O que precisa |
+|---|---|---|
+| Imagem PNG, JPG, BMP, GIF, TIFF, ICO | PNG, JPG, PDF, ICO, GIF, BMP, TIFF | nada |
+| Foto WebP, HEIC, AVIF ou RAW de câmera | os mesmos formatos acima | as extensões gratuitas **Extensões de Imagem HEIF**, **Extensões de Imagem da Web** e **Extensão de Imagem Bruta** da Microsoft Store (o Windows 11 geralmente já tem) |
+| Imagem para HEIC | HEIC | Extensões de Imagem HEIF e Extensões de Vídeo HEVC |
+| Imagem para WEBP, ou SVG e outros formatos | WEBP e os demais | [ImageMagick](https://imagemagick.org) |
+| Vídeo | MP4, MKV, WEBM, MOV, GIF animado, MP3, M4A, WAV | [FFmpeg](https://ffmpeg.org) |
+| Áudio | MP3, M4A, WAV, FLAC, OGG, OPUS, AAC, AIFF | FFmpeg |
+| Word, ODT, RTF, TXT, HTML | PDF, DOCX, ODT, RTF, TXT, HTML | [LibreOffice](https://www.libreoffice.org) |
+| Markdown, EPUB (e Word para Markdown/EPUB) | DOCX, HTML, ODT, RTF, EPUB, Markdown, TXT; PDF com o LibreOffice junto | [Pandoc](https://pandoc.org) |
+| Planilha (Excel, ODS, CSV) | PDF, XLSX, ODS, CSV | LibreOffice |
+| Apresentação (PowerPoint, ODP) | PDF, PPTX, ODP | LibreOffice |
+
+PDF não pode ser convertido para outros formatos.
+
+Os programas externos precisam estar numa pasta protegida, como `C:\Program Files`, onde os instaladores deles
+colocam por padrão. Pelo [winget](https://learn.microsoft.com/windows/package-manager/winget/), instale para todos os
+usuários:
+
+```powershell
+winget install --scope machine Gyan.FFmpeg
+winget install --scope machine ImageMagick.ImageMagick
+winget install --scope machine JohnMacFarlane.Pandoc
+winget install --scope machine TheDocumentFoundation.LibreOffice
+```
+
+Sem `--scope machine`, o winget instala o FFmpeg na sua pasta de usuário, e o RadialFlow o ignora por segurança.
 
 ## Problemas comuns
 
@@ -79,9 +108,10 @@ Imagens PNG, JPG, BMP, TIFF e GIF convertem sem instalar nada.
 jogos e vídeos em tela cheia, nem nos programas da Blacklist. E é preciso arrastar um pouco: um clique parado abre o
 menu normal do Windows.
 
-**A opção Converter não oferece o formato que eu queria.** O programa que faz essa conversão não foi encontrado.
-Instale o FFmpeg, o ImageMagick, o Pandoc ou o LibreOffice na pasta `C:\Program Files`. Programas instalados em
-outras pastas são ignorados por segurança.
+**A opção Converter não aparece, ou não tem o formato que eu queria.** Falta o programa que faz essa conversão (veja a
+tabela em [Converter arquivos](#converter-arquivos)), ou ele foi instalado numa pasta que outros programas conseguem
+alterar e por isso é ignorado. Depois de instalar, espere um minuto e abra a roda de novo; não precisa reiniciar o
+RadialFlow.
 
 **Abri o RadialFlow de novo e só apareceram as configurações.** É o esperado: ele já estava aberto. Só uma cópia
 roda por vez.

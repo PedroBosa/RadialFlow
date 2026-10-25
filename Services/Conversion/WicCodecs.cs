@@ -8,7 +8,7 @@
 //     lista mesmo quando falta a extensão HEVC, e aí falharia na conversão).
 // O JPEG XL fica de fora: o decodificador aparece na lista, mas o WPF não
 // consegue usá-lo (verificado com arquivos .jxl reais).
-// Resultados em cache por 5 minutos (instalar uma extensão não exige reiniciar).
+// Resultados em cache por 1 minuto (instalar uma extensão não exige reiniciar).
 // ============================================================================
 
 using System;
@@ -26,7 +26,7 @@ internal static class WicCodecs
     /// <summary>Contêiner HEIF (CLSID/GUID do formato no WIC).</summary>
     internal static readonly Guid HeifContainer = new("e1e62521-6787-405b-a339-500715b5763f");
 
-    private static readonly TimeSpan CacheTtl = TimeSpan.FromMinutes(5);
+    private static readonly TimeSpan CacheTtl = TimeSpan.FromMinutes(1);
     private static readonly HashSet<string> Excluded = new(StringComparer.OrdinalIgnoreCase) { ".jxl" };
 
     private static readonly object Gate = new();
