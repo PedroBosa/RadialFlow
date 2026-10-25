@@ -21,7 +21,8 @@ public sealed class SliceFactoryTests
     private SliceFactoryDependencies Deps(
         IReadOnlyList<ConversionOption>? options = null,
         IReadOnlyList<FavoriteAppEntry>? favorites = null,
-        Func<string, bool>? fileExists = null) =>
+        Func<string, bool>? fileExists = null,
+        IReadOnlyList<CustomMenuProfile>? profiles = null) =>
         new(_actions,
             path =>
             {
@@ -29,12 +30,19 @@ public sealed class SliceFactoryTests
                 return options ?? Array.Empty<ConversionOption>();
             },
             () => favorites,
-            fileExists ?? (_ => true));
+            fileExists ?? (_ => true),
+            profiles is null ? null : () => profiles);
 
     private static ContextInfo Context(RadialContextKind kind, params string[] paths) =>
         new(kind, Window, "explorer", 100, 200, paths.Length == 0 ? ContextInfo.NoPaths : paths);
 
     private static ConversionOption Option(string format) => new(format, $"{format.ToUpperInvariant()} — teste", "Teste");
+
+    private static CustomMenuProfile Profile(params CustomMenuItem[] items) => new()
+    {
+        Name = "Teste",
+        Items = items.ToList(),
+    };
 
     // ------------------------------------------------------------------
     // Fatias por contexto detectado
@@ -115,10 +123,12 @@ public sealed class SliceFactoryTests
     [Fact]
     public void Build_NaoExecutaNenhumaAcaoAoMontar()
     {
+        var customItem = new CustomMenuItem { Label = "Notas", Kind = CustomMenuItemKind.Launch, Target = "notepad.exe" };
+
         foreach (RadialContextKind kind in Enum.GetValues<RadialContextKind>())
         {
             SliceFactory.Build(Context(kind, SourceFile),
-                Deps([Option("jpg")], [new FavoriteAppEntry("App", @"C:\app.exe")]));
+                Deps([Option("jpg")], [new FavoriteAppEntry("App", @"C:\app.exe")], profiles: [Profile(customItem)]));
         }
 
         Assert.Equal(0, _actions.TotalCalls);
@@ -241,6 +251,139 @@ public sealed class SliceFactoryTests
 
         Assert.Equal(RadialGeometry.MaxSlices, favorites.Count);
         Assert.Equal("App 1", favorites[0].Label);
+    }
+
+    // ------------------------------------------------------------------
+    // Menus personalizados (ligação com a roda)
+    // ------------------------------------------------------------------
+
+    [Fact]
+    public void Build_SemPerfis_MantemAsFatiasAutomaticas()
+    {
+        var slices = SliceFactory.Build(Context(RadialContextKind.TitleBar), Deps(profiles: []));
+
+        Assert.Equal(
+            new[] { "Maximizar", "Snap dir.", "Fechar", "Transparência", "Sempre no topo", "Minimizar", "Snap esq." },
+            slices.Select(s => s.Label));
+        Assert.Empty(_actions.CustomRuns);
+    }
+
+    [Fact]
+    public void Build_ItemExtra_ViraUltimaFatiaEDisparaRunCustom()
+    {
+        var item = new CustomMenuItem
+        {
+            Label = "Bloco de Notas",
+            Glyph = "\uE70F",
+            Description = "Abrir o Bloco de Notas",
+            Kind = CustomMenuItemKind.Launch,
+            Target = "notepad.exe",
+        };
+
+        var slices = SliceFactory.Build(Context(RadialContextKind.Generic), Deps(profiles: [Profile(item)]));
+
+        Assert.Equal(5, slices.Count);
+        Assert.Equal("Bloco de Notas", slices[^1].Label);
+        Assert.Equal(0, _actions.TotalCalls);
+
+        slices[^1].Execute!();
+
+        var run = Assert.Single(_actions.CustomRuns);
+        Assert.Same(item, run.Item);
+        Assert.Equal(RadialContextKind.Generic, run.Context.Kind);
+        Assert.Empty(_actions.Runs);   // não passa pelo roteador de ações nativas
+    }
+
+    [Fact]
+    public void Build_ItemDeAcao_SubstituiFatiaAutomaticaNaMesmaPosicao()
+    {
+        var item = new CustomMenuItem
+        {
+            Label = "Fechar sem medo",
+            Description = "Fechar a janela atual",
+            Kind = CustomMenuItemKind.Action,
+            Action = RadialAction.Close,
+        };
+
+        var ctx = Context(RadialContextKind.TitleBar);
+        var slices = SliceFactory.Build(ctx, Deps(profiles: [Profile(item)]));
+
+        Assert.Equal(7, slices.Count);
+        Assert.Equal("Fechar sem medo", slices[2].Label);
+        Assert.Equal("Fechar a janela atual", slices[2].Description);
+        Assert.DoesNotContain(slices, s => s.Label == "Fechar");
+
+        foreach (var slice in slices) slice.Execute!();
+
+        Assert.Equal(item, Assert.Single(_actions.CustomRuns).Item);
+        Assert.DoesNotContain(_actions.Runs, r => r.Action == RadialAction.Close);
+        Assert.Equal(6, _actions.Runs.Count);
+        Assert.All(_actions.Runs, r => Assert.Same(ctx, r.Context));
+    }
+
+    [Fact]
+    public void Build_PerfilDeOutroProcesso_NaoAcrescentaNada()
+    {
+        var profile = Profile(new CustomMenuItem { Label = "Notas", Kind = CustomMenuItemKind.Launch, Target = "notepad.exe" });
+        profile.ProcessName = "notepad";
+
+        var slices = SliceFactory.Build(Context(RadialContextKind.Generic), Deps(profiles: [profile]));
+
+        Assert.Equal(4, slices.Count);
+        Assert.DoesNotContain(slices, s => s.Label == "Notas");
+    }
+
+    [Fact]
+    public void Build_PerfilComTitulo_SoCasaQuandoOTituloContem()
+    {
+        var profile = Profile(new CustomMenuItem { Label = "Relatórios", Kind = CustomMenuItemKind.OpenPath, Target = @"C:\Docs" });
+        profile.TitleContains = "relatório";
+
+        var baseCtx = new ContextInfo(RadialContextKind.Generic, Window, "explorer", 100, 200, ContextInfo.NoPaths, "Relatório final");
+        var withTitle = SliceFactory.Build(baseCtx, Deps(profiles: [profile]));
+        var withoutTitle = SliceFactory.Build(baseCtx with { WindowTitle = "" }, Deps(profiles: [profile]));
+
+        Assert.Contains(withTitle, s => s.Label == "Relatórios");
+        Assert.DoesNotContain(withoutTitle, s => s.Label == "Relatórios");
+    }
+
+    [Fact]
+    public void Build_FatiaComSubmenu_NaoEhSubstituidaPeloItemDeAcao()
+    {
+        var item = new CustomMenuItem
+        {
+            Label = "Meu converter",
+            Kind = CustomMenuItemKind.Action,
+            Action = RadialAction.Convert,
+        };
+
+        var slices = SliceFactory.Build(
+            Context(RadialContextKind.FileOrFolder, SourceFile),
+            Deps([Option("jpg")], profiles: [Profile(item)]));
+
+        var automatic = slices[1];
+        Assert.Equal("Converter", automatic.Label);
+        Assert.NotNull(automatic.SubSlices);
+        Assert.Equal("Meu converter", slices[^1].Label);
+
+        slices[^1].Execute!();
+
+        Assert.Same(item, Assert.Single(_actions.CustomRuns).Item);
+        Assert.Empty(_actions.Runs);
+    }
+
+    [Fact]
+    public void Build_LimiteDeOito_PreservaAutomaticasEDescartaExtras()
+    {
+        var first = new CustomMenuItem { Label = "Extra 1", Kind = CustomMenuItemKind.OpenUrl, Target = "https://example.com" };
+        var second = new CustomMenuItem { Label = "Extra 2", Kind = CustomMenuItemKind.OpenUrl, Target = "https://example.org" };
+
+        var slices = SliceFactory.Build(Context(RadialContextKind.TitleBar), Deps(profiles: [Profile(first, second)]));
+
+        Assert.Equal(RadialGeometry.MaxSlices, slices.Count);
+        Assert.Equal("Fechar", slices[2].Label);   // automáticas intactas
+        Assert.Equal("Extra 1", slices[^1].Label);
+        Assert.DoesNotContain(slices, s => s.Label == "Extra 2");
     }
 
     // ------------------------------------------------------------------
