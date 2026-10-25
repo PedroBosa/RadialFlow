@@ -16,12 +16,14 @@ namespace RadialFlow.UI;
 /// <param name="Execute">Ação executada ao soltar o botão sobre a fatia.</param>
 /// <param name="SubSlices">Opções de segundo nível exibidas ao pairar sobre a fatia.</param>
 /// <param name="Description">Descrição amigável exibida no hub central.</param>
+/// <param name="ActionKey">Nome da ação nativa que originou a fatia; metadado para menus personalizados (null em sub-fatias).</param>
 public sealed record RadialSlice(
     string Label,
     string Glyph,
     Action? Execute = null,
     IReadOnlyList<RadialSlice>? SubSlices = null,
-    string? Description = null);
+    string? Description = null,
+    string? ActionKey = null);
 
 public static class RadialGeometry
 {
