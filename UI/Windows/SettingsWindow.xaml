@@ -221,7 +221,7 @@
                                 <TextBlock Style="{StaticResource CardHint}" Margin="0,0,0,4" Text="•  Arquivos e pastas: Comprimir, Converter, Copiar caminho, Mover, Enviar e Renomear."/>
                                 <TextBlock Style="{StaticResource CardHint}" Margin="0,0,0,4" Text="•  Barra de título: Maximizar, Snap, Transparência, Sempre no topo, Minimizar e Fechar."/>
                                 <TextBlock Style="{StaticResource CardHint}" Margin="0,0,0,4" Text="•  Campos de texto: Colar, Traduzir, Pesquisar, Formatar e Limpar."/>
-                                <TextBlock Style="{StaticResource CardHint}" Margin="0" Text="•  Área de trabalho: Apps favoritos, Sistema, Área de transferência e Bloquear."/>
+                                <TextBlock Style="{StaticResource CardHint}" Margin="0" Text="•  Área de trabalho: Apps favoritos, Ajustes rápidos, Área de transferência e Bloquear."/>
                             </StackPanel>
                         </Border>
                     </StackPanel>

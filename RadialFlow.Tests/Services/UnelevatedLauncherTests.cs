@@ -411,11 +411,9 @@ public sealed class UnelevatedLauncherExecuteTests : IDisposable
             Assert.Contains("S-1-16-8192", text);         // o app é elevado e o filho caiu para integridade média
     }
 
-    [Fact]
+    [RequiresElevationFact]
     public async Task ExecuteAsync_ProcessoFilho_NaoTemPrivilegiosDeAdministrador()
     {
-        if (!UnelevatedLauncher.IsElevated()) return;   // o contraste só existe quando o app é elevado
-
         var result = await RunAsync(Whoami, ["/priv", "/fo", "csv"]);
         string text = string.Join('\n', result.Output);
 

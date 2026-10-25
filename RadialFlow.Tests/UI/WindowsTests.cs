@@ -385,7 +385,7 @@ public sealed class WindowsTests : IDisposable
                 Pump(300);
 
                 ComboBox combo = Find<ComboBox>(window, "CmbTargetFormat");
-                if (combo.Items.Count == 0) { window.Close(); return; }   // sem nenhum conversor instalado
+                Assert.NotEmpty(combo.Items);   // PNG sempre converte pelo próprio Windows
 
                 var shown = (combo.Template.FindName("PART_Popup", combo) as System.Windows.Controls.Primitives.Popup);
                 Assert.NotNull(shown);

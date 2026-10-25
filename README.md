@@ -40,8 +40,8 @@ programa numa pasta que outros programas não conseguem alterar.
 ### O Windows protegeu o computador
 
 Na primeira vez, o Windows pode mostrar uma tela azul dizendo **"O Windows protegeu o computador"**. Isso acontece
-porque o RadialFlow ainda não tem assinatura digital: o Windows não sabe quem fez o programa e avisa por precaução.
-Não quer dizer que ele tenha vírus.
+porque o RadialFlow não tem assinatura digital (um certificado pago que identifica quem fez o programa), então o
+Windows avisa por precaução. Não quer dizer que ele tenha vírus.
 
 Para continuar:
 
@@ -51,9 +51,8 @@ Para continuar:
 Logo depois, o Windows pergunta se o programa pode fazer alterações, mostrando **Editor: Desconhecido**. Clique em
 **Sim**.
 
-Esse aviso deve continuar aparecendo enquanto o programa não for assinado. Mesmo depois de assinado, ele pode
-aparecer por algum tempo, até o Windows passar a reconhecer o programa. Se quiser conferir se o arquivo que você
-baixou é o original, compare o hash dele com o do arquivo `SHA256SUMS.txt` publicado junto:
+O aviso pode aparecer de novo a cada versão nova. Se quiser conferir se o arquivo que você baixou é o original,
+compare o hash dele com o do arquivo `SHA256SUMS.txt` publicado junto:
 
 ```powershell
 Get-FileHash .\RadialFlow-1.2.0-Setup.exe

@@ -384,13 +384,8 @@ public sealed class ImageConverterTests : IDisposable
         Assert.DoesNotContain(".jxl", readable);
     }
 
-    [Theory]
-    [InlineData(".webp", WebpFixture)]
-    [InlineData(".avif", AvifFixture)]
-    public void ImagemDaStore_ConverteParaPngComAsCoresCertas(string ext, string base64)
+    private void AssertStoreFixtureConverts(string ext, string base64)
     {
-        if (!WicCodecs.Readable.Contains(ext)) return;   // extensão da Store ausente: o catálogo nem oferece
-
         string source = _temp.Combine("fixture" + ext);
         File.WriteAllBytes(source, Convert.FromBase64String(base64));
         string destination = _temp.Combine("fixture.png");
@@ -403,11 +398,15 @@ public sealed class ImageConverterTests : IDisposable
         AssertNear(PixelAt(result, 13, 4), Blue, tolerance: 24);
     }
 
-    [Fact]
+    [RequiresImageDecoderFact(".webp")]
+    public void Webp_ConverteParaPngComAsCoresCertas() => AssertStoreFixtureConverts(".webp", WebpFixture);
+
+    [RequiresImageDecoderFact(".avif")]
+    public void Avif_ConverteParaPngComAsCoresCertas() => AssertStoreFixtureConverts(".avif", AvifFixture);
+
+    [RequiresHeicEncoderFact]
     public void Heic_IdaEVolta_QuandoOCodificadorFunciona()
     {
-        if (!WicCodecs.CanWriteHeic) return;   // sem as extensões HEIF + HEVC: o catálogo nem oferece
-
         string source = HalfRedHalfBluePng();
         string heic = _temp.Combine("ida.heic");
         ImageConverter.Convert(source, "heic", heic);
