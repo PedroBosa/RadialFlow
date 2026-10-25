@@ -101,15 +101,21 @@ public static class SliceFactory
             }
         }
 
-        return new[]
+        var slices = new List<RadialSlice>
         {
             new RadialSlice("Comprimir",      "\uF012", () => actions.Run(RadialAction.Compress, c), null, "Compactar em .zip (ou extrair, se já for .zip)"),
-            new RadialSlice("Converter",      "\uE8AB", () => actions.Run(RadialAction.Convert, c), convertSubSlices, "Converter para outro formato"),
-            new RadialSlice("Copiar caminho", "\uE71B", () => actions.Run(RadialAction.CopyPath, c), null, "Copiar o caminho completo"),
-            new RadialSlice("Mover para",     "\uE838", () => actions.Run(RadialAction.MoveTo, c), null, "Mover para outra pasta"),
-            new RadialSlice("Enviar para",    "\uE724", () => actions.Run(RadialAction.SendTo, c), null, "Copiar o arquivo para colar em outro app"),
-            new RadialSlice("Renomear",       "\uE8AC", () => actions.Run(RadialAction.Rename, c), null, "Renomear"),
         };
+
+        // Converter só aparece quando existe ao menos uma conversão que funciona para ESTE arquivo
+        // (pasta, formato desconhecido ou ferramenta ausente: a fatia some em vez de levar a um beco sem saída).
+        if (convertSubSlices is { Count: > 0 })
+            slices.Add(new RadialSlice("Converter", "\uE8AB", () => actions.Run(RadialAction.Convert, c), convertSubSlices, "Converter para outro formato"));
+
+        slices.Add(new RadialSlice("Copiar caminho", "\uE71B", () => actions.Run(RadialAction.CopyPath, c), null, "Copiar o caminho completo"));
+        slices.Add(new RadialSlice("Mover para",     "\uE838", () => actions.Run(RadialAction.MoveTo, c), null, "Mover para outra pasta"));
+        slices.Add(new RadialSlice("Enviar para",    "\uE724", () => actions.Run(RadialAction.SendTo, c), null, "Copiar o arquivo para colar em outro app"));
+        slices.Add(new RadialSlice("Renomear",       "\uE8AC", () => actions.Run(RadialAction.Rename, c), null, "Renomear"));
+        return slices.ToArray();
     }
 
     // ------------------------------------------------------------------

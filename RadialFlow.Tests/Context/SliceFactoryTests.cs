@@ -75,7 +75,7 @@ public sealed class SliceFactoryTests
     {
         var ctx = Context(kind, SourceFile);
 
-        var slices = SliceFactory.Build(ctx, Deps());
+        var slices = SliceFactory.Build(ctx, Deps([Option("jpg")]));
 
         Assert.Equal(labels, slices.Select(s => s.Label));
 
@@ -157,30 +157,31 @@ public sealed class SliceFactoryTests
     }
 
     [Fact]
-    public void Build_Pasta_NaoConsultaOpcoesDeConversao()
+    public void Build_Pasta_EscondeConverterSemConsultarOpcoes()
     {
         var slices = SliceFactory.Build(Context(RadialContextKind.FileOrFolder, @"C:\Users\Public\Fotos"),
             Deps([Option("jpg")], fileExists: _ => false));
 
-        Assert.Null(slices.Single(s => s.Label == "Converter").SubSlices);
+        Assert.DoesNotContain(slices, s => s.Label == "Converter");
         Assert.Empty(_optionRequests);
     }
 
     [Fact]
-    public void Build_SemOpcoes_ConverterNaoTemSubFatias()
+    public void Build_ArquivoSemNenhumaConversao_EscondeConverter()
     {
         var slices = SliceFactory.Build(Context(RadialContextKind.FileOrFolder, SourceFile), Deps([]));
 
-        Assert.Null(slices.Single(s => s.Label == "Converter").SubSlices);
+        Assert.Equal(new[] { "Comprimir", "Copiar caminho", "Mover para", "Enviar para", "Renomear" }, slices.Select(s => s.Label));
+        Assert.Equal(new[] { SourceFile }, _optionRequests);
     }
 
     [Fact]
-    public void Build_SemCaminhos_AindaMostraAsFatiasDeArquivo()
+    public void Build_SemCaminhos_MostraAsOutrasFatiasDeArquivo()
     {
         var slices = SliceFactory.Build(Context(RadialContextKind.FileOrFolder), Deps([Option("jpg")]));
 
-        Assert.Equal(6, slices.Count);
-        Assert.Null(slices.Single(s => s.Label == "Converter").SubSlices);
+        Assert.Equal(5, slices.Count);
+        Assert.DoesNotContain(slices, s => s.Label == "Converter");
         Assert.Empty(_optionRequests);
     }
 
