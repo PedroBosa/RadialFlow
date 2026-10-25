@@ -1,9 +1,20 @@
 # RadialFlow
 
+<p align="center">
+  <a href="https://github.com/PedroBosa/RadialFlow/releases/latest"><img alt="Versão" src="https://img.shields.io/github/v/release/PedroBosa/RadialFlow?label=vers%C3%A3o&color=2563eb"></a>
+  <a href="LICENSE"><img alt="Licença MIT" src="https://img.shields.io/badge/licen%C3%A7a-MIT-2563eb"></a>
+  <img alt="Windows 10 e 11" src="https://img.shields.io/badge/Windows-10%20e%2011-2563eb">
+  <a href="https://github.com/PedroBosa/RadialFlow/releases/latest"><img alt="Baixar" src="https://img.shields.io/badge/baixar-instalador-16a34a"></a>
+</p>
+
 Um menu em forma de roda para o Windows. Segure o botão direito do mouse, arraste um pouco e a roda aparece
 embaixo do cursor. Solte sobre uma opção e pronto.
 
-![A roda do RadialFlow aberta sobre um vídeo no Explorer: o cursor passa por Comprimir e Copiar caminho, segura em Converter, escolhe GIF e a conversão termina](docs/images/roda.gif)
+<p align="center">
+  <img src="docs/images/roda.gif" width="760" alt="A roda do RadialFlow aberta sobre um vídeo no Explorer: o cursor passa por Comprimir e Copiar caminho, segura em Converter, escolhe GIF e a conversão termina">
+</p>
+
+**Neste guia:** [Instalar](#instalar) · [Configurar](#configurar) · [Converter arquivos](#converter-arquivos) · [Problemas comuns](#problemas-comuns) · [Desinstalar](#desinstalar) · [Para desenvolvedores](#para-desenvolvedores) · [Licença](#licença)
 
 As opções mudam conforme o que está embaixo do cursor:
 
