@@ -152,12 +152,26 @@ public static class ContextDetector
     // ------------------------------------------------------------------
 
     private static ContextInfo Make(RadialContextKind kind, IntPtr root, int x, int y) =>
-        new(kind, root, root == IntPtr.Zero ? "" : ProcessNameOf(root), x, y, ContextInfo.NoPaths);
+        new(kind, root, root == IntPtr.Zero ? "" : ProcessNameOf(root), x, y, ContextInfo.NoPaths, WindowTitleOf(root));
 
     internal static string ClassOf(IntPtr hwnd)
     {
         var sb = new StringBuilder(64);
         return GetClassName(hwnd, sb, sb.Capacity) > 0 ? sb.ToString() : "";
+    }
+
+    /// <summary>Título da janela (até 511 caracteres); vazio quando indisponível.</summary>
+    internal static string WindowTitleOf(IntPtr hwnd)
+    {
+        if (hwnd == IntPtr.Zero) return "";
+
+        try
+        {
+            var sb = new StringBuilder(512);
+            int length = GetWindowText(hwnd, sb, sb.Capacity);
+            return length > 0 ? sb.ToString(0, length) : "";
+        }
+        catch { return ""; }
     }
 
     private static string ProcessNameOf(IntPtr hwnd)
@@ -200,6 +214,9 @@ public static class ContextDetector
 
     [DllImport("user32.dll", CharSet = CharSet.Unicode)]
     private static extern int GetClassName(IntPtr hWnd, StringBuilder lpClassName, int nMaxCount);
+
+    [DllImport("user32.dll", CharSet = CharSet.Unicode)]
+    private static extern int GetWindowText(IntPtr hWnd, StringBuilder lpString, int nMaxCount);
 
     [DllImport("user32.dll")]
     private static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint processId);
