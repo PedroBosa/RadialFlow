@@ -24,7 +24,7 @@
     <Description>Menu radial para o Windows</Description>
     <Authors>Pedro Lucas Ferreira Bosa</Authors>
     <Company>Pedro Lucas Ferreira Bosa</Company>
-    <Copyright>Copyright © 2026 Pedro Lucas Ferreira Bosa</Copyright>
+    <Copyright>Copyright © 2026 Pedro Bosa</Copyright>
     <!-- Sem o hash do commit no número da versão exibido. -->
     <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
   </PropertyGroup>
@@ -38,6 +38,11 @@
   <ItemGroup>
     <!-- Regras puras (ActionRouter.Logic, ToolLocator, validações) são internal e testadas diretamente. -->
     <InternalsVisibleTo Include="RadialFlow.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- A licença MIT vai junto do programa (instalador e versão portátil). -->
+    <None Include="LICENSE" Link="LICENSE.txt" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>

@@ -11,6 +11,7 @@
 
 #define AppName      "RadialFlow"
 #define AppPublisher "Pedro Lucas Ferreira Bosa"
+#define AppCopyrightHolder "Pedro Bosa"
 #define AppExe       "RadialFlow.exe"
 
 [Setup]
@@ -21,7 +22,7 @@ AppVersion={#AppVersion}
 AppVerName={#AppName} {#AppVersion}
 AppPublisher={#AppPublisher}
 AppComments=Menu radial para o Windows: segure o botão direito, arraste e escolha.
-AppCopyright=Copyright © 2026 {#AppPublisher}
+AppCopyright=Copyright © 2026 {#AppCopyrightHolder}
 
 ; Detalhes do próprio Setup.exe (aparecem nas propriedades do arquivo).
 VersionInfoVersion={#AppVersion}
@@ -29,7 +30,7 @@ VersionInfoProductName={#AppName}
 VersionInfoProductVersion={#AppVersion}
 VersionInfoCompany={#AppPublisher}
 VersionInfoDescription=Instalador do {#AppName}
-VersionInfoCopyright=Copyright © 2026 {#AppPublisher}
+VersionInfoCopyright=Copyright © 2026 {#AppCopyrightHolder}
 
 ; Program Files é obrigatório: o app roda como administrador, e a tarefa "Iniciar com o Windows"
 ; o abre com privilégios altos. Numa pasta que qualquer programa pode alterar, isso seria uma brecha.

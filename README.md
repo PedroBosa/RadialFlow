@@ -243,4 +243,8 @@ As mudanças de cada versão estão no [CHANGELOG](CHANGELOG.md).
 
 ## Licença
 
-Ainda não definida.
+[MIT](LICENSE) © 2026 Pedro Bosa. Você pode usar, copiar, modificar e distribuir o RadialFlow, desde que mantenha o
+aviso de copyright e a licença.
+
+Os conversores (FFmpeg, Pandoc, ImageMagick e LibreOffice) são programas à parte, com licenças próprias. O RadialFlow
+não os inclui: só os baixa dos sites oficiais quando você pede.
