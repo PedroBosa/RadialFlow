@@ -44,8 +44,7 @@ public partial class ConversionWindow : Window
         else
         {
             BtnConvert.IsEnabled = false;
-            TxtCategory.Text += "\nNenhum programa instalado converte este arquivo. Veja no README, em \"Converter arquivos\", " +
-                                "o que instalar (sempre em C:\\Program Files, ou com winget --scope machine).";
+            TxtCategory.Text += "\nNenhum programa instalado converte este arquivo. Instale o que falta em Configurações > Conversores.";
         }
     }
 

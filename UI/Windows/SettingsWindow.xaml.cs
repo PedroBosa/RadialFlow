@@ -57,6 +57,8 @@ public partial class SettingsWindow : Window
 
         _favoriteItems = new ObservableCollection<FavoriteAppEntry>(current.FavoriteApps);
         ListFavorites.ItemsSource = _favoriteItems;
+
+        InitializeConvertersTab();
     }
 
     private void BtnOpenLogs_Click(object sender, RoutedEventArgs e) => TrayIconService.OpenLogsFolder();

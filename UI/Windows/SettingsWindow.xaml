@@ -177,7 +177,46 @@
                 </Grid>
             </TabItem>
 
-            <!-- ABA 4: SOBRE -->
+            <!-- ABA 4: CONVERSORES (lista montada em código: SettingsWindow.Converters.cs) -->
+            <TabItem Header="Conversores">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                    <StackPanel Margin="0,0,14,12">
+                        <Border Style="{StaticResource Card}">
+                            <StackPanel>
+                                <TextBlock Text="Programas gratuitos para converter mais formatos" Style="{StaticResource CardTitle}"/>
+                                <TextBlock Style="{StaticResource CardHint}" Margin="0,3,0,0"
+                                           Text="Imagens comuns já convertem sem instalar nada. Para vídeo, áudio, documentos e outros formatos, marque o que quiser e clique em Instalar. Os arquivos vêm do site oficial de cada programa e são conferidos antes de instalar."/>
+                            </StackPanel>
+                        </Border>
+
+                        <StackPanel x:Name="ConverterList"/>
+
+                        <Border Style="{StaticResource Card}">
+                            <StackPanel>
+                                <TextBlock x:Name="ConverterStatus" Style="{StaticResource CardHint}" Margin="0,0,0,10" TextWrapping="Wrap"/>
+                                <StackPanel Orientation="Horizontal">
+                                    <Button x:Name="BtnInstallConverters" Content="Instalar selecionados" Style="{StaticResource PrimaryButton}"
+                                            Click="BtnInstallConverters_Click" Margin="0,0,8,0"
+                                            AutomationProperties.Name="Instalar os conversores selecionados"/>
+                                    <Button x:Name="BtnRefreshConverters" Content="Verificar de novo" Click="BtnRefreshConverters_Click"
+                                            AutomationProperties.Name="Verificar de novo quais conversores estão instalados"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+
+                        <Border Style="{StaticResource Card}">
+                            <StackPanel>
+                                <TextBlock Text="Fotos WebP, HEIC e AVIF" Style="{StaticResource CardTitle}"/>
+                                <TextBlock Style="{StaticResource CardHint}" Margin="0,3,0,0"
+                                           Text="Essas fotos são lidas pelo próprio Windows, com as extensões gratuitas da Microsoft Store: Extensões de Imagem HEIF, Extensões de Imagem da Web e Extensão de Imagem Bruta (o Windows 11 geralmente já tem)."/>
+                                <TextBlock x:Name="WindowsCodecsStatus" Style="{StaticResource CardHint}" Margin="0,8,0,0"/>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <!-- ABA 5: SOBRE -->
             <TabItem Header="Sobre">
                 <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                     <StackPanel Margin="0,0,14,12">

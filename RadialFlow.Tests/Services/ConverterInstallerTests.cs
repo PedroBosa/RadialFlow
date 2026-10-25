@@ -435,6 +435,23 @@ public sealed class ConverterInstallerTests : IDisposable
         Assert.Equal("ffmpeg", File.ReadAllText(_temp.Combine("tools", "ffmpeg", "ffmpeg.exe")));
     }
 
+    [Theory]
+    [InlineData(new[] { "--install-converters", "ffmpeg,pandoc" }, "ffmpeg,pandoc")]
+    [InlineData(new[] { "--INSTALL-CONVERTERS=libreoffice" }, "libreoffice")]
+    [InlineData(new[] { "--outro", "--install-converters" }, "")]
+    public void LinhaDeComando_DoInstalador_EhReconhecida(string[] args, string expected)
+    {
+        Assert.True(RadialFlow.UI.ConverterSetup.TryGetCommandLine(args, out string list));
+        Assert.Equal(expected, list);
+    }
+
+    [Fact]
+    public void LinhaDeComando_Normal_NaoEhModoDeInstalacao()
+    {
+        Assert.False(RadialFlow.UI.ConverterSetup.TryGetCommandLine([], out _));
+        Assert.False(RadialFlow.UI.ConverterSetup.TryGetCommandLine(["--install-converterss"], out _));
+    }
+
     [Fact]
     public void Resumo_TodosInstalados()
     {

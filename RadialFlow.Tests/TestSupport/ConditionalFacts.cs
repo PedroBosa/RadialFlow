@@ -38,6 +38,16 @@ public sealed class RequiresElevationFactAttribute : FactAttribute
     }
 }
 
+/// <summary>Só roda quando ESTE processo não pode instalar conversores (fora de uma pasta protegida ou sem administrador).</summary>
+public sealed class RequiresConverterInstallBlockedFactAttribute : FactAttribute
+{
+    public RequiresConverterInstallBlockedFactAttribute()
+    {
+        if (ConverterInstaller.CheckCanInstall() is null)
+            Skip = "Os testes estão rodando de uma pasta protegida, como administrador: aqui a instalação seria permitida.";
+    }
+}
+
 /// <summary>Só roda se este Windows deixa criar links simbólicos (administrador ou modo de desenvolvedor).</summary>
 public sealed class RequiresSymlinksFactAttribute : FactAttribute
 {

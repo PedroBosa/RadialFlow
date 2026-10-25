@@ -9,6 +9,7 @@ using System.Windows.Media;
 using System.Windows.Threading;
 using RadialFlow.Config;
 using RadialFlow.Services;
+using RadialFlow.Tests.TestSupport;
 using RadialFlow.UI;
 using Xunit;
 
@@ -70,6 +71,76 @@ public sealed class WindowsTests : IDisposable
 
     private static T Find<T>(FrameworkElement root, string name) where T : class =>
         (root.FindName(name) as T) ?? throw new InvalidOperationException($"'{name}' não encontrado.");
+
+    // ------------------------------------------------------------------
+    // Aba Conversores
+    // ------------------------------------------------------------------
+
+    [Fact]
+    public void Conversores_UmaLinhaPorPrograma_ComTamanhoEVersao()
+    {
+        RunSta(() =>
+        {
+            SettingsWindow window = OpenSettings();
+            var tabs = Find<TabControl>(window, "MainTabs");
+            tabs.SelectedItem = tabs.Items.Cast<TabItem>().Single(t => (string)t.Header == "Conversores");
+            WaitConvertersChecked(window);
+
+            var list = Find<StackPanel>(window, "ConverterList");
+            Assert.Equal(Services.ConverterPackages.All.Count, list.Children.Count);
+
+            string allText = string.Join("\n", FindVisualChildren<TextBlock>(list).Select(t => t.Text));
+            foreach (var package in Services.ConverterPackages.All)
+            {
+                Assert.Contains(package.Name, allText);
+                Assert.Contains(package.Version, allText);
+                Assert.Contains(package.SizeText, allText);
+            }
+
+            Assert.False(string.IsNullOrWhiteSpace(Find<TextBlock>(window, "ConverterStatus").Text));
+            window.Close();
+        });
+    }
+
+    [RequiresConverterInstallBlockedFact]
+    public void Conversores_SemComoInstalarDaqui_NaoDeixaInstalarEDizPorque()
+    {
+        // Os testes rodam de bin\ (pasta do usuário): é o caso da versão portátil fora de C:\Program Files.
+        string reason = Services.ConverterInstaller.CheckCanInstall()!;
+
+        RunSta(() =>
+        {
+            SettingsWindow window = OpenSettings();
+            WaitConvertersChecked(window);
+
+            Assert.False(Find<Button>(window, "BtnInstallConverters").IsEnabled);
+            Assert.All(FindVisualChildren<CheckBox>(Find<StackPanel>(window, "ConverterList")), c => Assert.False(c.IsEnabled));
+            Assert.Equal(reason, Find<TextBlock>(window, "ConverterStatus").Text);
+            window.Close();
+        });
+    }
+
+    /// <summary>A verificação dos conversores roda fora da UI (disco e permissões): espera ela terminar, até 20 s.</summary>
+    private static void WaitConvertersChecked(SettingsWindow window)
+    {
+        var status = Find<TextBlock>(window, "ConverterStatus");
+        var refresh = Find<Button>(window, "BtnRefreshConverters");
+        DateTime limit = DateTime.UtcNow.AddSeconds(20);
+        do Pump(100);
+        while (!refresh.IsEnabled && DateTime.UtcNow < limit);
+        Assert.True(refresh.IsEnabled, $"A verificação não terminou: '{status.Text}'.");
+    }
+
+    private static IEnumerable<T> FindVisualChildren<T>(DependencyObject root) where T : DependencyObject
+    {
+        // Lógica (não visual): os cartões da aba podem não ter template aplicado se a aba não foi aberta.
+        foreach (object child in LogicalTreeHelper.GetChildren(root))
+        {
+            if (child is not DependencyObject node) continue;
+            if (node is T match) yield return match;
+            foreach (T nested in FindVisualChildren<T>(node)) yield return nested;
+        }
+    }
 
     // ------------------------------------------------------------------
     // Scroll das Configurações (o bug: conteúdo cortado, sem barra)

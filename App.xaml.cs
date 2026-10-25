@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Threading;
@@ -24,6 +25,13 @@ public sealed partial class App : Application, IDisposable
         // Registrar ANTES de qualquer outra coisa: se algo cair já na partida, fica no log.
         AppDomain.CurrentDomain.UnhandledException += OnDomainUnhandledException;
         TaskScheduler.UnobservedTaskException += OnUnobservedTaskException;
+
+        // Chamado pelo instalador: só instala os conversores escolhidos e sai (sem roda, sem bandeja, sem instância única).
+        if (ConverterSetup.TryGetCommandLine(e.Args, out string converterList))
+        {
+            RunConverterSetupMode(converterList);
+            return;
+        }
 
         // Instância única: a segunda cópia só pede à primeira para abrir as Configurações e sai.
         _instance = SingleInstance.TryAcquire(InstanceName);
@@ -77,6 +85,36 @@ public sealed partial class App : Application, IDisposable
 
     /// <summary>Libera os serviços (hooks, bandeja). Idempotente: o OnExit já chama; o Dispose cobre usos fora do ciclo normal.</summary>
     public void Dispose() => ReleaseServices();
+
+    /// <summary>
+    /// Modo do instalador: "--install-converters ffmpeg,pandoc". Código de saída: 0 tudo instalado, 1 alguma falha,
+    /// 2 não dá para instalar daqui. O instalador espera este processo terminar.
+    /// </summary>
+    private void RunConverterSetupMode(string list)
+    {
+        AppLog.Info("App", $"Iniciando {AppInfo.DisplayName} para instalar conversores ('{list}').");
+
+        List<Services.ConverterPackage> packages = Services.ConverterPackages.Parse(list, out List<string> unknown);
+        if (unknown.Count > 0) AppLog.Warning("App", $"Conversores desconhecidos ignorados: {string.Join(", ", unknown)}.");
+
+        if (packages.Count == 0)
+        {
+            ExitConverterSetup(0);
+            return;
+        }
+
+        if (Services.ConverterInstaller.CheckCanInstall() is { } reason)
+        {
+            AppLog.Warning("App", reason);
+            Dialogs.Message(null, "Conversores", reason, DialogIcon.Warning);
+            ExitConverterSetup(2);
+            return;
+        }
+
+        ConverterSetup.Run(packages, success => ExitConverterSetup(success ? 0 : 1));
+    }
+
+    private void ExitConverterSetup(int code) => Shutdown(code);   // OnExit grava o log
 
     protected override void OnExit(ExitEventArgs e)
     {
