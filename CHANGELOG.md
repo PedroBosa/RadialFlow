@@ -22,6 +22,9 @@ Cada versão, da mais nova para a mais antiga. O número da versão está em `Ra
     (PowerPoint, ODP), inclusive para PDF.
 - Quando não há nenhuma conversão possível para o item (uma pasta, um formato desconhecido ou um programa que falta),
   a opção **Converter** nem aparece na roda.
+- **Os conversores são instalados pelo próprio RadialFlow**: no instalador (o FFmpeg já vem marcado) ou depois, na
+  nova aba **Configurações → Conversores**. Os arquivos vêm do site oficial de cada programa e só são instalados se a
+  impressão digital (SHA-256) conferir. Antes era preciso instalar cada um à mão.
 - **A roda sempre cabe na tela.** Perto das bordas ou da barra de tarefas, ela se desloca para dentro e o cursor vai
   junto.
 - **Ícone novo**, no formato da própria roda, no programa, nas janelas e perto do relógio. Ali ele fica claro ou escuro
@@ -51,6 +54,8 @@ Cada versão, da mais nova para a mais antiga. O número da versão está em `Ra
 - Markdown para PDF não falha mais: antes o Pandoc exigia um programa extra (LaTeX) que quase ninguém tem; agora o
   PDF é feito pelo LibreOffice.
 - CSV separado por ponto e vírgula (o padrão do Excel em português) abre com as colunas certas.
+- Um programa de conversão que trava com um arquivo estranho é encerrado depois de 5 minutos, com uma mensagem clara,
+  em vez de deixar a conversão esperando para sempre.
 
 ### Segurança
 

@@ -24,7 +24,9 @@ deixe o cursor parado no centro da roda: um círculo se completa em volta do bot
 
 1. Baixe o `RadialFlow-1.2.0-Setup.exe` na página **Releases** deste repositório.
 2. Abra o arquivo e siga o assistente. O RadialFlow é instalado em `C:\Program Files\RadialFlow`.
-3. No fim, deixe marcado **Abrir o RadialFlow agora**.
+3. Na página de tarefas, marque os **conversores** que quiser (veja [Converter arquivos](#converter-arquivos)). O
+   FFmpeg, para vídeo e áudio, já vem marcado. Dá para instalar os outros depois.
+4. No fim, deixe marcado **Abrir o RadialFlow agora**.
 
 Ele fica no canto da barra de tarefas, perto do relógio (o ícone é uma rodinha). Se não estiver aparecendo, clique
 na setinha **^** ao lado do relógio. Clicando no ícone você abre as configurações; com o botão direito, pode pausar
@@ -66,6 +68,7 @@ Clique no ícone do RadialFlow perto do relógio.
   abrir, quanto tempo esperar para as opções extras aparecerem e a cor da roda.
 - **Blacklist**: programas em que a roda nunca abre (útil em programas 3D e jogos, que usam o botão direito).
 - **Apps favoritos**: os atalhos que aparecem quando você abre a roda na área de trabalho.
+- **Conversores**: instala os programas de conversão (veja abaixo).
 
 ## Converter arquivos
 
@@ -81,16 +84,31 @@ sobrescrito: se já existir um com o mesmo nome, o novo vira `nome (1).ext`.
 | Imagem para WEBP, ou SVG e outros formatos | WEBP e os demais | [ImageMagick](https://imagemagick.org) |
 | Vídeo | MP4, MKV, WEBM, MOV, GIF animado, MP3, M4A, WAV | [FFmpeg](https://ffmpeg.org) |
 | Áudio | MP3, M4A, WAV, FLAC, OGG, OPUS, AAC, AIFF | FFmpeg |
-| Word, ODT, RTF, TXT, HTML | PDF, DOCX, ODT, RTF, TXT, HTML | [LibreOffice](https://www.libreoffice.org) |
-| Markdown, EPUB (e Word para Markdown/EPUB) | DOCX, HTML, ODT, RTF, EPUB, Markdown, TXT; PDF com o LibreOffice junto | [Pandoc](https://pandoc.org) |
+| Word, ODT, RTF, TXT, HTML | PDF, DOCX, ODT, RTF, HTML | [LibreOffice](https://www.libreoffice.org) |
+| Markdown, EPUB (e Word ou HTML para Markdown, EPUB ou TXT) | DOCX, HTML, ODT, RTF, EPUB, Markdown, TXT; PDF com o LibreOffice junto | [Pandoc](https://pandoc.org) |
 | Planilha (Excel, ODS, CSV) | PDF, XLSX, ODS, CSV | LibreOffice |
 | Apresentação (PowerPoint, ODP) | PDF, PPTX, ODP | LibreOffice |
 
 PDF não pode ser convertido para outros formatos.
 
-Os programas externos precisam estar numa pasta protegida, como `C:\Program Files`, onde os instaladores deles
-colocam por padrão. Pelo [winget](https://learn.microsoft.com/windows/package-manager/winget/), instale para todos os
-usuários:
+### Instalar os conversores
+
+FFmpeg, Pandoc, ImageMagick e LibreOffice são programas gratuitos. O RadialFlow instala os que você escolher, de
+dois jeitos:
+
+- **no instalador**, na página de tarefas;
+- **depois**, em **Configurações → Conversores**: marque e clique em **Instalar selecionados**.
+
+Os arquivos vêm do site oficial de cada programa, numa versão fixa, e só são instalados se a impressão digital
+(SHA-256) conferir com a esperada. Precisa de internet. O LibreOffice é grande (cerca de 360 MB) e pode levar alguns
+minutos; ele não toma o lugar do Word ou do Excel para abrir seus arquivos.
+
+O FFmpeg fica dentro da pasta do RadialFlow e sai junto quando você o desinstala. Pandoc, ImageMagick e LibreOffice
+viram programas normais do Windows: aparecem em **Aplicativos instalados** e são desinstalados por lá.
+
+Se preferir instalar por conta própria, eles precisam estar numa pasta protegida, como `C:\Program Files`, onde os
+instaladores deles colocam por padrão. Pelo [winget](https://learn.microsoft.com/windows/package-manager/winget/),
+instale para todos os usuários:
 
 ```powershell
 winget install --scope machine Gyan.FFmpeg
@@ -108,9 +126,13 @@ jogos e vídeos em tela cheia, nem nos programas da Blacklist. E é preciso arra
 menu normal do Windows.
 
 **A opção Converter não aparece, ou não tem o formato que eu queria.** Falta o programa que faz essa conversão (veja a
-tabela em [Converter arquivos](#converter-arquivos)), ou ele foi instalado numa pasta que outros programas conseguem
-alterar e por isso é ignorado. Depois de instalar, espere um minuto e abra a roda de novo; não precisa reiniciar o
-RadialFlow.
+tabela em [Converter arquivos](#converter-arquivos)). Instale-o em **Configurações → Conversores**. Se você mesmo o
+instalou numa pasta que outros programas conseguem alterar, ele é ignorado por segurança. Depois de instalar, espere
+um minuto e abra a roda de novo; não precisa reiniciar o RadialFlow.
+
+**A instalação de um conversor falhou.** A janela diz o motivo (sem internet, outra instalação do Windows em
+andamento...). Tente de novo pela aba Conversores. Se o instalador do programa falhar, o registro dele fica na pasta
+de logs (Configurações → Sobre → Abrir pasta de logs).
 
 **Abri o RadialFlow de novo e só apareceram as configurações.** É o esperado: ele já estava aberto. Só uma cópia
 roda por vez.
@@ -124,7 +146,8 @@ arquivo `radialflow.log` registra o que o programa fez e os erros que acontecera
 ## Desinstalar
 
 Abra **Configurações do Windows → Aplicativos → Aplicativos instalados**, procure **RadialFlow** e clique em
-**Desinstalar**. O desinstalador fecha o programa e remove a opção de iniciar com o Windows.
+**Desinstalar**. O desinstalador fecha o programa, remove a opção de iniciar com o Windows e apaga o FFmpeg que ele
+baixou. Pandoc, ImageMagick e LibreOffice, se instalados, continuam lá como programas próprios.
 
 Suas configurações e os logs ficam guardados em `%LocalAppData%\RadialFlow`, caso você instale de novo. Para
 apagar tudo, apague essa pasta depois de desinstalar.
@@ -193,7 +216,7 @@ Um teste falha se `Assets/RadialFlow.ico` ficar diferente do que o código desen
 |---|---|
 | `Input/` | o hook do mouse e a blacklist |
 | `Context/` | descobre o que está sob o cursor, monta as fatias e executa as ações |
-| `Services/` | conversão, compactação e o lançador de programas sem administrador |
+| `Services/` | conversão, instalação dos conversores, compactação e o lançador de programas sem administrador |
 | `Security/` | validação de caminhos e de executáveis |
 | `Config/` | configurações e como elas são salvas |
 | `Infrastructure/` | log, instância única e versão |
@@ -210,6 +233,8 @@ O RadialFlow roda como administrador e mexe em arquivos e programas de outros, e
   recusada.
 - Só executa programas de pastas que um usuário comum não consegue alterar. Por isso ferramentas fora de
   `C:\Program Files` são ignoradas.
+- Os conversores instalados pelo RadialFlow vêm de endereços fixos dos sites oficiais, só por HTTPS, e são baixados
+  numa pasta protegida; nada é instalado se o tamanho ou o SHA-256 não conferirem.
 - Todo caminho de arquivo é conferido antes de ser usado: nada de `..`, de nomes reservados do Windows ou de
   truques com `:`.
 - Nada é sobrescrito sem perguntar: se já existe um arquivo com o mesmo nome, o novo vira `nome (1).ext`.
