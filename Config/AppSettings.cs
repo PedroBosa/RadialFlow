@@ -86,6 +86,9 @@ public sealed class AppSettings
     /// <summary>Lista de aplicativos favoritos configurados pelo usuário.</summary>
     public List<FavoriteAppEntry> FavoriteApps { get; set; } = new();
 
+    /// <summary>Menus personalizados que somam itens à roda conforme o contexto.</summary>
+    public List<CustomMenuProfile> CustomProfiles { get; set; } = new();
+
     /// <summary>Cria uma instância com valores padrão de fábrica.</summary>
     public static AppSettings CreateDefault()
     {

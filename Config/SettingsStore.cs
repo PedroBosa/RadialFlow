@@ -113,7 +113,10 @@ internal sealed class SettingsStore(string directory, string fileName = "setting
     {
         loaded.Blacklist ??= new List<ForegroundBlacklist.BlacklistEntry>();
         loaded.FavoriteApps ??= new List<FavoriteAppEntry>();
+        loaded.CustomProfiles ??= new List<CustomMenuProfile>();
         loaded.Accent ??= "Blue";
+
+        CustomMenuNormalizer.Normalize(loaded.CustomProfiles);
 
         // Entradas nulas dentro das listas (JSON editado à mão: "[null]") quebrariam quem as percorre.
         loaded.Blacklist.RemoveAll(e => e is null || string.IsNullOrWhiteSpace(e.ProcessName));
