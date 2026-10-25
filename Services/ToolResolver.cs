@@ -8,7 +8,8 @@
 //   * o resultado "não encontrado" expira em 30 s (instalar o ffmpeg não exige
 //     reiniciar o app).
 // Ordem: caminho configurado -> pasta do app e \tools -> Arquivos de Programas
-// (ImageMagick*, LibreOffice, Pandoc, ffmpeg) -> PATH.
+// (ffmpeg, Pandoc, LibreOffice, WinGet\Links, ImageMagick*) -> PATH.
+// Links simbólicos são seguidos: vale (e executa) o arquivo real.
 //
 // O algoritmo vive em ToolLocator (instância, ambiente injetável) para ser
 // testável sem estado global; ToolResolver é a fachada estática usada pelo app.
@@ -162,6 +163,9 @@ internal sealed class ToolLocator(ToolSearchEnvironment environment)
             yield return Path.Combine(root, "Pandoc", exeName);
             yield return Path.Combine(root, "LibreOffice", "program", exeName);
 
+            // "winget install --scope machine" de pacotes portáteis (ex.: Gyan.FFmpeg): atalhos em WinGet\Links.
+            yield return Path.Combine(root, "WinGet", "Links", exeName);
+
             // ImageMagick instala em "ImageMagick-7.x.y-Q16-HDRI": sem versão fixa.
             foreach (string dir in SafeEnumerateDirectories(root, "ImageMagick*"))
                 yield return Path.Combine(dir, exeName);
@@ -185,6 +189,10 @@ internal sealed class ToolLocator(ToolSearchEnvironment environment)
             {
                 if (!TrustedPath.TryGetSafeFullPath(candidate, out string full) || !File.Exists(full)) continue;
 
+                // Atalho simbólico (o winget usa): a confiança e a execução valem para o executável REAL.
+                full = ResolveFinalTarget(full);
+                if (full.Length == 0) continue;
+
                 if (environment.IsTrusted(full)) return full;
 
                 lock (_gate) _rejected[exeName] = full;
@@ -192,6 +200,16 @@ internal sealed class ToolLocator(ToolSearchEnvironment environment)
             catch { /* caminho inválido: próximo */ }
         }
         return null;
+    }
+
+    /// <summary>Caminho do arquivo real se <paramref name="path"/> for um link simbólico; vazio se o alvo não existir ou for inseguro.</summary>
+    internal static string ResolveFinalTarget(string path)
+    {
+        var info = new FileInfo(path);
+        if (info.LinkTarget is null) return path;
+
+        FileSystemInfo? target = info.ResolveLinkTarget(returnFinalTarget: true);
+        return target is FileInfo { Exists: true } && TrustedPath.TryGetSafeFullPath(target.FullName, out string safe) ? safe : "";
     }
 
     private static bool IsValidToolName(string? toolName) =>

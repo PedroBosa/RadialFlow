@@ -249,6 +249,15 @@ public static class TrustedPath
             DirectoryInfo? dir = file.Directory;
             if (dir is null) return false;
 
+            // Link simbólico: a pasta do link pode ser protegida e o alvo não. O alvo final passa pela mesma regra.
+            if (file.LinkTarget is not null)
+            {
+                FileSystemInfo? target = file.ResolveLinkTarget(returnFinalTarget: true);
+                if (target is not FileInfo { Exists: true } || !TryGetSafeFullPath(target.FullName, out string targetPath) ||
+                    !Evaluate(targetPath))
+                    return false;
+            }
+
             if (!IsSafe(file.GetAccessControl(), DangerousRights)) return false;
             if (!IsSafe(dir.GetAccessControl(), DangerousRights)) return false;
 

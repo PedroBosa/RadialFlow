@@ -77,6 +77,7 @@ public sealed class ToolResolverTests : IDisposable
             Path.Combine(ProgramFiles, "ffmpeg", "bin", "magick.exe"),
             Path.Combine(ProgramFiles, "Pandoc", "magick.exe"),
             Path.Combine(ProgramFiles, "LibreOffice", "program", "magick.exe"),
+            Path.Combine(ProgramFiles, "WinGet", "Links", "magick.exe"),
             Path.Combine(ProgramFiles, "ImageMagick-7.1.1-Q16-HDRI", "magick.exe"),
             Path.Combine(PathDirA, "magick.exe"),
             Path.Combine(PathDirB, "magick.exe"),   // aspas removidas
@@ -89,8 +90,55 @@ public sealed class ToolResolverTests : IDisposable
         var candidates = CreateLocator(@"relativo;.\local;..\acima;C:sem-raiz").EnumerateCandidates("ffmpeg.exe").ToList();
 
         // Só sobram candidatos da sandbox (pasta do app + Arquivos de Programas): nenhum relativo ao diretório atual.
-        Assert.Equal(5, candidates.Count);
+        Assert.Equal(6, candidates.Count);
         Assert.All(candidates, c => Assert.StartsWith(_temp.Root, c, StringComparison.OrdinalIgnoreCase));
+    }
+
+    /// <summary>Cria um link simbólico de arquivo; false se o Windows não permitir (sem admin nem modo desenvolvedor).</summary>
+    private static bool TryCreateFileSymlink(string link, string target)
+    {
+        try
+        {
+            Directory.CreateDirectory(Path.GetDirectoryName(link)!);
+            File.CreateSymbolicLink(link, target);
+            return true;
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            return false;
+        }
+    }
+
+    [Fact]
+    public void FindTool_LinkSimbolico_DevolveOExecutavelReal()
+    {
+        // Como o "winget --scope machine" instala o FFmpeg: um link em WinGet\Links aponta para a pasta do pacote.
+        string real = AddTool(trusted: true, "ProgramFiles", "WinGet", "Packages", "Gyan.FFmpeg", "bin", "ffmpeg.exe");
+        string link = Path.Combine(ProgramFiles, "WinGet", "Links", "ffmpeg.exe");
+        if (!TryCreateFileSymlink(link, real)) return;   // ambiente sem permissão para links: nada a verificar
+
+        Assert.Equal(real, CreateLocator().FindTool("ffmpeg.exe"));
+    }
+
+    [Fact]
+    public void FindTool_LinkParaAlvoNaoConfiavel_EhRecusado_MesmoComOLinkNaLista()
+    {
+        string real = AddTool(trusted: false, "inseguro", "ffmpeg.exe");
+        string link = Path.Combine(ProgramFiles, "WinGet", "Links", "ffmpeg.exe");
+        if (!TryCreateFileSymlink(link, real)) return;
+        _trusted.Add(link);   // confiar no LINK não basta: vale o arquivo real
+
+        Assert.Null(CreateLocator().FindTool("ffmpeg.exe"));
+    }
+
+    [Fact]
+    public void FindTool_LinkQuebrado_EhIgnorado()
+    {
+        string link = Path.Combine(ProgramFiles, "WinGet", "Links", "ffmpeg.exe");
+        if (!TryCreateFileSymlink(link, _temp.Combine("nao-existe", "ffmpeg.exe"))) return;
+        _trusted.Add(link);
+
+        Assert.Null(CreateLocator().FindTool("ffmpeg.exe"));
     }
 
     [Fact]
