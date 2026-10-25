@@ -11,6 +11,19 @@
         TextOptions.TextFormattingMode="Ideal" UseLayoutRounding="True">
 
     <!-- Estilos e cores: Theme/Controls.xaml + UiTheme (instalados no construtor, antes do InitializeComponent). -->
+    <Window.Resources>
+        <Style x:Key="FieldLabel" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="12.5"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextBrush}"/>
+            <Setter Property="Margin" Value="0,10,0,5"/>
+        </Style>
+        <Style x:Key="FieldHint" TargetType="TextBlock" BasedOn="{StaticResource CardHint}">
+            <Setter Property="FontSize" Value="11.5"/>
+            <Setter Property="Margin" Value="0,3,0,0"/>
+        </Style>
+    </Window.Resources>
+
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -177,7 +190,243 @@
                 </Grid>
             </TabItem>
 
-            <!-- ABA 4: CONVERSORES (lista montada em código: SettingsWindow.Converters.cs) -->
+            <!-- ABA 4: MENUS PERSONALIZADOS (editor em código: SettingsWindow.Menus.cs) -->
+            <TabItem Header="Menus">
+                <Grid Margin="0,0,0,12">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="200"/>
+                        <ColumnDefinition Width="14"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <DockPanel Grid.Column="0">
+                        <StackPanel DockPanel.Dock="Top" Margin="4,0,0,10">
+                            <TextBlock Text="Menus personalizados" Style="{StaticResource CardTitle}"/>
+                            <TextBlock Style="{StaticResource CardHint}"
+                                       Text="Itens extras por aplicativo, janela ou contexto. Eles somam à roda e podem substituir uma fatia automática."/>
+                        </StackPanel>
+
+                        <WrapPanel DockPanel.Dock="Bottom" Margin="0,10,0,0">
+                            <Button x:Name="BtnAddMenuProfile" Content="Novo" Style="{StaticResource PrimaryButton}"
+                                    Click="BtnAddMenuProfile_Click" Padding="12,7" Margin="0,0,6,6"
+                                    AutomationProperties.Name="Adicionar menu personalizado"/>
+                            <Button x:Name="BtnDuplicateMenuProfile" Content="Duplicar" Click="BtnDuplicateMenuProfile_Click"
+                                    Padding="10,7" Margin="0,0,6,6" AutomationProperties.Name="Duplicar menu selecionado"/>
+                            <Button x:Name="BtnRemoveMenuProfile" Content="Remover" Click="BtnRemoveMenuProfile_Click"
+                                    Padding="10,7" Margin="0,0,0,6" AutomationProperties.Name="Remover menu selecionado"/>
+                        </WrapPanel>
+
+                        <ListBox x:Name="ListMenuProfiles" SelectionChanged="ListMenuProfiles_SelectionChanged" DisplayMemberPath="Name"/>
+                    </DockPanel>
+
+                    <ScrollViewer Grid.Column="2" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"
+                                  PanningMode="VerticalOnly">
+                        <StackPanel Margin="0,0,10,12">
+
+                            <Border Style="{StaticResource Card}">
+                                <StackPanel x:Name="PnlProfileEditor">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel>
+                                            <TextBlock Text="Nome do menu" Style="{StaticResource FieldLabel}" Margin="0,0,0,5"/>
+                                            <TextBox x:Name="TxtProfileName" MaxLength="60" TextChanged="ProfileField_Changed"
+                                                     LostFocus="TxtProfileName_LostFocus"/>
+                                        </StackPanel>
+                                        <CheckBox x:Name="ChkProfileEnabled" Grid.Column="1" Content="Ativo" VerticalAlignment="Bottom"
+                                                  Margin="14,0,0,8" Checked="ProfileField_Changed" Unchecked="ProfileField_Changed"/>
+                                    </Grid>
+
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel>
+                                            <TextBlock Text="Processo (sem .exe)" Style="{StaticResource FieldLabel}"/>
+                                            <TextBox x:Name="TxtProfileProcess" MaxLength="120" TextChanged="ProfileField_Changed"/>
+                                            <TextBlock Text="Vazio = qualquer aplicativo." Style="{StaticResource FieldHint}"/>
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="1" Margin="12,0,0,0">
+                                            <TextBlock Text="Título contém" Style="{StaticResource FieldLabel}"/>
+                                            <TextBox x:Name="TxtProfileTitle" MaxLength="120" TextChanged="ProfileField_Changed"/>
+                                            <TextBlock Text="Vazio = qualquer título." Style="{StaticResource FieldHint}"/>
+                                        </StackPanel>
+                                    </Grid>
+
+                                    <Grid Margin="0,6,0,0">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Text="Prioridade (maior vence)" Style="{StaticResource FieldLabel}"/>
+                                        <TextBlock x:Name="TxtPriorityValue" Grid.Column="1" Style="{StaticResource ValueText}"
+                                                   MinWidth="36" Text="0"/>
+                                    </Grid>
+                                    <Slider x:Name="SliderProfilePriority" Minimum="-100" Maximum="100" TickFrequency="1"
+                                            IsSnapToTickEnabled="True" SmallChange="1" LargeChange="10"
+                                            ValueChanged="ProfileField_Changed" AutomationProperties.Name="Prioridade do menu"/>
+
+                                    <TextBlock Text="Contextos (nenhum marcado = todos)" Style="{StaticResource FieldLabel}"/>
+                                    <WrapPanel x:Name="PnlContexts"/>
+                                </StackPanel>
+                            </Border>
+
+                            <Border Style="{StaticResource Card}">
+                                <StackPanel>
+                                    <TextBlock Text="Itens do menu" Style="{StaticResource CardTitle}"/>
+                                    <Grid Margin="0,10,0,0">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="150"/>
+                                            <ColumnDefinition Width="14"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+
+                                        <DockPanel>
+                                            <StackPanel DockPanel.Dock="Bottom" Margin="0,8,0,0">
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="*"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    <Button x:Name="BtnAddMenuItem" Content="Adicionar" Padding="6,6" Margin="0,0,4,0"
+                                                            Click="BtnAddMenuItem_Click" AutomationProperties.Name="Adicionar item ao menu"/>
+                                                    <Button x:Name="BtnRemoveMenuItem" Grid.Column="1" Content="Remover" Padding="6,6"
+                                                            Margin="4,0,0,0" Click="BtnRemoveMenuItem_Click" AutomationProperties.Name="Remover item selecionado"/>
+                                                </Grid>
+                                                <Grid Margin="0,6,0,0">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="*"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    <Button x:Name="BtnMoveItemUp" Content="Subir" Padding="6,6" Margin="0,0,4,0"
+                                                            Click="BtnMoveItemUp_Click" AutomationProperties.Name="Mover item para cima"/>
+                                                    <Button x:Name="BtnMoveItemDown" Grid.Column="1" Content="Descer" Padding="6,6"
+                                                            Margin="4,0,0,0" Click="BtnMoveItemDown_Click" AutomationProperties.Name="Mover item para baixo"/>
+                                                </Grid>
+                                            </StackPanel>
+                                            <ListBox x:Name="ListItems" SelectionChanged="ListItems_SelectionChanged"
+                                                     DisplayMemberPath="Label" MinHeight="190"/>
+                                        </DockPanel>
+
+                                        <StackPanel x:Name="PnlItemEditor" Grid.Column="2">
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+                                                <StackPanel>
+                                                    <TextBlock Text="Rótulo" Style="{StaticResource FieldLabel}" Margin="0,0,0,5"/>
+                                                    <TextBox x:Name="TxtItemLabel" MaxLength="24" TextChanged="ItemField_Changed"
+                                                             LostFocus="TxtItemLabel_LostFocus"/>
+                                                </StackPanel>
+                                                <StackPanel Grid.Column="1" Margin="10,0,0,0">
+                                                    <TextBlock Text="Ícone" Style="{StaticResource FieldLabel}" Margin="0,0,0,5"/>
+                                                    <ComboBox x:Name="CmbItemGlyph" Width="132" SelectionChanged="ItemField_Changed">
+                                                        <ComboBox.ItemTemplate>
+                                                            <DataTemplate>
+                                                                <StackPanel Orientation="Horizontal">
+                                                                    <TextBlock Text="{Binding Glyph}" FontFamily="{StaticResource IconFont}"
+                                                                               FontSize="15" Width="22" VerticalAlignment="Center"/>
+                                                                    <TextBlock Text="{Binding Label}" Margin="2,0,0,0" VerticalAlignment="Center"/>
+                                                                </StackPanel>
+                                                            </DataTemplate>
+                                                        </ComboBox.ItemTemplate>
+                                                    </ComboBox>
+                                                </StackPanel>
+                                            </Grid>
+
+                                            <TextBlock Text="Descrição (opcional)" Style="{StaticResource FieldLabel}"/>
+                                            <TextBox x:Name="TxtItemDescription" MaxLength="120" TextChanged="ItemField_Changed"/>
+                                            <CheckBox x:Name="ChkItemEnabled" Content="Item ativo"
+                                                      Checked="ItemField_Changed" Unchecked="ItemField_Changed"/>
+
+                                            <TextBlock Text="Tipo de item" Style="{StaticResource FieldLabel}"/>
+                                            <ComboBox x:Name="CmbItemKind" SelectionChanged="CmbItemKind_SelectionChanged"/>
+
+                                            <StackPanel x:Name="PnlItemAction">
+                                                <TextBlock Text="Ação do RadialFlow" Style="{StaticResource FieldLabel}"/>
+                                                <ComboBox x:Name="CmbItemAction" SelectionChanged="ItemField_Changed"/>
+                                            </StackPanel>
+
+                                            <StackPanel x:Name="PnlItemLaunch">
+                                                <TextBlock Text="Executável" Style="{StaticResource FieldLabel}"/>
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    <TextBox x:Name="TxtItemLaunch" MaxLength="2048" TextChanged="ItemField_Changed"/>
+                                                    <Button Grid.Column="1" Content="Procurar…" Margin="8,0,0,0" Padding="10,6"
+                                                            Click="BtnBrowseExecutable_Click"/>
+                                                </Grid>
+                                                <TextBlock Text="Só executáveis em pastas protegidas (System32, Program Files). Sem argumentos."
+                                                           Style="{StaticResource FieldHint}"/>
+                                            </StackPanel>
+
+                                            <StackPanel x:Name="PnlItemUrl">
+                                                <TextBlock Text="Endereço (http ou https)" Style="{StaticResource FieldLabel}"/>
+                                                <TextBox x:Name="TxtItemUrl" MaxLength="2048" TextChanged="ItemField_Changed"/>
+                                            </StackPanel>
+
+                                            <StackPanel x:Name="PnlItemPath">
+                                                <TextBlock Text="Arquivo ou pasta" Style="{StaticResource FieldLabel}"/>
+                                                <TextBox x:Name="TxtItemPath" MaxLength="2048" TextChanged="ItemField_Changed"/>
+                                                <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                                                    <Button Content="Arquivo…" Padding="10,6" Margin="0,0,6,0" Click="BtnBrowseFile_Click"/>
+                                                    <Button Content="Pasta…" Padding="10,6" Click="BtnBrowseFolder_Click"/>
+                                                </StackPanel>
+                                                <TextBlock Text="Executáveis, scripts e atalhos são recusados aqui; para eles use Executável."
+                                                           Style="{StaticResource FieldHint}"/>
+                                            </StackPanel>
+
+                                            <StackPanel x:Name="PnlItemHotkey">
+                                                <TextBlock Text="Atalho (ex.: Ctrl+Shift+P)" Style="{StaticResource FieldLabel}"/>
+                                                <TextBox x:Name="TxtItemHotkey" MaxLength="80" TextChanged="ItemField_Changed"/>
+                                                <TextBlock Text="Modificadores Ctrl/Alt/Shift/Win e uma tecla final. O foco precisa estar na janela de origem."
+                                                           Style="{StaticResource FieldHint}"/>
+                                            </StackPanel>
+
+                                            <StackPanel x:Name="PnlItemText">
+                                                <TextBlock Text="Texto a colar" Style="{StaticResource FieldLabel}"/>
+                                                <TextBox x:Name="TxtItemText" MaxLength="4096" Height="86" AcceptsReturn="True"
+                                                         TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" TextChanged="ItemField_Changed"/>
+                                            </StackPanel>
+                                        </StackPanel>
+                                    </Grid>
+                                </StackPanel>
+                            </Border>
+
+                            <Border Style="{StaticResource Card}">
+                                <StackPanel>
+                                    <TextBlock Text="Prévia da roda" Style="{StaticResource CardTitle}"/>
+                                    <TextBlock x:Name="PreviewContext" Style="{StaticResource CardHint}"/>
+                                    <Grid Margin="0,8,0,0">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Border x:Name="MenuPreviewHost" Width="280" Height="280"
+                                                HorizontalAlignment="Left" VerticalAlignment="Top"/>
+                                        <StackPanel Grid.Column="1" Margin="14,0,0,0" VerticalAlignment="Center">
+                                            <TextBlock x:Name="PreviewSummary" Style="{StaticResource CardHint}"/>
+                                            <TextBlock x:Name="PreviewWarning" Style="{StaticResource CardHint}" Margin="0,8,0,0"
+                                                       FontWeight="SemiBold" Foreground="{DynamicResource TextBrush}" TextWrapping="Wrap"/>
+                                            <TextBlock Style="{StaticResource CardHint}" Margin="0,10,0,0"
+                                                       Text="Fatias em destaque vêm deste menu; as demais são automáticas do contexto. Itens além do limite de 8 ficam de fora da roda."/>
+                                        </StackPanel>
+                                    </Grid>
+                                </StackPanel>
+                            </Border>
+
+                        </StackPanel>
+                    </ScrollViewer>
+                </Grid>
+            </TabItem>
+
+            <!-- ABA 5: CONVERSORES (lista montada em código: SettingsWindow.Converters.cs) -->
             <TabItem Header="Conversores">
                 <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                     <StackPanel Margin="0,0,14,12">
@@ -216,7 +465,7 @@
                 </ScrollViewer>
             </TabItem>
 
-            <!-- ABA 5: SOBRE -->
+            <!-- ABA 6: SOBRE -->
             <TabItem Header="Sobre">
                 <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                     <StackPanel Margin="0,0,14,12">

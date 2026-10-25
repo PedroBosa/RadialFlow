@@ -21,6 +21,26 @@ using RadialFlow.UI;
 
 namespace RadialFlow.Context;
 
+/// <summary>Origem de uma fatia no plano de mesclagem.</summary>
+internal enum CustomMergeStatus
+{
+    /// <summary>Fatia do menu automático do contexto.</summary>
+    Automatic,
+
+    /// <summary>Item personalizado que assumiu o lugar de uma fatia automática.</summary>
+    Replacement,
+
+    /// <summary>Item personalizado acrescentado ao fim da roda.</summary>
+    Extra,
+}
+
+internal sealed record CustomMergeEntry(RadialSlice Slice, CustomMenuItem? Item, CustomMergeStatus Status);
+
+/// <summary>Como a roda ficaria com os itens informados, incluindo os que não couberam.</summary>
+internal sealed record CustomMergePlan(
+    IReadOnlyList<CustomMergeEntry> Entries,
+    IReadOnlyList<CustomMenuItem> Dropped);
+
 internal static class CustomMenuResolver
 {
     /// <summary>Itens habilitados dos perfis que casam com o contexto, em ordem determinística.</summary>
@@ -59,8 +79,23 @@ internal static class CustomMenuResolver
         Action<CustomMenuItem> execute)
     {
         if (items.Count == 0) return automatic;
+        return Plan(automatic, items, execute).Entries.Select(e => e.Slice).ToList();
+    }
 
-        var merged = new List<RadialSlice>(automatic);
+    /// <summary>
+    /// Mesma regra de <see cref="Merge"/>, mas devolve também a origem de cada fatia e os
+    /// itens que não couberam (o editor usa isso para a prévia e o aviso de limite).
+    /// </summary>
+    internal static CustomMergePlan Plan(
+        IReadOnlyList<RadialSlice> automatic,
+        IReadOnlyList<CustomMenuItem> items,
+        Action<CustomMenuItem> execute)
+    {
+        var entries = new List<CustomMergeEntry>(automatic.Count);
+        foreach (RadialSlice slice in automatic)
+            entries.Add(new(slice, null, CustomMergeStatus.Automatic));
+
+        var dropped = new List<CustomMenuItem>();
         var replaced = new HashSet<int>();
 
         foreach (CustomMenuItem item in items)
@@ -84,20 +119,21 @@ internal static class CustomMenuResolver
 
             if (replaceIndex >= 0)
             {
-                merged[replaceIndex] = slice;
+                entries[replaceIndex] = new(slice, item, CustomMergeStatus.Replacement);
                 replaced.Add(replaceIndex);
             }
-            else if (merged.Count < RadialGeometry.MaxSlices)
+            else if (entries.Count < RadialGeometry.MaxSlices)
             {
-                merged.Add(slice);
+                entries.Add(new(slice, item, CustomMergeStatus.Extra));
             }
             else
             {
+                dropped.Add(item);
                 AppLog.Debug("Menus", $"Item '{item.Label}' ignorado: a roda já tem {RadialGeometry.MaxSlices} fatias.");
             }
         }
 
-        return merged;
+        return new(entries, dropped);
     }
 
     private static bool Matches(CustomMenuProfile profile, ContextInfo ctx)

@@ -1,8 +1,8 @@
 // ============================================================================
 // RadialFlow - Janela de Configurações
 // ----------------------------------------------------------------------------
-// Interface gráfica para personalização da Blacklist, Apps Favoritos,
-// Sensibilidade do arrasto e Inicialização com o Windows.
+// Interface gráfica para personalização da Blacklist, Apps Favoritos, Menus
+// personalizados, Sensibilidade do arrasto e Inicialização com o Windows.
 // ============================================================================
 
 using System;
@@ -59,6 +59,7 @@ public partial class SettingsWindow : Window
         ListFavorites.ItemsSource = _favoriteItems;
 
         InitializeConvertersTab();
+        InitializeMenusTab();
     }
 
     private void BtnOpenLogs_Click(object sender, RoutedEventArgs e) => TrayIconService.OpenLogsFolder();
@@ -204,6 +205,13 @@ public partial class SettingsWindow : Window
 
     private void BtnSave_Click(object sender, RoutedEventArgs e)
     {
+        string? menuError = ValidateMenus();
+        if (menuError is not null)
+        {
+            Dialogs.Message(this, "Menus personalizados", menuError, DialogIcon.Warning);
+            return;
+        }
+
         var settings = SettingsService.Current;
 
         settings.StartWithWindows = ChkStartWithWindows.IsChecked == true;
@@ -214,13 +222,15 @@ public partial class SettingsWindow : Window
 
         settings.Blacklist = new List<ForegroundBlacklist.BlacklistEntry>(_blacklistItems);
         settings.FavoriteApps = new List<FavoriteAppEntry>(_favoriteItems);
+        ApplyMenusTo(settings);
 
         SettingsService.Save(settings);
 
         // Aplica as novas configurações no controller ativo
-        _controller.ApplySettings(settings);
-        _tray.UpdateState();
+        _controller?.ApplySettings(settings);
+        _tray?.UpdateState();
 
+        _menusDirty = false;
         Close();
     }
 

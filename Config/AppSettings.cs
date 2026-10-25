@@ -136,6 +136,9 @@ public static class SettingsService
     /// </summary>
     internal static void OverrideCurrentForTests(AppSettings? settings) => _current = settings;
 
+    /// <summary>Só para testes: substitui a gravação em disco (e o Agendador) por um dublê.</summary>
+    internal static Action<AppSettings>? SaveOverrideForTests { get; set; }
+
     private static readonly SettingsStore Store = new(ConfigDirectory);
 
     /// <summary>
@@ -173,6 +176,13 @@ public static class SettingsService
     /// </summary>
     public static void Save(AppSettings settings)
     {
+        if (SaveOverrideForTests is { } saveForTests)
+        {
+            _current = settings;
+            saveForTests(settings);
+            return;
+        }
+
         try
         {
             _current = settings;
