@@ -181,10 +181,11 @@ public static class SliceFactory
 
     internal static string GetFormatGlyph(string format) => format.ToLowerInvariant() switch
     {
-        "png" or "jpg" or "jpeg" or "webp" or "bmp" or "tiff" or "ico" => "\uEB9F",
-        "mp4" or "webm" or "mkv" or "gif" => "\uE714",
-        "mp3" or "wav" or "flac" or "aac" or "ogg" => "\uE8D6",
-        "pdf" or "docx" or "html" or "md" or "txt" => "\uE8A5",
+        "png" or "jpg" or "jpeg" or "webp" or "bmp" or "tiff" or "ico" or "heic" => "\uEB9F",
+        "mp4" or "webm" or "mkv" or "mov" or "gif" => "\uE714",
+        "mp3" or "wav" or "flac" or "aac" or "ogg" or "m4a" or "opus" or "aiff" => "\uE8D6",
+        "pdf" or "docx" or "odt" or "rtf" or "html" or "md" or "txt" or "epub" or
+        "xlsx" or "ods" or "csv" or "pptx" or "odp" => "\uE8A5",
         _ => "\uE8AB"
     };
 }

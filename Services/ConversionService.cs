@@ -1,22 +1,15 @@
 // ============================================================================
-// RadialFlow - Serviço de Conversão Multi-Formato
+// RadialFlow - Serviço de conversão
 // ----------------------------------------------------------------------------
-// Motores:
-//   WIC (nativo)        imagens PNG/JPG/BMP/TIFF/GIF, sem instalar nada
-//   ImageMagick         WEBP, ICO, AVIF, SVG, HEIC...
-//   FFmpeg              áudio, vídeo e GIF animado (progresso em tempo real)
-//   Pandoc / LibreOffice documentos
+// Fachada usada pela roda e pela janela de conversão:
+//   * GetAvailableOptions: formatos que FUNCIONAM para o arquivo neste PC;
+//   * ConvertAsync: executa a conversão escolhida, com progresso.
+// O que oferecer e quem converte vem do ConversionFormats (catálogo puro);
+// o que está instalado vem do ConversionTools.
 //
-// Correções desta versão:
-//   * as opções oferecidas dependem das ferramentas REALMENTE disponíveis;
-//   * FLAC/OGG/AAC usam o codec certo (antes geravam comando inválido);
-//   * processos externos NÃO rodam como administrador: passam pelo
-//     UnelevatedLauncher.ExecuteAsync (token do shell, TrustedPath antes do launch,
-//     stdout/stderr drenados em tempo real, Job Object para cancelar a árvore);
-//   * documentos: motor escolhido por origem/destino (PDF e Office via
-//     LibreOffice; texto/markup via Pandoc);
-//   * PNG com transparência -> JPEG/BMP é composto sobre fundo branco;
-//   * saída parcial é apagada se a conversão falhar ou for cancelada.
+// Segurança: ferramentas externas NUNCA rodam como administrador (passam pelo
+// UnelevatedLauncher, que valida o executável no TrustedPath antes de criar o
+// processo). Saída parcial é apagada se a conversão falhar ou for cancelada.
 // ============================================================================
 
 using System;
@@ -28,197 +21,18 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
 using RadialFlow.Security;
 
 namespace RadialFlow.Services;
 
-public enum FileCategory
-{
-    Image,
-    Video,
-    Audio,
-    Document,
-    Unsupported
-}
-
-public sealed record ConversionOption(string TargetFormat, string DisplayName, string Engine);
-
 public static class ConversionService
 {
-    private enum Engine { None, Wic, Magick, FFmpeg, Pandoc, LibreOffice }
+    public static FileCategory DetectCategory(string filePath) =>
+        ConversionFormats.DetectCategory(Path.GetExtension(filePath), WicCodecs.Readable);
 
-    private static readonly HashSet<string> ImageExts = new(StringComparer.OrdinalIgnoreCase)
-    {
-        ".jpg", ".jpeg", ".png", ".bmp", ".gif", ".tiff", ".tif", ".ico", ".webp", ".avif", ".heic", ".svg"
-    };
-
-    // Formatos que o WIC decodifica em qualquer Windows (webp/heic/avif/svg dependem de extensões ou não existem).
-    private static readonly HashSet<string> WicSourceExts = new(StringComparer.OrdinalIgnoreCase)
-    {
-        ".jpg", ".jpeg", ".png", ".bmp", ".gif", ".tiff", ".tif", ".ico"
-    };
-
-    private static readonly HashSet<string> VideoExts = new(StringComparer.OrdinalIgnoreCase)
-    {
-        ".mp4", ".mkv", ".avi", ".mov", ".wmv", ".webm", ".flv", ".m4v"
-    };
-
-    private static readonly HashSet<string> AudioExts = new(StringComparer.OrdinalIgnoreCase)
-    {
-        ".mp3", ".wav", ".aac", ".flac", ".ogg", ".m4a", ".wma"
-    };
-
-    private static readonly HashSet<string> DocExts = new(StringComparer.OrdinalIgnoreCase)
-    {
-        ".md", ".markdown", ".docx", ".pdf", ".html", ".htm", ".epub", ".txt", ".rtf", ".odt", ".pptx", ".xlsx"
-    };
-
-    public static FileCategory DetectCategory(string filePath)
-    {
-        string ext = Path.GetExtension(filePath);
-        if (ImageExts.Contains(ext)) return FileCategory.Image;
-        if (VideoExts.Contains(ext)) return FileCategory.Video;
-        if (AudioExts.Contains(ext)) return FileCategory.Audio;
-        if (DocExts.Contains(ext)) return FileCategory.Document;
-        return FileCategory.Unsupported;
-    }
-
-    // ------------------------------------------------------------------
-    // Opções oferecidas (somente o que realmente funciona neste PC)
-    // ------------------------------------------------------------------
-
-    public static List<ConversionOption> GetAvailableOptions(string filePath)
-    {
-        var category = DetectCategory(filePath);
-        string srcExt = Path.GetExtension(filePath).ToLowerInvariant();
-        var options = new List<ConversionOption>();
-
-        void Add(string target, string display)
-        {
-            if (SameFormat(srcExt, target)) return;
-
-            Engine engine = category switch
-            {
-                FileCategory.Image => ImageEngine(srcExt, target),
-                FileCategory.Video or FileCategory.Audio => ToolResolver.GetFFmpeg() is null ? Engine.None : Engine.FFmpeg,
-                FileCategory.Document => DocEngine(srcExt, target),
-                _ => Engine.None
-            };
-
-            if (engine != Engine.None)
-                options.Add(new ConversionOption(target, display, EngineName(engine)));
-        }
-
-        switch (category)
-        {
-            case FileCategory.Image:
-                Add("png",  "PNG — Imagem sem perdas");
-                Add("jpg",  "JPEG — Imagem comprimida");
-                Add("webp", "WEBP — Alta compressão Web");
-                Add("bmp",  "BMP — Bitmap padrão");
-                Add("tiff", "TIFF — Imagem de alta fidelidade");
-                Add("ico",  "ICO — Ícone do Windows");
-                break;
-
-            case FileCategory.Video:
-                Add("mp4",  "MP4 — H.264 / AAC padrão universal");
-                Add("gif",  "GIF Animado — Clipe animado");
-                Add("webm", "WebM — Vídeo otimizado para web");
-                Add("mp3",  "MP3 — Extrair somente áudio");
-                Add("wav",  "WAV — Extrair áudio sem perdas");
-                break;
-
-            case FileCategory.Audio:
-                Add("mp3",  "MP3 — Áudio compatível universal");
-                Add("wav",  "WAV — Áudio sem compressão");
-                Add("aac",  "AAC — Áudio de alta eficiência");
-                Add("flac", "FLAC — Áudio sem perdas (Lossless)");
-                Add("ogg",  "OGG — Áudio Vorbis");
-                break;
-
-            case FileCategory.Document:
-                Add("pdf",  "PDF — Documento portátil");
-                Add("docx", "DOCX — Microsoft Word");
-                Add("html", "HTML — Página Web");
-                Add("md",   "Markdown — Texto formatado");
-                Add("txt",  "TXT — Texto puro");
-                break;
-        }
-
-        return options;
-    }
-
-    private static bool SameFormat(string srcExt, string target)
-    {
-        static string Norm(string e) => e.TrimStart('.').ToLowerInvariant() switch
-        {
-            "jpeg" => "jpg",
-            "tif" => "tiff",
-            "htm" => "html",
-            "markdown" => "md",
-            var x => x
-        };
-        return Norm(srcExt) == Norm(target);
-    }
-
-    private static string EngineName(Engine e) => e switch
-    {
-        Engine.Wic => "WIC",
-        Engine.Magick => "ImageMagick",
-        Engine.FFmpeg => "FFmpeg",
-        Engine.Pandoc => "Pandoc",
-        Engine.LibreOffice => "LibreOffice",
-        _ => ""
-    };
-
-    // ------------------------------------------------------------------
-    // Escolha de motor (a MESMA função alimenta as opções e a conversão)
-    // ------------------------------------------------------------------
-
-    private static Engine ImageEngine(string srcExt, string target)
-    {
-        bool wicSource = WicSourceExts.Contains(srcExt);
-        bool wicTarget = target is "png" or "jpg" or "jpeg" or "bmp" or "tiff" or "tif" or "gif";
-
-        if (wicSource && wicTarget) return Engine.Wic;
-        if (ToolResolver.GetImageMagick() is not null) return Engine.Magick;
-
-        // Sem ImageMagick, o ffmpeg decodifica webp/avif e grava formatos comuns.
-        bool ffmpegCanRead = srcExt is not ".svg" and not ".heic";
-        bool ffmpegCanWrite = target is "png" or "jpg" or "jpeg" or "webp" or "bmp" or "tiff";
-        if (ffmpegCanRead && ffmpegCanWrite && ToolResolver.GetFFmpeg() is not null) return Engine.FFmpeg;
-
-        return Engine.None;
-    }
-
-    private static Engine DocEngine(string srcExt, string target)
-    {
-        bool hasPandoc = ToolResolver.GetPandoc() is not null;
-        bool hasOffice = ToolResolver.GetLibreOffice() is not null;
-
-        if (srcExt == ".pdf") return Engine.None;   // nenhum motor aqui lê PDF com fidelidade
-
-        if (srcExt is ".pptx" or ".xlsx")
-            return target == "pdf" && hasOffice ? Engine.LibreOffice : Engine.None;
-
-        bool pandocReads = srcExt is ".md" or ".markdown" or ".docx" or ".odt" or ".html" or ".htm" or ".epub" or ".txt" or ".rtf";
-        bool officeReads = srcExt is ".docx" or ".odt" or ".rtf" or ".html" or ".htm" or ".txt";
-
-        if (target == "pdf")
-        {
-            if (officeReads && hasOffice) return Engine.LibreOffice;          // sem LaTeX
-            if (pandocReads && hasPandoc) return Engine.Pandoc;               // exige motor PDF instalado
-            return Engine.None;
-        }
-
-        if (pandocReads && hasPandoc) return Engine.Pandoc;
-        if (officeReads && hasOffice && target is "docx" or "html" or "txt") return Engine.LibreOffice;
-        return Engine.None;
-    }
-
-    private static string MissingToolMessage(string tool) => ToolResolver.DescribeMissing(tool);
+    /// <summary>Formatos de destino que funcionam para este arquivo com o que está instalado (pode ser vazio).</summary>
+    public static List<ConversionOption> GetAvailableOptions(string filePath) =>
+        ConversionFormats.GetOptions(Path.GetExtension(filePath), ConversionTools.Current());
 
     // ------------------------------------------------------------------
     // Conversão
@@ -240,33 +54,76 @@ public static class ConversionService
         sourcePath = safeSource;
         destinationPath = safeDestination;
 
-        var category = DetectCategory(sourcePath);
         string srcExt = Path.GetExtension(sourcePath).ToLowerInvariant();
-        string target = targetFormat.TrimStart('.').ToLowerInvariant();
+        string target = ConversionFormats.NormalizeFormat(targetFormat);
+        ConversionToolset tools = ConversionTools.Current();
+        FileCategory category = ConversionFormats.DetectCategory(srcExt, tools.WicReadable);
+        ConversionEngine engine = ConversionFormats.Plan(srcExt, target, tools);
+
+        if (engine == ConversionEngine.None)
+            throw new NotSupportedException(DescribeUnavailable(srcExt, target, category));
 
         await RunWithPartialOutputCleanupAsync(destinationPath, async () =>
         {
-            progress?.Report(new ProgressReport(5.0, $"Iniciando conversão de {Path.GetFileName(sourcePath)} para .{target}..."));
+            progress?.Report(new ProgressReport(5.0, $"Convertendo {Path.GetFileName(sourcePath)} para .{target}..."));
 
-            switch (category)
+            switch (engine)
             {
-                case FileCategory.Image:
-                    await ConvertImageAsync(sourcePath, srcExt, target, destinationPath, progress, cancellationToken).ConfigureAwait(false);
+                case ConversionEngine.Wic:
+                    progress?.Report(new ProgressReport(40.0, "Convertendo a imagem..."));
+                    await Task.Run(() => ImageConverter.Convert(sourcePath, target, destinationPath), cancellationToken).ConfigureAwait(false);
                     break;
 
-                case FileCategory.Video:
-                case FileCategory.Audio:
-                    await ConvertMediaAsync(sourcePath, target, destinationPath, progress, cancellationToken).ConfigureAwait(false);
+                case ConversionEngine.Magick:
+                    await RunProcessAsync(RequireTool(ToolResolver.GetImageMagick(), "magick.exe"),
+                        ConversionFormats.BuildMagickArguments(sourcePath, target, destinationPath), progress, cancellationToken).ConfigureAwait(false);
                     break;
 
-                case FileCategory.Document:
-                    await ConvertDocumentAsync(sourcePath, srcExt, target, destinationPath, progress, cancellationToken).ConfigureAwait(false);
+                case ConversionEngine.FFmpeg when category == FileCategory.Image:
+                    await RunProcessAsync(RequireTool(ToolResolver.GetFFmpeg(), "ffmpeg.exe"),
+                        ConversionFormats.BuildFfmpegImageArguments(sourcePath, target, destinationPath), progress, cancellationToken).ConfigureAwait(false);
                     break;
 
-                default:
-                    throw new NotSupportedException($"Formato .{target} não suportado para o arquivo selecionado.");
+                case ConversionEngine.FFmpeg:
+                    await ConvertMediaAsync(sourcePath, target, category == FileCategory.Video, destinationPath, progress, cancellationToken).ConfigureAwait(false);
+                    return;   // o progresso do ffmpeg já informa a conclusão
+
+                case ConversionEngine.Pandoc:
+                    await RunPandocAsync(sourcePath, srcExt, target, destinationPath, progress, cancellationToken).ConfigureAwait(false);
+                    break;
+
+                case ConversionEngine.LibreOffice:
+                    await ConvertWithLibreOfficeAsync(sourcePath, srcExt, target, destinationPath, progress, cancellationToken).ConfigureAwait(false);
+                    break;
+
+                case ConversionEngine.PandocThenLibreOffice:
+                    await ConvertViaDocxAsync(sourcePath, srcExt, destinationPath, progress, cancellationToken).ConfigureAwait(false);
+                    break;
             }
+
+            progress?.Report(new ProgressReport(100.0, "Conversão concluída."));
         }).ConfigureAwait(false);
+    }
+
+    private static string RequireTool(string? path, string toolName) =>
+        path ?? throw new FileNotFoundException(ToolResolver.DescribeMissing(toolName));
+
+    /// <summary>Mensagem quando não há como converter: diz qual programa resolveria.</summary>
+    internal static string DescribeUnavailable(string srcExt, string target, FileCategory category)
+    {
+        if (srcExt == ".pdf") return "Converter a partir de PDF não é suportado.";
+
+        string tool = category switch
+        {
+            FileCategory.Image => "magick.exe",
+            FileCategory.Video or FileCategory.Audio => "ffmpeg.exe",
+            FileCategory.Document when srcExt is ".md" or ".markdown" or ".epub" || target is "md" or "epub" => "pandoc.exe",
+            FileCategory.Document or FileCategory.Spreadsheet or FileCategory.Presentation => "soffice.exe",
+            _ => ""
+        };
+
+        string what = $"Não há como converter {srcExt} para .{target} neste computador.";
+        return tool.Length == 0 ? what : $"{what} {ToolResolver.DescribeMissing(tool)}";
     }
 
     /// <summary>
@@ -295,152 +152,19 @@ public static class ConversionService
         }
     }
 
-    // ---- Imagens -----------------------------------------------------
-
-    private static async Task ConvertImageAsync(string source, string srcExt, string target, string destination,
-        IProgress<ProgressReport>? progress, CancellationToken ct)
-    {
-        switch (ImageEngine(srcExt, target))
-        {
-            case Engine.Wic:
-                await Task.Run(() => ConvertImageWic(source, target, destination), ct).ConfigureAwait(false);
-                progress?.Report(new ProgressReport(100.0, "Conversão de imagem concluída com sucesso!"));
-                break;
-
-            case Engine.Magick:
-            {
-                string magick = ToolResolver.GetImageMagick()!;
-                var args = new List<string> { source };
-                if (target == "ico")
-                {
-                    args.Add("-define");
-                    args.Add("icon:auto-resize=256,128,64,48,32,16");
-                }
-                args.Add(destination);
-
-                await RunProcessAsync(magick, args, progress, ct).ConfigureAwait(false);
-                progress?.Report(new ProgressReport(100.0, "Conversão concluída."));
-                break;
-            }
-
-            case Engine.FFmpeg:
-            {
-                string ffmpeg = ToolResolver.GetFFmpeg()!;
-                await RunProcessAsync(ffmpeg,
-                    new[] { "-hide_banner", "-nostdin", "-loglevel", "error", "-y", "-i", source, destination },
-                    progress, ct).ConfigureAwait(false);
-                progress?.Report(new ProgressReport(100.0, "Conversão concluída."));
-                break;
-            }
-
-            default:
-                throw new NotSupportedException(
-                    $"Para converter para .{target} a partir de {srcExt}: {MissingToolMessage("magick.exe")}");
-        }
-    }
-
-    private static void ConvertImageWic(string sourcePath, string targetExt, string destinationPath)
-    {
-        using var inStream = new FileStream(sourcePath, FileMode.Open, FileAccess.Read, FileShare.Read);
-        var decoder = BitmapDecoder.Create(inStream, BitmapCreateOptions.PreservePixelFormat, BitmapCacheOption.OnLoad);
-
-        if (decoder.Frames.Count == 0)
-            throw new InvalidOperationException("Não foi possível decodificar o arquivo de imagem.");
-
-        BitmapSource frame = decoder.Frames[0];
-
-        // JPEG e BMP não têm transparência: sem isso o fundo transparente sairia preto.
-        if (targetExt is "jpg" or "jpeg" or "bmp" && HasAlpha(frame))
-            frame = FlattenOnWhite(frame);
-
-        BitmapEncoder encoder = targetExt switch
-        {
-            "png" => new PngBitmapEncoder(),
-            "jpg" or "jpeg" => new JpegBitmapEncoder { QualityLevel = 90 },
-            "bmp" => new BmpBitmapEncoder(),
-            "tiff" or "tif" => new TiffBitmapEncoder(),
-            "gif" => new GifBitmapEncoder(),
-            _ => throw new NotSupportedException($"WIC não suporta o formato {targetExt}")
-        };
-
-        encoder.Frames.Add(BitmapFrame.Create(frame));
-
-        using var outStream = new FileStream(destinationPath, FileMode.CreateNew, FileAccess.Write, FileShare.None);
-        encoder.Save(outStream);
-    }
-
-    private static bool HasAlpha(BitmapSource s) =>
-        s.Format == PixelFormats.Bgra32 || s.Format == PixelFormats.Pbgra32 ||
-        s.Format == PixelFormats.Rgba64 || s.Format == PixelFormats.Prgba64 ||
-        s.Format == PixelFormats.Rgba128Float || s.Format == PixelFormats.Prgba128Float ||
-        (s.Palette?.Colors.Any(c => c.A < 255) ?? false);
-
-    /// <summary>Compõe a imagem sobre branco, em pixels (sem depender de renderização WPF/STA).</summary>
-    private static BitmapSource FlattenOnWhite(BitmapSource source)
-    {
-        var bgra = new FormatConvertedBitmap(source, PixelFormats.Bgra32, null, 0);
-        int width = bgra.PixelWidth, height = bgra.PixelHeight, stride = width * 4;
-
-        var pixels = new byte[stride * height];
-        bgra.CopyPixels(pixels, stride, 0);
-
-        for (int i = 0; i < pixels.Length; i += 4)
-        {
-            int a = pixels[i + 3];
-            if (a == 255) continue;
-
-            pixels[i]     = (byte)((pixels[i]     * a + 255 * (255 - a)) / 255);
-            pixels[i + 1] = (byte)((pixels[i + 1] * a + 255 * (255 - a)) / 255);
-            pixels[i + 2] = (byte)((pixels[i + 2] * a + 255 * (255 - a)) / 255);
-            pixels[i + 3] = 255;
-        }
-
-        var flat = BitmapSource.Create(width, height, source.DpiX, source.DpiY, PixelFormats.Bgr32, null, pixels, stride);
-        flat.Freeze();
-        return flat;
-    }
-
     // ---- Áudio / vídeo ----------------------------------------------
 
-    private static async Task ConvertMediaAsync(string source, string target, string destination,
+    private static async Task ConvertMediaAsync(string source, string target, bool fromVideo, string destination,
         IProgress<ProgressReport>? progress, CancellationToken ct)
     {
-        string? ffmpeg = ToolResolver.GetFFmpeg();
-        if (string.IsNullOrEmpty(ffmpeg))
-            throw new FileNotFoundException(MissingToolMessage("ffmpeg.exe"));
+        string ffmpeg = RequireTool(ToolResolver.GetFFmpeg(), "ffmpeg.exe");
 
-        var args = new List<string> { "-hide_banner", "-nostdin", "-y", "-i", source };
+        // Na conversão, os argumentos precisam ser exatos: espera a lista de codificadores (se ainda não chegou).
+        IReadOnlySet<string>? encoders = await FfmpegEncoders.GetAsync(ffmpeg).WaitAsync(ct).ConfigureAwait(false);
+        var tools = new ConversionToolset { HasFFmpeg = true, FfmpegEncoders = encoders };
 
-        // Cada formato com o codec que o contêiner aceita.
-        switch (target)
-        {
-            case "gif":
-                args.AddRange(new[] { "-vf", "fps=15,scale=480:-1:flags=lanczos" });
-                break;
-            case "mp3":
-                args.AddRange(new[] { "-vn", "-ar", "44100", "-ac", "2", "-c:a", "libmp3lame", "-b:a", "192k" });
-                break;
-            case "wav":
-                args.AddRange(new[] { "-vn", "-c:a", "pcm_s16le" });
-                break;
-            case "aac":
-                args.AddRange(new[] { "-vn", "-c:a", "aac", "-b:a", "192k" });
-                break;
-            case "flac":
-                args.AddRange(new[] { "-vn", "-c:a", "flac" });
-                break;
-            case "ogg":
-                args.AddRange(new[] { "-vn", "-c:a", "libvorbis", "-q:a", "5" });
-                break;
-            case "webm":
-                args.AddRange(new[] { "-c:v", "libvpx-vp9", "-crf", "30", "-b:v", "0", "-c:a", "libopus", "-b:a", "128k" });
-                break;
-            default: // mp4 e demais contêineres de vídeo
-                args.AddRange(new[] { "-c:v", "libx264", "-preset", "fast", "-crf", "22", "-c:a", "aac", "-b:a", "160k" });
-                break;
-        }
-
-        args.Add(destination);
+        List<string> args = ConversionFormats.BuildFfmpegMediaArguments(source, target, fromVideo, tools, destination)
+            ?? throw new NotSupportedException($"O FFmpeg instalado não tem o codificador necessário para .{target}.");
 
         await RunFfmpegWithProgressAsync(ffmpeg, args, progress, ct).ConfigureAwait(false);
     }
@@ -502,73 +226,89 @@ public static class ConversionService
         value = TimeSpan.FromHours(h) + TimeSpan.FromMinutes(min) + TimeSpan.FromSeconds(s);
         return true;
     }
+
     // ---- Documentos --------------------------------------------------
 
-    private static async Task ConvertDocumentAsync(string source, string srcExt, string target, string destination,
+    /// <summary>Pandoc na pasta do arquivo: imagens com caminho relativo (comuns em Markdown) são encontradas.</summary>
+    private static Task RunPandocAsync(string source, string srcExt, string target, string destination,
+        IProgress<ProgressReport>? progress, CancellationToken ct) =>
+        RunProcessAsync(RequireTool(ToolResolver.GetPandoc(), "pandoc.exe"),
+            ConversionFormats.BuildPandocArguments(source, srcExt, target, destination), progress, ct,
+            workingDirectory: Path.GetDirectoryName(source));
+
+    /// <summary>Markdown/EPUB para PDF sem LaTeX: o Pandoc gera um DOCX temporário e o LibreOffice o transforma em PDF.</summary>
+    private static async Task ConvertViaDocxAsync(string source, string srcExt, string destination,
         IProgress<ProgressReport>? progress, CancellationToken ct)
     {
-        switch (DocEngine(srcExt, target))
+        string work = CreateWorkDirectory();
+        try
         {
-            case Engine.Pandoc:
-            {
-                string pandoc = ToolResolver.GetPandoc()!;
-                var args = new List<string> { "-s", source, "-o", destination };
-                if (target == "txt") { args.Add("-t"); args.Add("plain"); }
-
-                await RunProcessAsync(pandoc, args, progress, ct).ConfigureAwait(false);
-                progress?.Report(new ProgressReport(100.0, "Conversão concluída."));
-                break;
-            }
-
-            case Engine.LibreOffice:
-                await ConvertWithLibreOfficeAsync(source, target, destination, progress, ct).ConfigureAwait(false);
-                progress?.Report(new ProgressReport(100.0, "Conversão concluída."));
-                break;
-
-            default:
-                string missing = srcExt == ".pdf"
-                    ? "Converter a partir de PDF não é suportado."
-                    : $"Nenhum conversor disponível para {srcExt} -> .{target}. " +
-                      MissingToolMessage(target == "pdf" ? "soffice.exe" : "pandoc.exe");
-                throw new NotSupportedException(missing);
+            string docx = Path.Combine(work, Path.GetFileNameWithoutExtension(source) + ".docx");
+            await RunPandocAsync(source, srcExt, "docx", docx, progress, ct).ConfigureAwait(false);
+            progress?.Report(new ProgressReport(60.0, "Gerando o PDF..."));
+            await ConvertWithLibreOfficeAsync(docx, ".docx", "pdf", destination, progress, ct).ConfigureAwait(false);
+        }
+        finally
+        {
+            DeleteWorkDirectory(work);
         }
     }
 
     /// <summary>
-    /// O LibreOffice grava "nome.ext" na pasta de saída, que nem sempre é o
-    /// destino escolhido. Converte numa pasta temporária (com perfil isolado,
-    /// para não colidir com uma instância aberta) e move o resultado.
+    /// O LibreOffice grava "nome.ext" na pasta de saída, que nem sempre é o destino escolhido. Converte numa
+    /// pasta temporária (com perfil isolado, para não colidir com uma instância aberta) e move o resultado.
     /// </summary>
-    private static async Task ConvertWithLibreOfficeAsync(string source, string target, string destination,
+    private static async Task ConvertWithLibreOfficeAsync(string source, string srcExt, string target, string destination,
         IProgress<ProgressReport>? progress, CancellationToken ct)
     {
-        string soffice = ToolResolver.GetLibreOffice()!;
-        string work = Path.Combine(Path.GetTempPath(), "RadialFlow", Guid.NewGuid().ToString("N"));
+        string soffice = RequireTool(ToolResolver.GetLibreOffice(), "soffice.exe");
+        string work = CreateWorkDirectory();
         string outDir = Path.Combine(work, "out");
         string profile = Path.Combine(work, "profile");
         Directory.CreateDirectory(outDir);
 
         try
         {
-            string filter = target == "txt" ? "txt:Text" : target;
-            var args = new List<string>
-            {
-                $"-env:UserInstallation={new Uri(profile).AbsoluteUri}",
-                "--headless", "--convert-to", filter, "--outdir", outDir, source
-            };
+            char separator = srcExt == ".csv" ? ConversionFormats.DetectCsvSeparator(ReadFirstLine(source)) : ',';
+            List<string> args = ConversionFormats.BuildLibreOfficeArguments(source, srcExt, target, new Uri(profile).AbsoluteUri, outDir, separator);
 
             await RunProcessAsync(soffice, args, progress, ct, workingDirectory: work).ConfigureAwait(false);
 
-            string? produced = Directory.EnumerateFiles(outDir).FirstOrDefault();
-            if (produced is null)
-                throw new InvalidOperationException("O LibreOffice não gerou nenhum arquivo.");
+            string? produced = Directory.EnumerateFiles(outDir).FirstOrDefault()
+                ?? throw new InvalidOperationException("O LibreOffice não gerou nenhum arquivo.");
 
             File.Move(produced, destination, overwrite: false);
         }
         finally
         {
-            try { Directory.Delete(work, recursive: true); } catch { /* temp: ignora */ }
+            DeleteWorkDirectory(work);
         }
+    }
+
+    private static string? ReadFirstLine(string path)
+    {
+        try
+        {
+            using var reader = new StreamReader(path, Encoding.UTF8, detectEncodingFromByteOrderMarks: true);
+            return reader.ReadLine();
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            return null;
+        }
+    }
+
+    private static string CreateWorkDirectory()
+    {
+        string work = Path.Combine(Path.GetTempPath(), "RadialFlow", Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(work);
+        return work;
+    }
+
+    private static void DeleteWorkDirectory(string work)
+    {
+        try { Directory.Delete(work, recursive: true); }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException) { /* temporário: o Windows limpa depois */ }
     }
 
     // ---- Processos externos -----------------------------------------
@@ -621,7 +361,7 @@ public static class ConversionService
     private static async Task RunProcessAsync(string executable, IReadOnlyList<string> args,
         IProgress<ProgressReport>? progress, CancellationToken ct, string? workingDirectory = null)
     {
-        progress?.Report(new ProgressReport(40.0, "Processando com ferramenta externa..."));
+        progress?.Report(new ProgressReport(40.0, $"Convertendo com o {Path.GetFileNameWithoutExtension(executable)}..."));
 
         ToolResult result = await RunToolAsync(executable, args, workingDirectory, onErrorLine: null, ct).ConfigureAwait(false);
 

@@ -55,6 +55,8 @@ public partial class ConversionWindow : Window
         FileCategory.Video => "Vídeo",
         FileCategory.Audio => "Áudio",
         FileCategory.Document => "Documento",
+        FileCategory.Spreadsheet => "Planilha",
+        FileCategory.Presentation => "Apresentação",
         _ => "Desconhecido / Não suportado"
     };
 

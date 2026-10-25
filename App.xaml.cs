@@ -70,6 +70,9 @@ public sealed partial class App : Application, IDisposable
         // Só depois de iniciar: uma falha na inicialização não deve ser mascarada.
         DispatcherUnhandledException += OnDispatcherUnhandledException;
         AppLog.Info("App", "Pronto.");
+
+        // Codecs, ferramentas e codificadores do FFmpeg: consultados já, em segundo plano, para a primeira roda não esperar.
+        _ = Task.Run(Services.ConversionTools.Warm);
     }
 
     /// <summary>Libera os serviços (hooks, bandeja). Idempotente: o OnExit já chama; o Dispose cobre usos fora do ciclo normal.</summary>

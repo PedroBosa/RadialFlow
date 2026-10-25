@@ -18,6 +18,7 @@
   <ItemGroup>
     <Compile Include="..\..\UI\Tray\AppIconRenderer.cs" Link="Shared\AppIconRenderer.cs" />
     <Compile Include="..\..\UI\Radial\RadialModels.cs" Link="Shared\RadialModels.cs" />
+    <Compile Include="..\..\Services\Imaging\IcoFile.cs" Link="Shared\IcoFile.cs" />
   </ItemGroup>
 
 </Project>
