@@ -462,7 +462,7 @@
                                    Style="{StaticResource PageSubtitle}"/>
                     </StackPanel>
 
-                    <Grid Grid.Row="1" Margin="32,4,20,20">
+                    <Grid x:Name="MenusWorkspace" Grid.Row="1" Margin="32,4,20,20">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="180"/>
                             <ColumnDefinition Width="12"/>
@@ -490,10 +490,10 @@
                                 </StackPanel>
 
                                 <StackPanel DockPanel.Dock="Bottom" Margin="0,10,0,0">
-                                    <Button x:Name="BtnAddMenuProfile" Content="Novo menu" Style="{StaticResource PrimaryButton}"
+                                    <Button x:Name="BtnNewMenuProfile" Content="Novo menu" Style="{StaticResource PrimaryButton}"
                                             Click="BtnAddMenuProfile_Click" Margin="0,0,0,6"
                                             AutomationProperties.Name="Adicionar menu personalizado"/>
-                                    <Grid>
+                                    <Grid x:Name="PnlProfileActions">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="*"/>
                                             <ColumnDefinition Width="6"/>
@@ -547,17 +547,6 @@
                                             </DataTemplate>
                                         </ListBox.ItemTemplate>
                                     </ListBox>
-
-                                    <StackPanel x:Name="PnlNoProfiles" VerticalAlignment="Center" HorizontalAlignment="Center"
-                                                IsHitTestVisible="False" Margin="6">
-                                        <TextBlock Text="&#xE8FD;" FontFamily="{StaticResource IconFont}" FontSize="22"
-                                                   Foreground="{DynamicResource TextDimBrush}" HorizontalAlignment="Center"
-                                                   Opacity="0.8"/>
-                                        <TextBlock Text="Nenhum menu" FontSize="12.5" FontWeight="SemiBold" HorizontalAlignment="Center"
-                                                   Margin="0,6,0,0"/>
-                                        <TextBlock Text="Clique em “Novo menu” para começar." Style="{StaticResource CardHint}"
-                                                   FontSize="11" TextAlignment="Center" MaxWidth="130" Margin="0,2,0,0"/>
-                                    </StackPanel>
                                 </Grid>
                             </DockPanel>
                         </Border>
@@ -943,6 +932,31 @@
                             </StackPanel>
                         </Border>
                     </Grid>
+
+                    <Border x:Name="PnlNoMenus" Grid.Row="1" Margin="32,4,20,20" Visibility="Collapsed">
+                        <Border Style="{StaticResource Card}" Margin="0" Padding="36,34" MaxWidth="560"
+                                HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <StackPanel HorizontalAlignment="Center">
+                                <Border Width="56" Height="56" CornerRadius="28" Background="{DynamicResource AccentSoftBrush}">
+                                    <TextBlock Text="&#xE8FD;" FontFamily="{StaticResource IconFont}" FontSize="24"
+                                               Foreground="{DynamicResource AccentTextBrush}"
+                                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                                <TextBlock Text="Crie seu primeiro menu" FontSize="20" FontWeight="Bold"
+                                           Foreground="{DynamicResource TextBrush}" HorizontalAlignment="Center" Margin="0,16,0,0"/>
+                                <TextBlock Text="Dê um nome, escolha em quais aplicativos e contextos ele aparece e adicione os itens da roda."
+                                           Style="{StaticResource CardHint}" FontSize="12.5" MaxWidth="420"
+                                           TextAlignment="Center" Margin="0,6,0,0"/>
+                                <Button x:Name="BtnAddMenuProfile" Content="Criar primeiro menu"
+                                        Style="{StaticResource PrimaryButton}" MinWidth="180" Margin="0,20,0,0"
+                                        HorizontalAlignment="Center" Click="BtnAddMenuProfile_Click"
+                                        AutomationProperties.Name="Criar o primeiro menu personalizado"/>
+                                <TextBlock Text="Você pode duplicar, desativar e conferir a prévia antes de salvar."
+                                           Style="{StaticResource CardHint}" FontSize="11"
+                                           TextAlignment="Center" Margin="0,12,0,0"/>
+                            </StackPanel>
+                        </Border>
+                    </Border>
                 </Grid>
             </TabItem>
 

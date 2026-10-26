@@ -670,7 +670,12 @@ public partial class SettingsWindow
 
     private void UpdateMenuButtons()
     {
+        bool hasProfiles = _menuProfiles.Count > 0;
         bool hasProfile = _selectedProfile is not null;
+        MenusWorkspace.Visibility = hasProfiles ? Visibility.Visible : Visibility.Collapsed;
+        PnlNoMenus.Visibility = hasProfiles ? Visibility.Collapsed : Visibility.Visible;
+        PnlProfileActions.Visibility = hasProfile ? Visibility.Visible : Visibility.Collapsed;
+
         BtnDuplicateMenuProfile.IsEnabled = hasProfile;
         BtnRemoveMenuProfile.IsEnabled = hasProfile;
         BtnAddMenuItem.IsEnabled = hasProfile;
@@ -681,7 +686,6 @@ public partial class SettingsWindow
         BtnMoveItemUp.IsEnabled = hasItem && index > 0;
         BtnMoveItemDown.IsEnabled = hasItem && index >= 0 && index < _menuItems.Count - 1;
 
-        PnlNoProfiles.Visibility = _menuProfiles.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
         PnlNoItems.Visibility = hasProfile && _menuItems.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
         MenuProfileCount.Text = _menuProfiles.Count.ToString(CultureInfo.InvariantCulture);
         MenuItemCount.Text = $"{_menuItems.Count} de {CustomMenuNormalizer.MaxItems}";

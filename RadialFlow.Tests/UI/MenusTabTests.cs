@@ -219,6 +219,29 @@ public sealed class MenusTabTests : IDisposable
         });
     }
 
+    [Fact]
+    public void EstadoVazio_UmUnicoConviteEAcoesSoComSelecao()
+    {
+        RunSta(() =>
+        {
+            SettingsWindow window = OpenSettings();
+            Assert.Equal(Visibility.Collapsed, Find<Grid>(window, "MenusWorkspace").Visibility);
+            Assert.Equal(Visibility.Visible, Find<Border>(window, "PnlNoMenus").Visibility);
+            Assert.Equal(Visibility.Collapsed, Find<Grid>(window, "PnlProfileActions").Visibility);
+
+            Click(Find<Button>(window, "BtnAddMenuProfile"));
+            Assert.Equal(Visibility.Visible, Find<Grid>(window, "MenusWorkspace").Visibility);
+            Assert.Equal(Visibility.Collapsed, Find<Border>(window, "PnlNoMenus").Visibility);
+            Assert.Equal(Visibility.Visible, Find<Grid>(window, "PnlProfileActions").Visibility);
+
+            Click(Find<Button>(window, "BtnRemoveMenuProfile"));
+            Assert.Equal(Visibility.Collapsed, Find<Grid>(window, "MenusWorkspace").Visibility);
+            Assert.Equal(Visibility.Visible, Find<Border>(window, "PnlNoMenus").Visibility);
+
+            CloseDiscarding(window);
+        });
+    }
+
     // ------------------------------------------------------------------
     // Prévia
     // ------------------------------------------------------------------
