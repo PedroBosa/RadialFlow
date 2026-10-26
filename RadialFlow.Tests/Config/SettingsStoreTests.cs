@@ -251,9 +251,14 @@ public sealed class SettingsStoreTests : IDisposable
     [Theory]
     [InlineData(0, 15)]
     [InlineData(4, 15)]
-    [InlineData(5, 5)]
+    [InlineData(5, 8)]
+    [InlineData(7, 8)]
+    [InlineData(8, 8)]
+    [InlineData(15, 15)]
     [InlineData(40, 40)]
-    public void Normalize_SensibilidadeAbsurdaVoltaAoPadrao(int stored, int expected)
+    [InlineData(41, 40)]
+    [InlineData(100, 40)]
+    public void Normalize_SensibilidadeForaDaFaixa_EAjustada(int stored, int expected)
     {
         var settings = new AppSettings { DeadzonePixels = stored };
 
@@ -283,6 +288,116 @@ public sealed class SettingsStoreTests : IDisposable
 
         Assert.Equal("ok", Assert.Single(settings.Blacklist).ProcessName);
         Assert.Equal("A", Assert.Single(settings.FavoriteApps).Name);
+    }
+
+    [Fact]
+    public void Normalize_Favoritos_RemoveEspacosENaoPerdeCaminhosDistintos()
+    {
+        var settings = new AppSettings
+        {
+            FavoriteApps =
+            [
+                new FavoriteAppEntry("  Calc  ", @"  C:\Tools\calc.exe  ", "  --x  ", "  \uE8EF  "),
+                new FavoriteAppEntry("Cópia", @"c:\tools\CALC.EXE", "--x"),
+                new FavoriteAppEntry("Mesmo caminho, outro argumento", @"C:\Tools\calc.exe", " --y "),
+                new FavoriteAppEntry("Sem caminho", "   ")
+            ]
+        };
+
+        SettingsStore.Normalize(settings);
+
+        Assert.Equal(2, settings.FavoriteApps.Count);
+        FavoriteAppEntry first = settings.FavoriteApps[0];
+        Assert.Equal("Calc", first.Name);
+        Assert.Equal(@"C:\Tools\calc.exe", first.ExecutablePath);
+        Assert.Equal("--x", first.Arguments);
+        Assert.Equal("\uE8EF", first.Glyph);
+        Assert.Equal("Mesmo caminho, outro argumento", settings.FavoriteApps[1].Name);
+        Assert.Equal(@"C:\Tools\calc.exe", settings.FavoriteApps[1].ExecutablePath);
+        Assert.Equal("--y", settings.FavoriteApps[1].Arguments);
+    }
+
+    [Fact]
+    public void Normalize_Blacklist_RemoveEspacosExeEDuplicatas()
+    {
+        var settings = new AppSettings
+        {
+            Blacklist =
+            [
+                new ForegroundBlacklist.BlacklistEntry("  Notepad.EXE  ", "  Bloco  "),
+                new ForegroundBlacklist.BlacklistEntry("notepad", "Duplicata"),
+                new ForegroundBlacklist.BlacklistEntry("  .exe  ", "Sem nome"),
+                new ForegroundBlacklist.BlacklistEntry("  Jogo  ", "  Meu jogo  ")
+            ]
+        };
+
+        SettingsStore.Normalize(settings);
+
+        Assert.Equal(["Notepad", "Jogo"], settings.Blacklist.Select(e => e.ProcessName).ToArray());
+        Assert.Equal(["Bloco", "Meu jogo"], settings.Blacklist.Select(e => e.Description).ToArray());
+    }
+
+    [Fact]
+    public void Normalize_DuasVezes_NaoMudaNada()
+    {
+        var settings = new AppSettings
+        {
+            DeadzonePixels = 100,
+            Blacklist =
+            [
+                new ForegroundBlacklist.BlacklistEntry(" Jogo.EXE ", " Meu jogo "),
+                new ForegroundBlacklist.BlacklistEntry("jogo", "dup"),
+                new ForegroundBlacklist.BlacklistEntry(" ", "vazio")
+            ],
+            FavoriteApps =
+            [
+                new FavoriteAppEntry(" Calc ", @" C:\calc.exe ", " --x ", " \uE8EF "),
+                new FavoriteAppEntry("Cópia", @"c:\CALC.EXE", "--x"),
+                new FavoriteAppEntry("Sem caminho", " ")
+            ]
+        };
+
+        SettingsStore.Normalize(settings);
+        int deadzone = settings.DeadzonePixels;
+        string[] blacklist = settings.Blacklist.Select(e => $"{e.ProcessName}|{e.Description}").ToArray();
+        string[] favorites = settings.FavoriteApps
+            .Select(a => $"{a.Name}|{a.ExecutablePath}|{a.Arguments}|{a.Glyph}").ToArray();
+
+        SettingsStore.Normalize(settings);
+
+        Assert.Equal(deadzone, settings.DeadzonePixels);
+        Assert.Equal(blacklist, settings.Blacklist.Select(e => $"{e.ProcessName}|{e.Description}").ToArray());
+        Assert.Equal(favorites, settings.FavoriteApps
+            .Select(a => $"{a.Name}|{a.ExecutablePath}|{a.Arguments}|{a.Glyph}").ToArray());
+    }
+
+    [Fact]
+    public void Load_ComDadosSujos_AplicaANormalizacao()
+    {
+        SettingsStore store = Create();
+        Directory.CreateDirectory(_temp.Combine("cfg"));
+        File.WriteAllText(store.FilePath, """
+            {
+              "DeadzonePixels": 100,
+              "Blacklist": [
+                { "ProcessName": "  Notepad.EXE ", "Description": "  Bloco " },
+                { "ProcessName": "notepad", "Description": "duplicada" }
+              ],
+              "FavoriteApps": [
+                { "Name": " Calc ", "ExecutablePath": " C:\\calc.exe ", "Arguments": " " },
+                { "Name": "Cópia", "ExecutablePath": "c:\\CALC.EXE" },
+                { "Name": "Sem caminho", "ExecutablePath": "  " }
+              ]
+            }
+            """);
+
+        var loaded = store.Load().Settings;
+
+        Assert.Equal(40, loaded.DeadzonePixels);
+        Assert.Equal("Notepad", Assert.Single(loaded.Blacklist).ProcessName);
+        Assert.Equal("Bloco", loaded.Blacklist[0].Description);
+        Assert.Equal("Calc", Assert.Single(loaded.FavoriteApps).Name);
+        Assert.Equal(@"C:\calc.exe", loaded.FavoriteApps[0].ExecutablePath);
     }
 
     [Fact]

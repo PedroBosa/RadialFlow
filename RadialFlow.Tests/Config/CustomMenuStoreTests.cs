@@ -220,6 +220,153 @@ public sealed class CustomMenuStoreTests : IDisposable
     }
 
     [Fact]
+    public void Normalize_IdsRepetidosEntrePerfis_SaoRegeneradosEIdempotentes()
+    {
+        CustomMenuProfile first = Profile("Primeiro");
+        first.Items = [new CustomMenuItem { Id = "mesmo", Label = "Um" }];
+        CustomMenuProfile second = Profile("Segundo");
+        second.Items =
+        [
+            new CustomMenuItem { Id = "mesmo", Label = "Dois" },
+            new CustomMenuItem { Id = "outro", Label = "Três" }
+        ];
+
+        var settings = SettingsWith(first, second);
+        SettingsStore.Normalize(settings);
+
+        Assert.Equal("mesmo", first.Items[0].Id);
+        Assert.NotEqual("mesmo", second.Items[0].Id);
+        Assert.Equal("outro", second.Items[1].Id);
+        Assert.Equal(3, settings.CustomProfiles
+            .SelectMany(p => p.Items)
+            .Select(i => i.Id)
+            .Distinct(StringComparer.Ordinal)
+            .Count());
+        Assert.Equal(["Um", "Dois", "Três"], settings.CustomProfiles
+            .SelectMany(p => p.Items)
+            .Select(i => i.Label)
+            .ToArray());
+
+        string[] ids = settings.CustomProfiles.SelectMany(p => p.Items).Select(i => i.Id).ToArray();
+        SettingsStore.Normalize(settings);
+
+        Assert.Equal(ids, settings.CustomProfiles.SelectMany(p => p.Items).Select(i => i.Id).ToArray());
+    }
+
+    [Fact]
+    public void Normalize_NaoRegeneraIdsDasOpcoesDeSubmenu()
+    {
+        var submenu = new CustomMenuItem
+        {
+            Id = "sub",
+            Label = "Sub",
+            Kind = CustomMenuItemKind.Submenu,
+            Options =
+            [
+                new CustomMenuItem { Id = "mesmo", Label = "A", Kind = CustomMenuItemKind.Text, Text = "x" },
+                new CustomMenuItem { Id = "mesmo", Label = "B", Kind = CustomMenuItemKind.Text, Text = "y" }
+            ]
+        };
+        CustomMenuProfile profile = Profile();
+        profile.Items = [submenu];
+
+        SettingsStore.Normalize(SettingsWith(profile));
+
+        Assert.Equal(["mesmo", "mesmo"], profile.Items[0].Options.Select(o => o.Id).ToArray());
+    }
+
+    // ------------------------------------------------------------------
+    // Submenus
+    // ------------------------------------------------------------------
+
+    [Fact]
+    public void SaveELoad_PreservaSubmenuEOpcoes()
+    {
+        var profile = new CustomMenuProfile
+        {
+            Name = "Ferramentas",
+            Items =
+            [
+                new CustomMenuItem
+                {
+                    Label = "Navegador",
+                    Kind = CustomMenuItemKind.Submenu,
+                    Options =
+                    [
+                        new CustomMenuItem { Label = "Chrome", Kind = CustomMenuItemKind.Launch, Target = "chrome.exe" },
+                        new CustomMenuItem { Label = "Edge", Kind = CustomMenuItemKind.Launch, Target = "msedge.exe" }
+                    ]
+                }
+            ]
+        };
+
+        SettingsStore store = Create();
+        store.Save(SettingsWith(profile));
+        var loaded = store.Load();
+
+        CustomMenuItem submenu = Assert.Single(Assert.Single(loaded.Settings.CustomProfiles).Items);
+        Assert.Equal(CustomMenuItemKind.Submenu, submenu.Kind);
+        Assert.Equal(["Chrome", "Edge"], submenu.Options.Select(o => o.Label).ToArray());
+        Assert.Equal("chrome.exe", submenu.Options[0].Target);
+    }
+
+    [Fact]
+    public void Normalize_Submenu_LimitaOpcoesEDescartaOpcoesInvalidas()
+    {
+        var submenu = new CustomMenuItem
+        {
+            Label = "Muitas",
+            Kind = CustomMenuItemKind.Submenu,
+            Options = [null!]
+        };
+        submenu.Options.Add(new CustomMenuItem { Label = "Aninhado", Kind = CustomMenuItemKind.Submenu });
+        submenu.Options.Add(new CustomMenuItem { Label = "" });
+        for (int i = 0; i < 10; i++)
+            submenu.Options.Add(new CustomMenuItem { Label = $"Opção {i}", Kind = CustomMenuItemKind.Text, Text = "x" });
+
+        CustomMenuProfile profile = Profile();
+        profile.Items = [submenu];
+        SettingsStore.Normalize(SettingsWith(profile));
+
+        CustomMenuItem normalized = Assert.Single(profile.Items);
+        Assert.Equal(CustomMenuNormalizer.MaxOptions, normalized.Options.Count);
+        Assert.DoesNotContain(normalized.Options, o => o.Kind == CustomMenuItemKind.Submenu);
+        Assert.Equal("Opção 0", normalized.Options[0].Label);
+    }
+
+    [Fact]
+    public void Normalize_OpcoesEmItemComum_SaoDescartadas()
+    {
+        var item = new CustomMenuItem
+        {
+            Label = "Texto",
+            Kind = CustomMenuItemKind.Text,
+            Text = "oi",
+            Options = [new CustomMenuItem { Label = "Sobrando", Kind = CustomMenuItemKind.Text, Text = "x" }]
+        };
+        CustomMenuProfile profile = Profile();
+        profile.Items = [item];
+
+        SettingsStore.Normalize(SettingsWith(profile));
+
+        Assert.Empty(Assert.Single(profile.Items).Options);
+    }
+
+    [Fact]
+    public void ActiveOptions_IgnoraDesabilitadasELimitaAoMaximo()
+    {
+        var submenu = new CustomMenuItem { Label = "Sub", Kind = CustomMenuItemKind.Submenu };
+        submenu.Options.Add(new CustomMenuItem { Label = "Desligada", Enabled = false });
+        for (int i = 0; i < 10; i++)
+            submenu.Options.Add(new CustomMenuItem { Label = $"Ativa {i}" });
+
+        var active = CustomMenuNormalizer.ActiveOptions(submenu);
+
+        Assert.Equal(CustomMenuNormalizer.MaxOptions, active.Count);
+        Assert.DoesNotContain(active, o => o.Label == "Desligada");
+    }
+
+    [Fact]
     public void JsonComPerfilMalformado_NaoDerrubaOResto()
     {
         SettingsStore store = Create();

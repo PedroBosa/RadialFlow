@@ -126,6 +126,7 @@ public static class SettingsService
 
     private static AppSettings? _current;
     private static bool? _startupApplied;
+    private static string? _startupAppliedPath;
 
     /// <summary>Configurações ativas no momento.</summary>
     public static AppSettings Current => _current ??= Load();
@@ -136,7 +137,10 @@ public static class SettingsService
     /// </summary>
     internal static void OverrideCurrentForTests(AppSettings? settings) => _current = settings;
 
-    /// <summary>Só para testes: substitui a gravação em disco (e o Agendador) por um dublê.</summary>
+    /// <summary>
+    /// Só para testes: substitui a gravação em disco (e o Agendador) por um dublê. Se o dublê lançar,
+    /// <see cref="TrySave"/> devolve false como faria uma falha real de disco.
+    /// </summary>
     internal static Action<AppSettings>? SaveOverrideForTests { get; set; }
 
     private static readonly SettingsStore Store = new(ConfigDirectory);
@@ -172,36 +176,85 @@ public static class SettingsService
 
     /// <summary>
     /// Salva as configurações no arquivo JSON (gravação atômica) e ajusta a inicialização automática se necessário.
-    /// Falha de disco é registrada e NÃO apaga o arquivo anterior.
+    /// Falha de disco é registrada e NÃO apaga o arquivo anterior. Quem precisa reagir à falha usa
+    /// <see cref="TrySave"/>; este método existe para chamadas que não têm como mostrar o resultado (carga inicial).
     /// </summary>
-    public static void Save(AppSettings settings)
+    public static void Save(AppSettings settings) => TrySave(settings, out _);
+
+    /// <summary>
+    /// Salva as configurações e devolve false (com o motivo) quando o disco não aceitou.
+    /// A ordem importa: o arquivo é gravado ANTES de publicar <see cref="Current"/>; em falha, Current continua
+    /// sendo o que está no disco e a inicialização automática não é tocada.
+    /// </summary>
+    internal static bool TrySave(AppSettings settings, out string? error)
     {
+        error = null;
+
         if (SaveOverrideForTests is { } saveForTests)
         {
+            try
+            {
+                saveForTests(settings);
+            }
+            catch (Exception ex)
+            {
+                AppLog.Error("Settings", "Erro ao salvar configurações (dublê de teste).", ex);
+                error = SaveFailureMessage(ex);
+                return false;
+            }
+
             _current = settings;
-            saveForTests(settings);
-            return;
+            return true;
         }
 
         try
         {
-            _current = settings;
             Store.Save(settings);
-
-            // Só mexe no agendador quando necessário (ligado, ou mudou de estado).
-            if (settings.StartWithWindows || _startupApplied != settings.StartWithWindows)
-            {
-                SetStartWithWindows(settings.StartWithWindows);
-                _startupApplied = settings.StartWithWindows;
-            }
-
-            AppLog.Info("Settings", "Configurações salvas com sucesso.");
         }
         catch (Exception ex)
         {
             AppLog.Error("Settings", "Erro ao salvar configurações (o arquivo anterior foi preservado).", ex);
+            error = SaveFailureMessage(ex);
+            return false;
         }
+
+        _current = settings;
+
+        // Daqui em diante o JSON já está salvo: falha do agendador é registrada, mas não desfaz o sucesso.
+        try
+        {
+            string? exePath = Environment.ProcessPath;
+            if (NeedsStartupUpdate(settings.StartWithWindows, _startupApplied, _startupAppliedPath, exePath))
+            {
+                SetStartWithWindows(settings.StartWithWindows);
+                _startupApplied = settings.StartWithWindows;
+                _startupAppliedPath = settings.StartWithWindows ? exePath : null;
+            }
+        }
+        catch (Exception ex)
+        {
+            AppLog.Warning("Settings", $"Falha ao atualizar a inicialização automática: {ex.Message}");
+        }
+
+        AppLog.Info("Settings", "Configurações salvas com sucesso.");
+        return true;
     }
+
+    private static string SaveFailureMessage(Exception ex) =>
+        $"Não foi possível salvar as configurações. O arquivo de configurações não foi alterado.\n\nDetalhe: {ex.Message}";
+
+    /// <summary>
+    /// Decide se o Agendador de Tarefas precisa ser tocado neste Save. Puro de propósito: os testes cobrem a
+    /// decisão sem chamar o schtasks. O primeiro Save sempre aplica (e, com false, limpa a entrada legada);
+    /// depois só na mudança de estado ou de pasta do executável.
+    /// </summary>
+    internal static bool NeedsStartupUpdate(bool enabled, bool? applied, string? appliedPath, string? currentPath)
+    {
+        if (applied is null) return true;
+        if (applied.Value != enabled) return true;
+        return enabled && !string.Equals(appliedPath, currentPath, StringComparison.OrdinalIgnoreCase);
+    }
+
     /// <summary>Verifica se a tarefa de inicialização existe no Agendador de Tarefas.</summary>
     public static bool IsStartupRegistered() => RunSchTasks(new[] { "/Query", "/TN", StartupTaskName }) == 0;
 
@@ -225,7 +278,7 @@ public static class SettingsService
             string? exePath = Environment.ProcessPath;
             if (string.IsNullOrEmpty(exePath)) return;
 
-            // A tarefa guarda o caminho do exe: recriamos a cada gravação para acompanhar mudanças de pasta.
+            // A tarefa guarda o caminho do exe: o primeiro Save de cada sessão a recria para acompanhar mudanças de pasta.
             int code = CreateStartupTask(BuildTaskXml(exePath));
             if (code == 0) AppLog.Info("Settings", "Inicialização automática ativada (Agendador de Tarefas).");
             else AppLog.Warning("Settings", $"schtasks /Create falhou (código {code}).");

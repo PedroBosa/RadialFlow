@@ -355,6 +355,10 @@ public sealed class WindowsTests : IDisposable
 
             Assert.NotEqual(before, ((SolidColorBrush)window.FindResource("AccentBrush")).Color);
             Assert.Equal("Rosa", Find<TextBlock>(window, "AccentName").Text);
+
+            // Volta à cor original: fechar com alteração pendente agora pede confirmação.
+            chips.Children.OfType<RadioButton>().First(c => (string)c.Tag == "Blue").IsChecked = true;
+            Pump(100);
             window.Close();
         });
     }

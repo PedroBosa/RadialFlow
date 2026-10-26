@@ -91,11 +91,13 @@ internal sealed class ConverterInstaller(ConverterInstallerOptions options)
         return null;
     }
 
-    /// <summary>true se a ferramenta do pacote já está disponível para o RadialFlow.</summary>
+    /// <summary>
+    /// true se a ferramenta do pacote já está disponível para o RadialFlow. Não reseta o cache do
+    /// <see cref="ToolResolver"/>: quem verifica um lote (aba Conversores, InstallManyAsync) reseta uma vez antes.
+    /// </summary>
     public bool IsInstalled(ConverterPackage package)
     {
         if (options.IsInstalled is { } custom) return custom(package);
-        ToolResolver.ResetCache();
         return ToolResolver.FindTool(package.ToolExe) is not null;
     }
 
@@ -113,6 +115,9 @@ internal sealed class ConverterInstaller(ConverterInstallerOptions options)
         var results = new List<ConverterInstallResult>();
         long total = Math.Max(1, packages.Sum(p => p.SizeBytes));
         long before = 0;
+
+        // Uma varredura por lote: o que cada pacote já tem é conferido contra o mesmo retrato do disco.
+        if (options.IsInstalled is null) ToolResolver.ResetCache();
 
         foreach (ConverterPackage package in packages)
         {
@@ -203,6 +208,9 @@ internal sealed class ConverterInstaller(ConverterInstallerOptions options)
                 }
             }
 
+            // "Instalou agora, então encontra a ferramenta": sem este reset, o cache de "não encontrado" do
+            // ToolResolver (30 s) esconderia o executável recém-instalado.
+            if (options.IsInstalled is null) ToolResolver.ResetCache();
             if (!IsInstalled(package))
                 throw new InvalidOperationException($"a instalação terminou, mas o {package.ToolExe} não foi encontrado numa pasta protegida.");
 

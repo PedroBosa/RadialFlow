@@ -47,6 +47,10 @@ internal readonly record struct SettingsLoadResult(AppSettings Settings, Setting
 
 internal sealed class SettingsStore(string directory, string fileName = "settings.json")
 {
+    private const int DefaultDeadzonePixels = 15;
+    private const int MinDeadzonePixels = 8;
+    private const int MaxDeadzonePixels = 40;
+
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
         WriteIndented = true,
@@ -118,14 +122,73 @@ internal sealed class SettingsStore(string directory, string fileName = "setting
 
         CustomMenuNormalizer.Normalize(loaded.CustomProfiles);
 
-        // Entradas nulas dentro das listas (JSON editado à mão: "[null]") quebrariam quem as percorre.
-        loaded.Blacklist.RemoveAll(e => e is null || string.IsNullOrWhiteSpace(e.ProcessName));
-        loaded.FavoriteApps.RemoveAll(a => a is null);
+        loaded.Blacklist = NormalizeBlacklist(loaded.Blacklist);
+        loaded.FavoriteApps = NormalizeFavorites(loaded.FavoriteApps);
 
-        if (loaded.DeadzonePixels < 5) loaded.DeadzonePixels = 15;
+        // A UI trabalha em 8–40 px; abaixo de 5 o valor é absurdo e volta ao padrão.
+        loaded.DeadzonePixels = loaded.DeadzonePixels switch
+        {
+            < 5 => DefaultDeadzonePixels,
+            < MinDeadzonePixels => MinDeadzonePixels,
+            > MaxDeadzonePixels => MaxDeadzonePixels,
+            _ => loaded.DeadzonePixels
+        };
         loaded.DwellMilliseconds = Math.Clamp(loaded.DwellMilliseconds,
             UI.RadialMenuWindow.MinDwellMilliseconds, UI.RadialMenuWindow.MaxDwellMilliseconds);
         return loaded;
+    }
+
+    /// <summary>Remove espaços, linhas sem caminho e duplicatas exatas (caminho + argumentos).</summary>
+    private static List<FavoriteAppEntry> NormalizeFavorites(List<FavoriteAppEntry> favorites)
+    {
+        var normalized = new List<FavoriteAppEntry>(favorites.Count);
+        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+        foreach (FavoriteAppEntry favorite in favorites)
+        {
+            if (favorite is null) continue;
+
+            favorite.Name = (favorite.Name ?? "").Trim();
+            favorite.ExecutablePath = (favorite.ExecutablePath ?? "").Trim();
+            favorite.Arguments = (favorite.Arguments ?? "").Trim();
+            favorite.Glyph = (favorite.Glyph ?? "").Trim();
+
+            if (favorite.ExecutablePath.Length == 0) continue;
+            if (!seen.Add(favorite.ExecutablePath + "\0" + favorite.Arguments)) continue;
+
+            normalized.Add(favorite);
+        }
+
+        int removed = favorites.Count - normalized.Count;
+        if (removed > 0)
+            AppLog.Debug("Settings", $"{removed} favorito(s) ignorado(s) na leitura: caminho vazio ou duplicado.");
+
+        return normalized;
+    }
+
+    /// <summary>Normaliza o nome (trim e sem .exe) e remove vazios/duplicatas, preservando o primeiro.</summary>
+    private static List<ForegroundBlacklist.BlacklistEntry> NormalizeBlacklist(
+        List<ForegroundBlacklist.BlacklistEntry> blacklist)
+    {
+        var normalized = new List<ForegroundBlacklist.BlacklistEntry>(blacklist.Count);
+        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+        foreach (ForegroundBlacklist.BlacklistEntry entry in blacklist)
+        {
+            if (entry is null) continue;
+
+            string processName = CustomMenuNormalizer.NormalizeProcessName(entry.ProcessName);
+            if (processName.Length == 0) continue;
+            if (!seen.Add(processName)) continue;
+
+            normalized.Add(new(processName, (entry.Description ?? "").Trim()));
+        }
+
+        int removed = blacklist.Count - normalized.Count;
+        if (removed > 0)
+            AppLog.Debug("Settings", $"{removed} entrada(s) de blacklist ignorada(s) na leitura: vazia ou duplicada.");
+
+        return normalized;
     }
 
     /// <summary>Move o arquivo ruim para um nome único (nada é apagado). Devolve o novo caminho ou null se falhar.</summary>

@@ -15,6 +15,15 @@ Cada versão, da mais nova para a mais antiga. O número da versão está em `Ra
     ao mesmo tempo somam seus itens.
   - O editor mostra uma **prévia da roda**, marcando o que substitui uma fatia automática e o que é extra, e avisa
     quando os itens passam do limite de 8 fatias da roda.
+  - Itens do tipo **Submenu** abrem um segundo anel com 2 a 8 opções, como **Apps favoritos**. A roda e a prévia
+    marcam essas fatias com uma setinha ▾; o diálogo **Editar opções…** monta cada opção com rótulo, ícone e ação.
+
+### Melhorias
+
+- **Salvar configurações agora confirma a gravação no disco antes de fechar.** Se o disco recusar, a janela continua
+  aberta com o motivo e nada é aplicado — antes, ela fechava e as alterações podiam se perder no próximo início.
+- **Fechar as Configurações com alterações não salvas avisa em qualquer aba**, listando as seções alteradas. Antes,
+  só alterações em **Menus** eram lembradas.
 
 ### Segurança
 

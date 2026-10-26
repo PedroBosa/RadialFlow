@@ -33,7 +33,10 @@ public enum CustomMenuItemKind
     Hotkey,
 
     /// <summary>Cola um texto no campo em foco.</summary>
-    Text
+    Text,
+
+    /// <summary>Abre um segundo anel com as opções de <see cref="CustomMenuItem.Options"/>.</summary>
+    Submenu
 }
 
 public sealed class CustomMenuItem
@@ -53,6 +56,9 @@ public sealed class CustomMenuItem
 
     /// <summary>Texto colado quando <see cref="Kind"/> é <see cref="CustomMenuItemKind.Text"/>.</summary>
     public string Text { get; set; } = "";
+
+    /// <summary>Opções do segundo anel quando <see cref="Kind"/> é <see cref="CustomMenuItemKind.Submenu"/>.</summary>
+    public List<CustomMenuItem> Options { get; set; } = new();
 }
 
 public sealed class CustomMenuProfile
@@ -81,6 +87,8 @@ internal static class CustomMenuNormalizer
 {
     internal const int MaxProfiles = 20;
     internal const int MaxItems = 8;
+    internal const int MaxOptions = 8;
+    internal const int MinOptions = 2;
     internal const int MaxLabelLength = 24;
     internal const int MaxDescriptionLength = 120;
     internal const int MaxTargetLength = 2048;
@@ -124,6 +132,33 @@ internal static class CustomMenuNormalizer
                 profile.Items.RemoveRange(MaxItems, profile.Items.Count - MaxItems);
             }
         }
+
+        EnsureUniqueItemIds(profiles);
+    }
+
+    /// <summary>
+    /// O resolver deduplica itens por Id ao montar a roda: dois itens com o mesmo Id escondem o
+    /// segundo. Regenera apenas os repetidos, preservando ordem, rótulos e opções.
+    /// </summary>
+    private static void EnsureUniqueItemIds(List<CustomMenuProfile> profiles)
+    {
+        var seen = new HashSet<string>(StringComparer.Ordinal);
+        int regenerated = 0;
+
+        foreach (CustomMenuProfile profile in profiles)
+        {
+            foreach (CustomMenuItem item in profile.Items)
+            {
+                if (seen.Add(item.Id)) continue;
+
+                item.Id = Guid.NewGuid().ToString("N");
+                seen.Add(item.Id);
+                regenerated++;
+            }
+        }
+
+        if (regenerated > 0)
+            AppLog.Debug("Menus", $"{regenerated} item(ns) com Id repetido receberam Id novo.");
     }
 
     /// <summary>" Bloco de Notas.EXE " → "Bloco de Notas". Comparação é case-insensitive.</summary>
@@ -134,7 +169,7 @@ internal static class CustomMenuNormalizer
     }
 
     /// <summary>Devolve false quando o item precisa ser descartado.</summary>
-    private static bool NormalizeItem(CustomMenuItem item)
+    private static bool NormalizeItem(CustomMenuItem item, bool allowSubmenu = true)
     {
         item.Id = NormalizeId(item.Id);
 
@@ -145,7 +180,8 @@ internal static class CustomMenuNormalizer
             return false;
         }
 
-        if (!Enum.IsDefined(item.Kind))
+        if (!Enum.IsDefined(item.Kind) ||
+            (!allowSubmenu && item.Kind == CustomMenuItemKind.Submenu))
         {
             AppLog.Debug("Menus", $"Item '{label}' ignorado: tipo inválido ({(int)item.Kind}).");
             return false;
@@ -162,8 +198,34 @@ internal static class CustomMenuNormalizer
         item.Description = Truncate((item.Description ?? "").Trim(), MaxDescriptionLength);
         item.Target = Truncate((item.Target ?? "").Trim(), MaxTargetLength);
         item.Text = Truncate(item.Text ?? "", MaxTextLength);
+
+        item.Options ??= new List<CustomMenuItem>();
+        if (item.Kind == CustomMenuItemKind.Submenu)
+        {
+            item.Options.RemoveAll(o => o is null);
+            item.Options.RemoveAll(o => !NormalizeItem(o, allowSubmenu: false));
+
+            if (item.Options.Count > MaxOptions)
+            {
+                AppLog.Debug("Menus", $"Submenu '{label}': {item.Options.Count - MaxOptions} opção(ões) ignorada(s): limite de {MaxOptions}.");
+                item.Options.RemoveRange(MaxOptions, item.Options.Count - MaxOptions);
+            }
+        }
+        else if (item.Options.Count > 0)
+        {
+            AppLog.Debug("Menus", $"Item '{label}': opções ignoradas porque o tipo não é Submenu.");
+            item.Options.Clear();
+        }
+
         return true;
     }
+
+    /// <summary>Opções habilitadas, já limitadas ao tamanho do segundo anel.</summary>
+    internal static List<CustomMenuItem> ActiveOptions(CustomMenuItem item) =>
+        (item.Options ?? new List<CustomMenuItem>())
+            .Where(o => o is not null && o.Enabled)
+            .Take(MaxOptions)
+            .ToList();
 
     private static string NormalizeGlyph(string? glyph)
     {

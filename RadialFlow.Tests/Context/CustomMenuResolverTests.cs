@@ -51,6 +51,15 @@ public sealed class CustomMenuResolverTests
     private static Action<CustomMenuItem> Recorder(List<CustomMenuItem> executed) =>
         item => executed.Add(item);
 
+    private static CustomMenuItem Option(string id, string label, bool enabled = true) => new()
+    {
+        Id = id,
+        Label = label,
+        Kind = CustomMenuItemKind.Launch,
+        Target = "calc.exe",
+        Enabled = enabled
+    };
+
     private static RadialSlice Slice(
         string label,
         RadialAction? action = null,
@@ -183,6 +192,22 @@ public sealed class CustomMenuResolverTests
         Assert.Equal("primeiro", Assert.Single(matched).Label);
     }
 
+    [Fact]
+    public void Match_AposNormalizacao_ItensComIdRepetidoContinuamVisiveis()
+    {
+        CustomMenuProfile first = Profile("p1", name: "A");
+        first.Items = [Item("mesmo", "primeiro")];
+        CustomMenuProfile second = Profile("p2", name: "B");
+        second.Items = [Item("mesmo", "segundo")];
+
+        var settings = new AppSettings { CustomProfiles = [first, second] };
+        SettingsStore.Normalize(settings);
+
+        var matched = CustomMenuResolver.Match(Context(), settings.CustomProfiles);
+
+        Assert.Equal(["primeiro", "segundo"], matched.Select(i => i.Label).ToArray());
+    }
+
     // ------------------------------------------------------------------
     // Merge
     // ------------------------------------------------------------------
@@ -289,5 +314,63 @@ public sealed class CustomMenuResolverTests
         Assert.Equal(8, oneFree.Count);
         Assert.Equal("Extra", oneFree[^1].Label);
         Assert.DoesNotContain(oneFree, s => s.Label == "Sobrando");
+    }
+
+    // ------------------------------------------------------------------
+    // Submenus
+    // ------------------------------------------------------------------
+
+    [Fact]
+    public void Merge_SubmenuViraFatiaComOpcoesAtivas()
+    {
+        RadialSlice[] automatic = [Slice("A")];
+        CustomMenuItem submenu = Item("s1", "Navegador", kind: CustomMenuItemKind.Submenu);
+        submenu.Options =
+        [
+            Option("o1", "Chrome"),
+            Option("o2", "Edge"),
+            Option("o3", "Firefox", enabled: false)
+        ];
+        var executed = new List<CustomMenuItem>();
+
+        var merged = CustomMenuResolver.Merge(automatic, [submenu], Recorder(executed));
+
+        Assert.Equal(2, merged.Count);
+        RadialSlice slice = merged[1];
+        Assert.Equal("Navegador", slice.Label);
+        Assert.Null(slice.Execute);
+        Assert.Equal(["Chrome", "Edge"], slice.SubSlices!.Select(s => s.Label).ToArray());
+        Assert.Equal("Chrome", slice.SubSlices![0].Description);
+
+        slice.SubSlices[0].Execute!();
+        Assert.Equal("o1", Assert.Single(executed).Id);
+    }
+
+    [Fact]
+    public void Merge_SubmenuComMenosDeDuasOpcoesAtivas_EhIgnorado()
+    {
+        RadialSlice[] automatic = [Slice("A")];
+        CustomMenuItem submenu = Item("s1", "Incompleto", kind: CustomMenuItemKind.Submenu);
+        submenu.Options = [Option("o1", "Só uma"), Option("o2", "Desligada", enabled: false)];
+
+        CustomMergePlan plan = CustomMenuResolver.Plan(automatic, [submenu], Recorder([]));
+
+        Assert.Equal("A", Assert.Single(plan.Entries).Slice.Label);
+        Assert.Equal("s1", Assert.Single(plan.Invalid).Id);
+        Assert.Empty(plan.Dropped);
+    }
+
+    [Fact]
+    public void Plan_SubmenuCabeComoExtraMesmoQuandoAFatiaTemMesmaAcao()
+    {
+        RadialSlice[] automatic = [Slice("Converter", RadialAction.Convert)];
+        CustomMenuItem submenu = Item("s1", "Ferramentas", kind: CustomMenuItemKind.Submenu);
+        submenu.Options = [Option("o1", "Chrome"), Option("o2", "Edge")];
+
+        CustomMergePlan plan = CustomMenuResolver.Plan(automatic, [submenu], Recorder([]));
+
+        Assert.Equal(["Converter", "Ferramentas"], plan.Entries.Select(e => e.Slice.Label).ToArray());
+        Assert.Equal(CustomMergeStatus.Extra, plan.Entries[1].Status);
+        Assert.Empty(plan.Invalid);
     }
 }

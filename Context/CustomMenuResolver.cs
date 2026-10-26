@@ -39,7 +39,8 @@ internal sealed record CustomMergeEntry(RadialSlice Slice, CustomMenuItem? Item,
 /// <summary>Como a roda ficaria com os itens informados, incluindo os que não couberam.</summary>
 internal sealed record CustomMergePlan(
     IReadOnlyList<CustomMergeEntry> Entries,
-    IReadOnlyList<CustomMenuItem> Dropped);
+    IReadOnlyList<CustomMenuItem> Dropped,
+    IReadOnlyList<CustomMenuItem> Invalid);
 
 internal static class CustomMenuResolver
 {
@@ -96,10 +97,19 @@ internal static class CustomMenuResolver
             entries.Add(new(slice, null, CustomMergeStatus.Automatic));
 
         var dropped = new List<CustomMenuItem>();
+        var invalid = new List<CustomMenuItem>();
         var replaced = new HashSet<int>();
 
         foreach (CustomMenuItem item in items)
         {
+            if (item.Kind == CustomMenuItemKind.Submenu &&
+                CustomMenuNormalizer.ActiveOptions(item).Count < CustomMenuNormalizer.MinOptions)
+            {
+                invalid.Add(item);
+                AppLog.Debug("Menus", $"Submenu '{item.Label}' ignorado: precisa de {CustomMenuNormalizer.MinOptions} opções ativas.");
+                continue;
+            }
+
             int replaceIndex = -1;
 
             if (item.Kind == CustomMenuItemKind.Action)
@@ -133,7 +143,7 @@ internal static class CustomMenuResolver
             }
         }
 
-        return new(entries, dropped);
+        return new(entries, dropped, invalid);
     }
 
     private static bool Matches(CustomMenuProfile profile, ContextInfo ctx)
@@ -155,14 +165,32 @@ internal static class CustomMenuResolver
         return true;
     }
 
-    private static RadialSlice ToSlice(CustomMenuItem item, Action<CustomMenuItem> execute) =>
-        new(
+    private static RadialSlice ToSlice(CustomMenuItem item, Action<CustomMenuItem> execute)
+    {
+        IReadOnlyList<RadialSlice>? options = null;
+        if (item.Kind == CustomMenuItemKind.Submenu)
+        {
+            options = CustomMenuNormalizer.ActiveOptions(item)
+                .Select(option => new RadialSlice(
+                    option.Label,
+                    GlyphOf(option),
+                    () => execute(option),
+                    null,
+                    string.IsNullOrWhiteSpace(option.Description) ? option.Label : option.Description))
+                .ToList();
+        }
+
+        return new(
             item.Label,
-            string.IsNullOrWhiteSpace(item.Glyph) ? "\uE734" : item.Glyph,
-            () => execute(item),
-            null,
+            GlyphOf(item),
+            options is null ? () => execute(item) : null,
+            options,
             string.IsNullOrWhiteSpace(item.Description) ? item.Label : item.Description,
             item.Kind == CustomMenuItemKind.Action ? ActionKey(item.Action) : null);
+    }
+
+    private static string GlyphOf(CustomMenuItem item) =>
+        string.IsNullOrWhiteSpace(item.Glyph) ? "\uE734" : item.Glyph;
 
     private static string ActionKey(RadialAction action) => action.ToString();
 }

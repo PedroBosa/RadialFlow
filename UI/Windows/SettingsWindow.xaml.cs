@@ -52,14 +52,65 @@ public partial class SettingsWindow : Window
         AutomationProperties.SetName(ChkStartWithWindows, "Iniciar com o Windows");
         AutomationProperties.SetName(ChkBlockFullscreen, "Pausar em tela cheia exclusiva");
 
-        _blacklistItems = new ObservableCollection<ForegroundBlacklist.BlacklistEntry>(current.Blacklist);
+        // Rascunhos: listas próprias, sem compartilhar os objetos de Current.
+        _blacklistItems = new ObservableCollection<ForegroundBlacklist.BlacklistEntry>(
+            current.Blacklist.Select(e => new ForegroundBlacklist.BlacklistEntry(e.ProcessName, e.Description)));
         ListBlacklist.ItemsSource = _blacklistItems;
 
-        _favoriteItems = new ObservableCollection<FavoriteAppEntry>(current.FavoriteApps);
+        _favoriteItems = new ObservableCollection<FavoriteAppEntry>(
+            current.FavoriteApps.Select(a => new FavoriteAppEntry(a.Name, a.ExecutablePath, a.Arguments, a.Glyph)));
         ListFavorites.ItemsSource = _favoriteItems;
 
         InitializeConvertersTab();
         InitializeMenusTab();
+
+        _nonMenuBaseline = CaptureNonMenuSnapshot();
+    }
+
+    private NonMenuSnapshot? _nonMenuBaseline;
+
+    /// <summary>Valores não-menu na abertura; o fechamento compara com eles para avisar sobre descarte.</summary>
+    private sealed record NonMenuSnapshot(
+        bool StartWithWindows,
+        bool BlockExclusiveFullscreen,
+        int DeadzonePixels,
+        int DwellMilliseconds,
+        string Accent,
+        IReadOnlyList<(string ProcessName, string Description)> Blacklist,
+        IReadOnlyList<(string Name, string ExecutablePath, string Arguments, string Glyph)> FavoriteApps);
+
+    private NonMenuSnapshot CaptureNonMenuSnapshot() => new(
+        ChkStartWithWindows.IsChecked == true,
+        ChkBlockFullscreen.IsChecked == true,
+        (int)SliderDeadzone.Value,
+        (int)SliderDwell.Value,
+        _accentKey,
+        _blacklistItems.Select(e => (e.ProcessName, e.Description)).ToArray(),
+        _favoriteItems.Select(a => (a.Name, a.ExecutablePath, a.Arguments, a.Glyph)).ToArray());
+
+    /// <summary>Seções com alterações não salvas, na ordem exibida no aviso de descarte.</summary>
+    private List<string> ChangedSections()
+    {
+        var changed = new List<string>();
+
+        if (_nonMenuBaseline is { } baseline)
+        {
+            NonMenuSnapshot now = CaptureNonMenuSnapshot();
+            if (now.StartWithWindows != baseline.StartWithWindows ||
+                now.BlockExclusiveFullscreen != baseline.BlockExclusiveFullscreen ||
+                now.DeadzonePixels != baseline.DeadzonePixels ||
+                now.DwellMilliseconds != baseline.DwellMilliseconds ||
+                !string.Equals(now.Accent, baseline.Accent, StringComparison.Ordinal))
+            {
+                changed.Add("Geral");
+            }
+
+            if (!now.FavoriteApps.SequenceEqual(baseline.FavoriteApps)) changed.Add("Apps Favoritos");
+            if (!now.Blacklist.SequenceEqual(baseline.Blacklist)) changed.Add("Blacklist");
+        }
+
+        if (_menusDirty) changed.Add("Menus");
+        return changed;
     }
 
     private void BtnOpenLogs_Click(object sender, RoutedEventArgs e) => TrayIconService.OpenLogsFolder();
@@ -163,7 +214,7 @@ public partial class SettingsWindow : Window
         {
             _blacklistItems.Clear();
             foreach (var item in ForegroundBlacklist.DefaultEntries)
-                _blacklistItems.Add(item);
+                _blacklistItems.Add(new ForegroundBlacklist.BlacklistEntry(item.ProcessName, item.Description));
         }
     }
 
@@ -199,7 +250,7 @@ public partial class SettingsWindow : Window
             _favoriteItems.Clear();
             var def = AppSettings.CreateDefault();
             foreach (var item in def.FavoriteApps)
-                _favoriteItems.Add(item);
+                _favoriteItems.Add(new FavoriteAppEntry(item.Name, item.ExecutablePath, item.Arguments, item.Glyph));
         }
     }
 
@@ -212,25 +263,36 @@ public partial class SettingsWindow : Window
             return;
         }
 
-        var settings = SettingsService.Current;
-
-        settings.StartWithWindows = ChkStartWithWindows.IsChecked == true;
-        settings.BlockExclusiveFullscreen = ChkBlockFullscreen.IsChecked == true;
-        settings.DeadzonePixels = (int)SliderDeadzone.Value;
-        settings.DwellMilliseconds = (int)SliderDwell.Value;
-        settings.Accent = _accentKey;
-
-        settings.Blacklist = new List<ForegroundBlacklist.BlacklistEntry>(_blacklistItems);
-        settings.FavoriteApps = new List<FavoriteAppEntry>(_favoriteItems);
+        // Instância nova a partir dos rascunhos: Current só muda quando o disco confirmar a gravação.
+        var settings = new AppSettings
+        {
+            StartWithWindows = ChkStartWithWindows.IsChecked == true,
+            BlockExclusiveFullscreen = ChkBlockFullscreen.IsChecked == true,
+            DeadzonePixels = (int)SliderDeadzone.Value,
+            DwellMilliseconds = (int)SliderDwell.Value,
+            Accent = _accentKey,
+            Blacklist = _blacklistItems
+                .Select(e => new ForegroundBlacklist.BlacklistEntry(e.ProcessName, e.Description))
+                .ToList(),
+            FavoriteApps = _favoriteItems
+                .Select(a => new FavoriteAppEntry(a.Name, a.ExecutablePath, a.Arguments, a.Glyph))
+                .ToList(),
+        };
         ApplyMenusTo(settings);
 
-        SettingsService.Save(settings);
+        if (!SettingsService.TrySave(settings, out string? error))
+        {
+            Dialogs.Message(this, "Não foi possível salvar",
+                error ?? "Não foi possível salvar as configurações.", DialogIcon.Error);
+            return;
+        }
 
-        // Aplica as novas configurações no controller ativo
+        // Só depois de o disco aceitar: aplica no controller ativo e fecha.
         _controller?.ApplySettings(settings);
         _tray?.UpdateState();
 
         _menusDirty = false;
+        _nonMenuBaseline = CaptureNonMenuSnapshot();   // salvo: fechar sem aviso de descarte
         Close();
     }
 

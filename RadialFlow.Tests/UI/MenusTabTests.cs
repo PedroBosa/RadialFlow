@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
@@ -34,6 +36,7 @@ public sealed class MenusTabTests : IDisposable
         SettingsService.SaveOverrideForTests = null;
         SettingsService.OverrideCurrentForTests(null);
         Dialogs.BeforeShow = null;
+        SubmenuEditorWindow.BeforeShowForTests = null;
     }
 
     // ------------------------------------------------------------------
@@ -118,6 +121,11 @@ public sealed class MenusTabTests : IDisposable
 
     private static MenuPreview PreviewOf(SettingsWindow window) =>
         (MenuPreview)Find<Border>(window, "MenuPreviewHost").Child;
+
+    private static DispatcherTimer? PreviewTimerOf(SettingsWindow window) =>
+        (DispatcherTimer?)typeof(SettingsWindow)
+            .GetField("_previewTimer", BindingFlags.Instance | BindingFlags.NonPublic)!
+            .GetValue(window);
 
     private static CustomMenuProfile TitleBarProfile(int itemCount)
     {
@@ -222,7 +230,7 @@ public sealed class MenusTabTests : IDisposable
         {
             SettingsWindow window = OpenSettings();
             Click(Find<Button>(window, "BtnAddMenuProfile"));
-            CheckBox fileContext = Find<WrapPanel>(window, "PnlContexts").Children.OfType<CheckBox>()
+            CheckBox fileContext = Find<UniformGrid>(window, "PnlContexts").Children.OfType<CheckBox>()
                 .Single(c => Equals(c.Tag, RadialContextKind.FileOrFolder));
             fileContext.IsChecked = true;
             Click(Find<Button>(window, "BtnAddMenuItem"));   // ação padrão: Converter (fatia com submenu)
@@ -244,6 +252,59 @@ public sealed class MenusTabTests : IDisposable
             Assert.Equal(6, preview.Current.Count);
 
             CloseDiscarding(window);
+        });
+    }
+
+    [Fact]
+    public void Previa_EdicaoDeTexto_AtualizaSoDepoisDoDebounce()
+    {
+        RunSta(() =>
+        {
+            SettingsWindow window = OpenSettings();
+            Click(Find<Button>(window, "BtnAddMenuProfile"));
+            Find<UniformGrid>(window, "PnlContexts").Children.OfType<CheckBox>()
+                .Single(c => Equals(c.Tag, RadialContextKind.FileOrFolder)).IsChecked = true;
+            Click(Find<Button>(window, "BtnAddMenuItem"));
+
+            MenuPreview preview = PreviewOf(window);
+            Assert.Contains(preview.Current, e => e.Slice.Label == "Novo item");
+
+            var label = Find<TextBox>(window, "TxtItemLabel");
+            string final = new('A', 30);
+            for (int i = 1; i <= final.Length; i++) label.Text = final[..i];
+
+            // Sem bombear o Dispatcher, o debounce ainda não rodou.
+            Assert.Contains(preview.Current, e => e.Slice.Label == "Novo item");
+            Assert.DoesNotContain(preview.Current, e => e.Slice.Label == final);
+
+            Pump(300);
+
+            Assert.Contains(preview.Current, e => e.Slice.Label == final);
+            Assert.DoesNotContain(preview.Current, e => e.Slice.Label == "Novo item");
+
+            CloseDiscarding(window);
+        });
+    }
+
+    [Fact]
+    public void Fechar_ComEdicaoPendente_AplicaUltimaEdicaoENaoDeixaTimer()
+    {
+        RunSta(() =>
+        {
+            SettingsWindow window = OpenSettings();
+            Click(Find<Button>(window, "BtnAddMenuProfile"));
+            Find<UniformGrid>(window, "PnlContexts").Children.OfType<CheckBox>()
+                .Single(c => Equals(c.Tag, RadialContextKind.FileOrFolder)).IsChecked = true;
+            Click(Find<Button>(window, "BtnAddMenuItem"));
+
+            Find<TextBox>(window, "TxtItemLabel").Text = "Fechando já";
+            Assert.True(PreviewTimerOf(window)?.IsEnabled);
+
+            // O debounce está pendente quando a janela fecha; o aviso de descarte ainda aparece.
+            CloseDiscarding(window);
+
+            Assert.True(PreviewTimerOf(window) is null or { IsEnabled: false });
+            Assert.Contains(PreviewOf(window).Current, e => e.Slice.Label == "Fechando já");
         });
     }
 
@@ -287,6 +348,168 @@ public sealed class MenusTabTests : IDisposable
     }
 
     // ------------------------------------------------------------------
+    // Submenus
+    // ------------------------------------------------------------------
+
+    private static CustomMenuItem SubmenuItem(int optionCount = 2)
+    {
+        var item = new CustomMenuItem { Label = "Ações", Kind = CustomMenuItemKind.Submenu };
+        for (int i = 0; i < optionCount; i++)
+        {
+            item.Options.Add(new CustomMenuItem
+            {
+                Label = $"Opção {i + 1}",
+                Kind = CustomMenuItemKind.Action,
+                Action = RadialAction.CopyPath,
+            });
+        }
+
+        return item;
+    }
+
+    private static AppSettings SettingsWithSubmenu(CustomMenuItem item)
+    {
+        var settings = AppSettings.CreateDefault();
+        settings.CustomProfiles.Add(new CustomMenuProfile
+        {
+            Name = "Menu",
+            Contexts = { RadialContextKind.FileOrFolder },
+            Items = { item },
+        });
+        return settings;
+    }
+
+    private static void ShowMessageContaining(string text, Action<string> capture)
+    {
+        OnShown(w =>
+        {
+            string? shown = Descendants(w).OfType<TextBlock>()
+                .FirstOrDefault(t => t.Visibility == Visibility.Visible && t.Text.Contains(text))?.Text;
+            if (shown is not null) capture(shown);
+            Click(ButtonsOf(w).Single(b => (string)b.Content == "OK"));
+        });
+    }
+
+    [Fact]
+    public void Submenu_EditorResumePainelBadgeEPrevia()
+    {
+        RunSta(() =>
+        {
+            SettingsService.OverrideCurrentForTests(SettingsWithSubmenu(SubmenuItem()));
+            SettingsWindow window = OpenSettings();
+            Find<TabControl>(window, "MainTabs").SelectedIndex = 3;
+            Pump(300);
+            Find<ListBox>(window, "ListItems").SelectedIndex = 0;
+
+            Assert.Equal(Visibility.Visible, Find<StackPanel>(window, "PnlItemSubmenu").Visibility);
+            Assert.Equal(Visibility.Collapsed, Find<Border>(window, "BdItemTarget").Visibility);
+            Assert.Equal("2 de 8 opções", Find<TextBlock>(window, "TxtSubmenuCount").Text);
+            Assert.Contains("2 ativas", Find<TextBlock>(window, "TxtSubmenuPreview").Text);
+            Assert.True(Find<Button>(window, "BtnEditSubmenuOptions").IsEnabled);
+
+            Pump(200);
+            TextBlock? badge = Descendants(window).OfType<TextBlock>()
+                .FirstOrDefault(t => t.Visibility == Visibility.Visible && t.Text == "2 opções");
+            Assert.NotNull(badge);
+
+            CustomMergeEntry entry = Assert.Single(PreviewOf(window).Current, e => e.Slice.Label == "Ações");
+            Assert.Equal(2, entry.Slice.SubSlices!.Count);
+
+            window.Close();
+        });
+    }
+
+    [Fact]
+    public void Submenu_InvalidoNaPrevia_AvisaENaoAparece()
+    {
+        RunSta(() =>
+        {
+            SettingsService.OverrideCurrentForTests(SettingsWithSubmenu(SubmenuItem(1)));
+            SettingsWindow window = OpenSettings();
+            Find<ListBox>(window, "ListItems").SelectedIndex = 0;
+
+            Assert.DoesNotContain(PreviewOf(window).Current, e => e.Slice.Label == "Ações");
+            TextBlock warning = Find<TextBlock>(window, "PreviewWarning");
+            Assert.Equal(Visibility.Visible, warning.Visibility);
+            Assert.Contains("1 submenu precisa de 2 opções ativas", warning.Text);
+
+            window.Close();
+        });
+    }
+
+    [Fact]
+    public void Submenu_CriarPeloEditor_ExigeDuasOpcoesESalva()
+    {
+        RunSta(() =>
+        {
+            SettingsWindow window = OpenSettings();
+            Click(Find<Button>(window, "BtnAddMenuProfile"));
+            Click(Find<Button>(window, "BtnAddMenuItem"));
+            SelectTag(Find<ComboBox>(window, "CmbItemKind"), CustomMenuItemKind.Submenu);
+
+            Assert.Equal(Visibility.Visible, Find<StackPanel>(window, "PnlItemSubmenu").Visibility);
+            Assert.Equal(Visibility.Collapsed, Find<Border>(window, "BdItemTarget").Visibility);
+
+            string? blocked = null;
+            ShowMessageContaining("2 opções ativas", text => blocked = text);
+            Click(Find<Button>(window, "BtnSave"));
+
+            Assert.NotNull(blocked);
+            Assert.Null(_saved);
+            Assert.True(window.IsVisible);
+
+            SubmenuEditorWindow.BeforeShowForTests = dialog =>
+            {
+                Click(Find<Button>(dialog, "BtnAddOption"));
+                Find<TextBox>(dialog, "TxtOptionLabel").Text = "Copiar caminho";
+                Click(Find<Button>(dialog, "BtnAddOption"));
+                Find<TextBox>(dialog, "TxtOptionLabel").Text = "Fechar";
+                Click(Find<Button>(dialog, "BtnDone"));
+            };
+            Click(Find<Button>(window, "BtnEditSubmenuOptions"));
+
+            Assert.Contains("2 ativas", Find<TextBlock>(window, "TxtSubmenuPreview").Text);
+
+            Click(Find<Button>(window, "BtnSave"));
+
+            Assert.NotNull(_saved);
+            CustomMenuItem saved = Assert.Single(Assert.Single(_saved!.CustomProfiles).Items);
+            Assert.Equal(CustomMenuItemKind.Submenu, saved.Kind);
+            Assert.Equal(["Copiar caminho", "Fechar"], saved.Options.Select(o => o.Label).ToArray());
+            Assert.False(window.IsVisible);
+        });
+    }
+
+    [Fact]
+    public void Submenu_Dialogo_ValidaAlvoDaOpcao()
+    {
+        RunSta(() =>
+        {
+            SettingsService.OverrideCurrentForTests(SettingsWithSubmenu(SubmenuItem()));
+            SettingsWindow window = OpenSettings();
+            Find<ListBox>(window, "ListItems").SelectedIndex = 0;
+
+            string? shown = null;
+            SubmenuEditorWindow.BeforeShowForTests = dialog =>
+            {
+                Find<ListBox>(dialog, "ListOptions").SelectedIndex = 1;
+                SelectTag(Find<ComboBox>(dialog, "CmbOptionKind"), CustomMenuItemKind.OpenUrl);
+                Find<TextBox>(dialog, "TxtOptionUrl").Text = "file:///C:/Windows/System32/calc.exe";
+
+                ShowMessageContaining("http://", text => shown = text);
+                Click(Find<Button>(dialog, "BtnDone"));
+                if (dialog.IsVisible) dialog.Close();
+            };
+
+            Click(Find<Button>(window, "BtnEditSubmenuOptions"));
+
+            Assert.NotNull(shown);
+            Assert.True(window.IsVisible);
+            window.Close();
+        });
+    }
+
+    // ------------------------------------------------------------------
     // Salvar e cancelar
     // ------------------------------------------------------------------
 
@@ -317,6 +540,7 @@ public sealed class MenusTabTests : IDisposable
             Assert.NotSame(draft, saved);
             Assert.NotSame(draft.Items[0], savedItem);
             Assert.False(window.IsVisible);
+            Assert.True(PreviewTimerOf(window) is null or { IsEnabled: false });
         });
     }
 
@@ -348,6 +572,77 @@ public sealed class MenusTabTests : IDisposable
             Assert.True(window.IsVisible);
 
             CloseDiscarding(window);
+        });
+    }
+
+    [Fact]
+    public void Salvar_FalhaDeGravacao_MantemJanelaECurrent()
+    {
+        RunSta(() =>
+        {
+            AppSettings original = SettingsService.Current;
+            SettingsService.SaveOverrideForTests = _ => throw new IOException("disco cheio");
+
+            SettingsWindow window = OpenSettings();
+            Find<CheckBox>(window, "ChkStartWithWindows").IsChecked = true;
+
+            string? shown = null;
+            OnShown(w =>
+            {
+                shown = Descendants(w).OfType<TextBlock>()
+                    .FirstOrDefault(t => t.Visibility == Visibility.Visible && t.Text.Contains("disco cheio"))?.Text;
+                Click(ButtonsOf(w).Single(b => (string)b.Content == "OK"));
+            });
+
+            Click(Find<Button>(window, "BtnSave"));
+
+            Assert.NotNull(shown);
+            Assert.True(window.IsVisible);
+            Assert.Same(original, SettingsService.Current);
+            Assert.False(original.StartWithWindows);
+            Assert.Null(_saved);
+
+            // Com o disco saudável, a mesma janela salva e fecha.
+            AppSettings? saved = null;
+            SettingsService.SaveOverrideForTests = settings => saved = settings;
+            Click(Find<Button>(window, "BtnSave"));
+
+            Assert.NotNull(saved);
+            Assert.True(saved!.StartWithWindows);
+            Assert.Same(saved, SettingsService.Current);
+            Assert.False(window.IsVisible);
+        });
+    }
+
+    [Fact]
+    public void Salvar_GravaTodosOsCamposEmUmaInstanciaNova()
+    {
+        RunSta(() =>
+        {
+            AppSettings original = SettingsService.Current;
+            original.DeadzonePixels = 12;   // diferente do que o formulário vai salvar
+
+            SettingsWindow window = OpenSettings();
+            Find<CheckBox>(window, "ChkStartWithWindows").IsChecked = true;
+            Find<CheckBox>(window, "ChkBlockFullscreen").IsChecked = false;
+            Find<Slider>(window, "SliderDeadzone").Value = 33;
+            Find<Slider>(window, "SliderDwell").Value = 300;
+            Find<Panel>(window, "AccentChips").Children.OfType<RadioButton>()
+                .Single(c => (string)c.Tag == "Violet").IsChecked = true;
+
+            Click(Find<Button>(window, "BtnSave"));
+
+            AppSettings saved = Assert.IsType<AppSettings>(_saved);
+            Assert.NotSame(original, saved);
+            Assert.True(saved.StartWithWindows);
+            Assert.False(saved.BlockExclusiveFullscreen);
+            Assert.Equal(33, saved.DeadzonePixels);
+            Assert.Equal(300, saved.DwellMilliseconds);
+            Assert.Equal("Violet", saved.Accent);
+            Assert.NotSame(original.Blacklist[0], saved.Blacklist[0]);
+            Assert.NotSame(original.FavoriteApps[0], saved.FavoriteApps[0]);
+            Assert.Same(saved, SettingsService.Current);
+            Assert.False(window.IsVisible);
         });
     }
 

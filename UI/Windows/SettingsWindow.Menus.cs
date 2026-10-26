@@ -19,10 +19,10 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Automation;
 using System.Windows.Controls;
+using System.Windows.Threading;
 using Microsoft.Win32;
 using RadialFlow.Config;
 using RadialFlow.Context;
-using RadialFlow.Security;
 using RadialFlow.Services;
 
 namespace RadialFlow.UI;
@@ -33,71 +33,6 @@ public sealed record GlyphChoice(string Glyph, string Label);
 public partial class SettingsWindow
 {
     private const string DefaultGlyph = "\uE734";
-
-    private static readonly (RadialAction Action, string Label)[] ActionChoices =
-    [
-        (RadialAction.Convert, "Converter"),
-        (RadialAction.Compress, "Comprimir"),
-        (RadialAction.CopyPath, "Copiar caminho"),
-        (RadialAction.MoveTo, "Mover para"),
-        (RadialAction.SendTo, "Enviar para"),
-        (RadialAction.Rename, "Renomear"),
-        (RadialAction.FavoriteApps, "Apps favoritos"),
-        (RadialAction.SystemControls, "Ajustes rápidos"),
-        (RadialAction.ClipboardHistory, "Área de transferência"),
-        (RadialAction.LockScreen, "Bloquear"),
-        (RadialAction.SnapLeft, "Snap à esquerda"),
-        (RadialAction.SnapRight, "Snap à direita"),
-        (RadialAction.Maximize, "Maximizar"),
-        (RadialAction.Minimize, "Minimizar"),
-        (RadialAction.Close, "Fechar"),
-        (RadialAction.AlwaysOnTop, "Sempre no topo"),
-        (RadialAction.Transparency, "Transparência"),
-        (RadialAction.Paste, "Colar"),
-        (RadialAction.Translate, "Traduzir"),
-        (RadialAction.Clear, "Limpar"),
-        (RadialAction.SearchWeb, "Pesquisar na web"),
-        (RadialAction.Format, "Formatar (negrito)"),
-    ];
-
-    private static readonly (CustomMenuItemKind Kind, string Label)[] KindChoices =
-    [
-        (CustomMenuItemKind.Action, "Ação do RadialFlow"),
-        (CustomMenuItemKind.Launch, "Abrir executável"),
-        (CustomMenuItemKind.OpenUrl, "Abrir site (URL)"),
-        (CustomMenuItemKind.OpenPath, "Abrir arquivo ou pasta"),
-        (CustomMenuItemKind.Hotkey, "Enviar atalho"),
-        (CustomMenuItemKind.Text, "Colar texto"),
-    ];
-
-    private static readonly (string Glyph, string Label)[] GlyphChoices =
-    [
-        ("\uE734", "Aplicativos"),
-        ("\uE70F", "Editar"),
-        ("\uE8A5", "Documento"),
-        ("\uEB9F", "Imagem"),
-        ("\uE714", "Vídeo"),
-        ("\uE8D6", "Áudio"),
-        ("\uF012", "Arquivo zip"),
-        ("\uE8AB", "Converter"),
-        ("\uE8AC", "Renomear"),
-        ("\uE838", "Mover"),
-        ("\uE724", "Enviar"),
-        ("\uE71B", "Copiar"),
-        ("\uE8B7", "Pasta"),
-        ("\uE774", "Traduzir"),
-        ("\uE721", "Pesquisar"),
-        ("\uE77F", "Colar"),
-        ("\uE72E", "Bloquear"),
-        ("\uE713", "Ajustes"),
-        ("\uE8BB", "Fechar"),
-        ("\uE922", "Maximizar"),
-        ("\uE921", "Minimizar"),
-        ("\uE718", "Fixar"),
-        ("\uE706", "Transparência"),
-        ("\uE8DD", "Negrito"),
-        ("\uE894", "Limpar"),
-    ];
 
     private static readonly (RadialContextKind Kind, string Label)[] ContextChoices =
     [
@@ -119,7 +54,7 @@ public partial class SettingsWindow
     ];
 
     private readonly ObservableCollection<GlyphChoice> _glyphChoices =
-        new(GlyphChoices.Select(g => new GlyphChoice(g.Glyph, g.Label)));
+        new(CustomMenuChoices.Glyphs.Select(g => new GlyphChoice(g.Glyph, g.Label)));
 
     private ObservableCollection<CustomMenuProfile> _menuProfiles = new();
     private readonly ObservableCollection<CustomMenuItem> _menuItems = new();
@@ -128,6 +63,12 @@ public partial class SettingsWindow
     private MenuPreview? _preview;
     private bool _loadingMenus;
     private bool _menusDirty;
+    private DispatcherTimer? _previewTimer;
+
+    private const int PreviewDebounceMilliseconds = 120;
+
+    // Dependências fixas (nada lê configurações nem disco): as fatias automáticas de cada contexto não mudam.
+    private static readonly Dictionary<RadialContextKind, IReadOnlyList<RadialSlice>> AutomaticPreviewCache = new();
 
     private void InitializeMenusTab()
     {
@@ -138,15 +79,15 @@ public partial class SettingsWindow
             MenuPreviewHost.Child = _preview;
             CmbItemGlyph.ItemsSource = _glyphChoices;
 
-            foreach (var (kind, label) in KindChoices)
+            foreach (var (kind, label) in CustomMenuChoices.Kinds)
                 CmbItemKind.Items.Add(new ComboBoxItem { Content = label, Tag = kind });
 
-            foreach (var (action, label) in ActionChoices)
+            foreach (var (action, label) in CustomMenuChoices.Actions)
                 CmbItemAction.Items.Add(new ComboBoxItem { Content = label, Tag = action });
 
             foreach (var (kind, label) in ContextChoices)
             {
-                var check = new CheckBox { Content = label, Tag = kind, Margin = new Thickness(0, 4, 14, 4) };
+                var check = new CheckBox { Content = label, Tag = kind, Margin = new Thickness(0, 4, 12, 4) };
                 check.Checked += ProfileField_Changed;
                 check.Unchecked += ProfileField_Changed;
                 AutomationProperties.SetName(check, $"Contexto: {label}");
@@ -205,7 +146,11 @@ public partial class SettingsWindow
     private void LoadProfileEditor(CustomMenuProfile? profile)
     {
         _selectedProfile = profile;
-        PnlProfileEditor.IsEnabled = profile is not null;
+        bool hasProfile = profile is not null;
+        PnlProfileEditor.IsEnabled = hasProfile;
+
+        MenusScroll.Visibility = hasProfile ? Visibility.Visible : Visibility.Collapsed;
+        PnlNoProfileSelected.Visibility = hasProfile ? Visibility.Collapsed : Visibility.Visible;
 
         if (profile is null)
         {
@@ -240,6 +185,7 @@ public partial class SettingsWindow
         _selectedItem = _menuItems.FirstOrDefault();
         ListItems.SelectedItem = _selectedItem;
         LoadItemEditor(_selectedItem);
+        UpdateSubmenuSummary();
     }
 
     private void BtnAddMenuProfile_Click(object sender, RoutedEventArgs e)
@@ -313,7 +259,7 @@ public partial class SettingsWindow
             .Select(c => (RadialContextKind)c.Tag)
             .ToList();
 
-        MarkMenusDirty();
+        MarkMenusDirty(debouncePreview: sender is TextBox);
     }
 
     private void TxtProfileName_LostFocus(object sender, RoutedEventArgs e)
@@ -347,6 +293,8 @@ public partial class SettingsWindow
     private void LoadItemEditor(CustomMenuItem? item)
     {
         PnlItemEditor.IsEnabled = item is not null;
+        PnlItemEditor.Visibility = item is null ? Visibility.Collapsed : Visibility.Visible;
+        PnlNoItemSelected.Visibility = item is null ? Visibility.Visible : Visibility.Collapsed;
 
         if (item is null)
         {
@@ -362,6 +310,7 @@ public partial class SettingsWindow
             TxtItemHotkey.Text = "";
             TxtItemText.Text = "";
             SetKindPanels(CustomMenuItemKind.Action);
+            UpdateSubmenuSummary();
             UpdateMenuButtons();
             return;
         }
@@ -378,6 +327,7 @@ public partial class SettingsWindow
         TxtItemHotkey.Text = item.Kind == CustomMenuItemKind.Hotkey ? item.Target ?? "" : "";
         TxtItemText.Text = item.Kind == CustomMenuItemKind.Text ? item.Text ?? "" : "";
         SetKindPanels(item.Kind);
+        UpdateSubmenuSummary();
         UpdateMenuButtons();
     }
 
@@ -465,6 +415,8 @@ public partial class SettingsWindow
             _loadingMenus = false;
         }
 
+        UpdateSubmenuSummary();
+        RefreshItemListRow();
         MarkMenusDirty();
     }
 
@@ -491,13 +443,90 @@ public partial class SettingsWindow
         };
         _selectedItem.Text = kind == CustomMenuItemKind.Text ? TxtItemText.Text : "";
 
-        MarkMenusDirty();
+        MarkMenusDirty(debouncePreview: sender is TextBox);
     }
 
     private void TxtItemLabel_LostFocus(object sender, RoutedEventArgs e)
     {
         if (_loadingMenus) return;
         RefreshItemListSelection();
+    }
+
+    // ------------------------------------------------------------------
+    // Submenus
+    // ------------------------------------------------------------------
+
+    private void BtnEditSubmenuOptions_Click(object sender, RoutedEventArgs e)
+    {
+        if (_selectedItem is null) return;
+
+        var initial = (_selectedItem.Options ?? new List<CustomMenuItem>())
+            .Where(o => o is not null)
+            .Select(CloneItem)
+            .ToList();
+
+        var dialog = new SubmenuEditorWindow(_selectedItem.Label ?? "", initial) { Owner = this };
+        if (dialog.ShowDialog() != true) return;
+
+        _selectedItem.Options = dialog.Options.ToList();
+        SyncProfileItems();
+        UpdateSubmenuSummary();
+        RefreshItemListRow();
+        MarkMenusDirty();
+    }
+
+    private void UpdateSubmenuSummary()
+    {
+        bool hasItem = _selectedItem is not null;
+        BtnEditSubmenuOptions.IsEnabled = hasItem;
+
+        if (!hasItem)
+        {
+            TxtSubmenuCount.Text = $"0 de {CustomMenuNormalizer.MaxOptions} opções";
+            TxtSubmenuPreview.Text = "Nenhuma opção ainda.";
+            return;
+        }
+
+        var options = (_selectedItem!.Options ?? new List<CustomMenuItem>())
+            .Where(o => o is not null)
+            .ToList();
+        var active = CustomMenuNormalizer.ActiveOptions(_selectedItem);
+
+        TxtSubmenuCount.Text = $"{options.Count} de {CustomMenuNormalizer.MaxOptions} opções";
+        if (options.Count == 0)
+        {
+            TxtSubmenuPreview.Text = "Nenhuma opção ainda.";
+            return;
+        }
+
+        if (active.Count == 0)
+        {
+            TxtSubmenuPreview.Text = "Nenhuma opção ativa.";
+            return;
+        }
+
+        string labels = string.Join(", ", active.Take(4).Select(o => o.Label));
+        if (active.Count > 4) labels += "…";
+
+        TxtSubmenuPreview.Text = active.Count < CustomMenuNormalizer.MinOptions
+            ? $"{active.Count} ativa: {labels}. Adicione mais uma para abrir o segundo anel."
+            : $"{active.Count} ativas: {labels}.";
+    }
+
+    private void RefreshItemListRow()
+    {
+        if (_selectedItem is null) return;
+
+        _loadingMenus = true;
+        try
+        {
+            ListItems.Items.Refresh();
+            ListItems.SelectedItem = _selectedItem;
+        }
+        finally
+        {
+            _loadingMenus = false;
+        }
     }
 
     // ------------------------------------------------------------------
@@ -538,6 +567,8 @@ public partial class SettingsWindow
 
     private void RefreshPreview()
     {
+        if (_previewTimer?.IsEnabled == true) _previewTimer.Stop();
+
         if (_preview is null) return;
 
         if (_selectedProfile is null)
@@ -564,18 +595,29 @@ public partial class SettingsWindow
 
         PreviewContext.Text = $"Prévia no contexto “{ContextLabel(kind)}”" +
             (_selectedProfile.Enabled ? "." : " (este menu está desativado).");
-        PreviewSummary.Text = $"{automatic.Count} fatias automáticas · {replacements} substituição(ões) · {extras} extra(s).";
+        string replacementsText = replacements == 1 ? "1 substituição" : $"{replacements} substituições";
+        string extrasText = extras == 1 ? "1 extra" : $"{extras} extras";
+        PreviewSummary.Text = $"{automatic.Count} fatias automáticas · {replacementsText} · {extrasText}.";
 
-        if (plan.Dropped.Count == 0)
+        if (plan.Dropped.Count == 0 && plan.Invalid.Count == 0)
         {
             PreviewWarning.Text = "";
             PreviewWarning.Visibility = Visibility.Collapsed;
         }
         else
         {
-            PreviewWarning.Text = plan.Dropped.Count == 1
-                ? "1 item será ignorado (limite de 8 fatias)."
-                : $"{plan.Dropped.Count} itens serão ignorados (limite de 8 fatias).";
+            var parts = new List<string>();
+            if (plan.Invalid.Count == 1)
+                parts.Add("1 submenu precisa de 2 opções ativas e não aparece.");
+            else if (plan.Invalid.Count > 1)
+                parts.Add($"{plan.Invalid.Count} submenus precisam de 2 opções ativas e não aparecem.");
+
+            if (plan.Dropped.Count == 1)
+                parts.Add("1 item será ignorado (limite de 8 fatias).");
+            else if (plan.Dropped.Count > 1)
+                parts.Add($"{plan.Dropped.Count} itens serão ignorados (limite de 8 fatias).");
+
+            PreviewWarning.Text = string.Join(" ", parts);
             PreviewWarning.Visibility = Visibility.Visible;
         }
     }
@@ -591,13 +633,19 @@ public partial class SettingsWindow
 
     private static IReadOnlyList<RadialSlice> PreviewAutomatic(RadialContextKind kind)
     {
+        if (AutomaticPreviewCache.TryGetValue(kind, out IReadOnlyList<RadialSlice>? cached)) return cached;
+
         ContextInfo ctx = new(kind, IntPtr.Zero, "", 0, 0,
             kind == RadialContextKind.FileOrFolder ? new[] { @"C:\preview.png" } : ContextInfo.NoPaths);
 
         // Dependências de mentira: a prévia precisa das MESMAS fatias automáticas, mas não pode tocar em disco.
         var deps = new SliceFactoryDependencies(
             PreviewSliceActions.Instance,
-            _ => new[] { new ConversionOption("pdf", "PDF — prévia", "Prévia") },
+            _ => new[]
+            {
+                new ConversionOption("pdf", "PDF — prévia", "Prévia"),
+                new ConversionOption("webp", "WEBP — prévia", "Prévia"),
+            },
             () => new[]
             {
                 new FavoriteAppEntry("App de exemplo", @"C:\app.exe"),
@@ -606,7 +654,9 @@ public partial class SettingsWindow
             _ => true,
             null);
 
-        return SliceFactory.Build(ctx, deps);
+        IReadOnlyList<RadialSlice> slices = SliceFactory.Build(ctx, deps);
+        AutomaticPreviewCache[kind] = slices;
+        return slices;
     }
 
     private static string ContextLabel(RadialContextKind kind) => kind switch
@@ -630,14 +680,38 @@ public partial class SettingsWindow
         BtnRemoveMenuItem.IsEnabled = hasItem;
         BtnMoveItemUp.IsEnabled = hasItem && index > 0;
         BtnMoveItemDown.IsEnabled = hasItem && index >= 0 && index < _menuItems.Count - 1;
+
+        PnlNoProfiles.Visibility = _menuProfiles.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
+        PnlNoItems.Visibility = hasProfile && _menuItems.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
+        MenuProfileCount.Text = _menuProfiles.Count.ToString(CultureInfo.InvariantCulture);
+        MenuItemCount.Text = $"{_menuItems.Count} de {CustomMenuNormalizer.MaxItems}";
     }
 
-    private void MarkMenusDirty()
+    private void MarkMenusDirty(bool debouncePreview = false)
     {
         if (_loadingMenus) return;
         _menusDirty = true;
-        RefreshPreview();
+
+        if (debouncePreview) SchedulePreviewRefresh();
+        else RefreshPreview();   // imediato: também cancela um debounce pendente de uma edição anterior
+
         UpdateMenuButtons();
+    }
+
+    /// <summary>Adia a prévia para o fim da digitação: cada tecla não reconstrói a roda inteira.</summary>
+    private void SchedulePreviewRefresh()
+    {
+        if (_previewTimer is null)
+        {
+            _previewTimer = new DispatcherTimer(DispatcherPriority.Background)
+            {
+                Interval = TimeSpan.FromMilliseconds(PreviewDebounceMilliseconds),
+            };
+            _previewTimer.Tick += (_, _) => RefreshPreview();
+        }
+
+        _previewTimer.Stop();
+        _previewTimer.Start();
     }
 
     private void SyncProfileItems()
@@ -679,41 +753,39 @@ public partial class SettingsWindow
 
                 switch (item.Kind)
                 {
-                    case CustomMenuItemKind.Action:
-                        if (!Enum.IsDefined(item.Action))
-                            return $"A ação do item “{label}” não existe mais.";
+                    case CustomMenuItemKind.Submenu:
+                        string? submenuError = ValidateSubmenu(item, label);
+                        if (submenuError is not null) return submenuError;
                         break;
 
-                    case CustomMenuItemKind.Launch:
-                        if (string.IsNullOrWhiteSpace(item.Target))
-                            return $"Informe o executável do item “{label}”.";
-                        break;
-
-                    case CustomMenuItemKind.OpenUrl:
-                        if (!UnelevatedLauncher.IsSafeUrl(item.Target))
-                            return $"A URL do item “{label}” precisa começar com http:// ou https://.";
-                        break;
-
-                    case CustomMenuItemKind.OpenPath:
-                        if (string.IsNullOrWhiteSpace(item.Target))
-                            return $"Informe o arquivo ou a pasta do item “{label}”.";
-                        if (!TrustedPath.TryGetSafeFullPath(item.Target, out _))
-                            return $"O caminho do item “{label}” é inválido.";
-                        break;
-
-                    case CustomMenuItemKind.Hotkey:
-                        if (!CustomActionLogic.TryParseHotkey(item.Target, out _, out string? reason))
-                            return $"Atalho do item “{label}”: {reason}";
-                        break;
-
-                    case CustomMenuItemKind.Text:
-                        if (string.IsNullOrEmpty(item.Text))
-                            return $"Informe o texto a colar no item “{label}”.";
-                        if (item.Text.Length > CustomMenuNormalizer.MaxTextLength)
-                            return $"O texto do item “{label}” passou de {CustomMenuNormalizer.MaxTextLength} caracteres.";
+                    default:
+                        string? targetError = CustomMenuValidation.ValidateTarget(item, label, "item");
+                        if (targetError is not null) return targetError;
                         break;
                 }
             }
+        }
+
+        return null;
+    }
+
+    private static string? ValidateSubmenu(CustomMenuItem item, string label)
+    {
+        var options = (item.Options ?? new List<CustomMenuItem>())
+            .Where(o => o is not null)
+            .ToList();
+
+        if (options.Count > CustomMenuNormalizer.MaxOptions)
+            return $"O submenu “{label}” passou de {CustomMenuNormalizer.MaxOptions} opções.";
+
+        var active = CustomMenuNormalizer.ActiveOptions(item);
+        if (active.Count < CustomMenuNormalizer.MinOptions)
+            return $"O submenu “{label}” precisa de pelo menos {CustomMenuNormalizer.MinOptions} opções ativas.";
+
+        foreach (CustomMenuItem option in active)
+        {
+            string? error = CustomMenuValidation.ValidateOption(option, label);
+            if (error is not null) return error;
         }
 
         return null;
@@ -738,6 +810,15 @@ public partial class SettingsWindow
                 item.Description = (item.Description ?? "").Trim();
                 item.Target = (item.Target ?? "").Trim();
                 item.Text ??= "";
+
+                foreach (CustomMenuItem option in item.Options ?? new List<CustomMenuItem>())
+                {
+                    if (option is null) continue;
+                    option.Label = (option.Label ?? "").Trim();
+                    option.Description = (option.Description ?? "").Trim();
+                    option.Target = (option.Target ?? "").Trim();
+                    option.Text ??= "";
+                }
             }
         }
 
@@ -746,10 +827,18 @@ public partial class SettingsWindow
 
     protected override void OnClosing(CancelEventArgs e)
     {
-        if (_menusDirty)
+        // Aplica a última edição pendente antes do aviso; o timer não sobrevive ao fechamento.
+        if (_previewTimer?.IsEnabled == true)
+        {
+            if (_menusDirty) RefreshPreview();
+            else _previewTimer.Stop();
+        }
+
+        List<string> changed = ChangedSections();
+        if (changed.Count > 0)
         {
             bool discard = Dialogs.Confirm(this, "Descartar alterações?",
-                "As alterações nos menus personalizados ainda não foram salvas. Fechar mesmo assim?",
+                $"Configurações não salvas: {string.Join(", ", changed)}. Fechar mesmo assim?",
                 "Descartar", "Continuar editando", DialogIcon.Warning, defaultIsConfirm: false);
             if (!discard)
             {
@@ -791,6 +880,10 @@ public partial class SettingsWindow
         Action = item.Action,
         Target = item.Target,
         Text = item.Text,
+        Options = (item.Options ?? new List<CustomMenuItem>())
+            .Where(o => o is not null)
+            .Select(CloneItem)
+            .ToList(),
     };
 
     private static string UniqueName(IEnumerable<string?> names, string baseName)
@@ -853,6 +946,10 @@ public partial class SettingsWindow
 
     private void SetKindPanels(CustomMenuItemKind kind)
     {
+        bool submenu = kind == CustomMenuItemKind.Submenu;
+        BdItemTarget.Visibility = submenu ? Visibility.Collapsed : Visibility.Visible;
+        PnlItemSubmenu.Visibility = submenu ? Visibility.Visible : Visibility.Collapsed;
+
         PnlItemAction.Visibility = kind == CustomMenuItemKind.Action ? Visibility.Visible : Visibility.Collapsed;
         PnlItemLaunch.Visibility = kind == CustomMenuItemKind.Launch ? Visibility.Visible : Visibility.Collapsed;
         PnlItemUrl.Visibility = kind == CustomMenuItemKind.OpenUrl ? Visibility.Visible : Visibility.Collapsed;

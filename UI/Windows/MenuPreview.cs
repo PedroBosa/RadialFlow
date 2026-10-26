@@ -120,6 +120,21 @@ internal sealed class MenuPreview : Canvas
             HorizontalAlignment = HorizontalAlignment.Center,
         });
 
+        // Mesmo sinal da roda real: a fatia abre um segundo anel.
+        if (entry.Slice.SubSlices is { Count: >= 2 })
+        {
+            panel.Children.Add(new TextBlock
+            {
+                Text = "\uE70D",
+                FontFamily = new FontFamily(IconFont),
+                FontSize = 9,
+                Opacity = 0.75,
+                TextAlignment = TextAlignment.Center,
+                HorizontalAlignment = HorizontalAlignment.Center,
+                Margin = new Thickness(0, 1, 0, 0),
+            });
+        }
+
         string ink = entry.Status == CustomMergeStatus.Extra ? "AccentInkBrush" : "TextBrush";
         foreach (TextBlock text in panel.Children)
             text.SetResourceReference(TextBlock.ForegroundProperty, ink);

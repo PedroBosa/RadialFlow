@@ -82,6 +82,10 @@ Clique no ícone do RadialFlow perto do relógio.
 - **Menus**: itens extras que aparecem só em certos aplicativos, janelas ou contextos (veja abaixo).
 - **Conversores**: instala os programas de conversão (veja abaixo).
 
+**Salvar** só fecha a janela depois que o arquivo foi gravado. Se a gravação falhar, um aviso explica o motivo, nada é
+aplicado e a janela continua aberta. Fechar com alterações não salvas em qualquer aba pede confirmação e lista as
+seções alteradas.
+
 ## Menus personalizados
 
 Além das opções automáticas, você pode criar os seus menus em **Configurações → Menus**. Cada menu vale só onde você
@@ -107,11 +111,17 @@ Depois, adicione os itens. Cada um pode ser:
 | Abrir arquivo ou pasta | Abre com o programa padrão | Executáveis, scripts e atalhos são recusados aqui. |
 | Enviar atalho | Envia uma combinação de teclas, como `Ctrl+Shift+P` | O foco precisa estar na janela onde a roda foi aberta. |
 | Colar texto | Cola um texto no campo em foco | Usa a área de transferência e tenta devolver o conteúdo anterior depois. |
+| Submenu | Abre um segundo anel com até 8 opções | Precisa de 2 a 8 opções ativas; cada opção é um dos tipos acima, exceto outro submenu. |
+
+**Submenus** funcionam como **Apps favoritos** e **Converter**: a fatia mostra uma setinha ▾ e, na roda, você segura a
+fatia para abrir o segundo anel. Clique em **Editar opções…** para montar as opções com rótulo, ícone e ação. Se um
+submenu ativo ficar com menos de 2 opções ativas, ele não aparece e a prévia avisa.
 
 O editor mostra uma **prévia da roda**: as fatias em destaque vieram do seu menu e aparecem marcadas como
-**substitui** (assumiu o lugar de uma automática) ou **extra** (acrescentada). A roda cabe no máximo **8 fatias**: as
-automáticas que não forem substituídas continuam, e o que não couber fica de fora — a prévia avisa quantos itens serão
-ignorados. Cada menu aceita até 8 itens, e você pode ter até 20 menus.
+**substitui** (assumiu o lugar de uma automática) ou **extra** (acrescentada); a setinha ▾ indica as fatias que abrem
+um segundo anel. A roda cabe no máximo **8 fatias**: as automáticas que não forem substituídas continuam, e o que não
+couber fica de fora — a prévia avisa quantos itens serão ignorados. Cada menu aceita até 8 itens, e você pode ter até
+20 menus.
 
 Salvar já vale para o próximo menu aberto, sem reiniciar o RadialFlow. Para voltar à roda automática, desative ou
 remova o menu.
@@ -122,6 +132,8 @@ Exemplos:
   Bloco de Notas.
 - Um menu só para **barra de título**, com a ação **Fechar** renomeada para “Fechar sem medo”, troca a fatia Fechar
   das janelas pelo seu item, mantendo as outras fatias no lugar.
+- Um item **Submenu** chamado “Ações rápidas” com **Renomear**, **Mover para** e **Enviar para** cria um segundo anel
+  só com essas opções quando você segura a fatia.
 
 Os itens externos rodam **sem** permissão de administrador, mesmo com o RadialFlow aberto como administrador. Por
 segurança, programas instalados na sua pasta de usuário (como `%LocalAppData%`) não são aceitos em **Abrir
