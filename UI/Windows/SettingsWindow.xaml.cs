@@ -55,19 +55,27 @@ public partial class SettingsWindow : Window
         // Rascunhos: listas próprias, sem compartilhar os objetos de Current.
         _blacklistItems = new ObservableCollection<ForegroundBlacklist.BlacklistEntry>(
             current.Blacklist.Select(e => new ForegroundBlacklist.BlacklistEntry(e.ProcessName, e.Description)));
-        ListBlacklist.ItemsSource = _blacklistItems;
-
         _favoriteItems = new ObservableCollection<FavoriteAppEntry>(
             current.FavoriteApps.Select(a => new FavoriteAppEntry(a.Name, a.ExecutablePath, a.Arguments, a.Glyph)));
+        ListBlacklist.ItemsSource = _blacklistItems;
         ListFavorites.ItemsSource = _favoriteItems;
+
+        _blacklistItems.CollectionChanged += (_, _) => OnListsChanged();
+        _favoriteItems.CollectionChanged += (_, _) => OnListsChanged();
+        ListBlacklist.SelectionChanged += (_, _) => UpdateListToolbar();
+        ListFavorites.SelectionChanged += (_, _) => UpdateListToolbar();
+        UpdateListToolbar();
 
         InitializeConvertersTab();
         InitializeMenusTab();
 
         _nonMenuBaseline = CaptureNonMenuSnapshot();
+        _ready = true;
+        UpdateDirtyIndicator();
     }
 
     private NonMenuSnapshot? _nonMenuBaseline;
+    private bool _ready;
 
     /// <summary>Valores não-menu na abertura; o fechamento compara com eles para avisar sobre descarte.</summary>
     private sealed record NonMenuSnapshot(
@@ -111,6 +119,36 @@ public partial class SettingsWindow : Window
 
         if (_menusDirty) changed.Add("Menus");
         return changed;
+    }
+
+    private void DirtyState_Changed(object sender, RoutedEventArgs e) => UpdateDirtyIndicator();
+
+    private void OnListsChanged()
+    {
+        UpdateListToolbar();
+        UpdateDirtyIndicator();
+    }
+
+    private void UpdateListToolbar()
+    {
+        BlacklistCount.Text = _blacklistItems.Count == 1 ? "1 programa" : $"{_blacklistItems.Count} programas";
+        FavoritesCount.Text = _favoriteItems.Count == 1 ? "1 atalho" : $"{_favoriteItems.Count} atalhos";
+        PnlNoBlacklist.Visibility = _blacklistItems.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
+        PnlNoFavorites.Visibility = _favoriteItems.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
+        BtnRemoveBlacklist.IsEnabled = ListBlacklist.SelectedItem is ForegroundBlacklist.BlacklistEntry;
+        BtnRemoveFavorite.IsEnabled = ListFavorites.SelectedItem is FavoriteAppEntry;
+    }
+
+    private void UpdateDirtyIndicator()
+    {
+        if (!_ready) return;
+
+        List<string> changed = ChangedSections();
+        bool dirty = changed.Count > 0;
+        StatusDot.Visibility = dirty ? Visibility.Visible : Visibility.Collapsed;
+        SaveStatus.Text = dirty
+            ? $"Alterações não salvas: {string.Join(", ", changed)}"
+            : "Tudo salvo";
     }
 
     private void BtnOpenLogs_Click(object sender, RoutedEventArgs e) => TrayIconService.OpenLogsFolder();
@@ -169,6 +207,7 @@ public partial class SettingsWindow : Window
         _accentKey = key;
         UpdateAccentLabel();
         UiTheme.Refresh(this, RadialTheme.Create(RadialTheme.ReadLightTheme(), RadialTheme.ResolveAccent(key)));
+        UpdateDirtyIndicator();
     }
 
     private void UpdateAccentLabel() =>

@@ -696,6 +696,7 @@ public partial class SettingsWindow
         else RefreshPreview();   // imediato: também cancela um debounce pendente de uma edição anterior
 
         UpdateMenuButtons();
+        UpdateDirtyIndicator();
     }
 
     /// <summary>Adia a prévia para o fim da digitação: cada tecla não reconstrói a roda inteira.</summary>
