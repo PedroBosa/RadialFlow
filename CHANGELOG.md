@@ -2,7 +2,7 @@
 
 Cada versão, da mais nova para a mais antiga. O número da versão está em `RadialFlow.csproj`.
 
-## Não lançado
+## 1.4.1 — 27/10/2026
 
 ### Correções
 

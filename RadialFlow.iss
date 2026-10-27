@@ -1,9 +1,9 @@
 ; RadialFlow - instalador (Inno Setup 6)
 ; Chamado pelo publish.ps1, que passa /DAppVersion, /DSourceDir e, se houver certificado, /DSignTool.
-; Para compilar à mão: ISCC /DAppVersion=1.4.0 /DSourceDir=dist\RadialFlow-1.4.0-win-x64 RadialFlow.iss
+; Para compilar à mão: ISCC /DAppVersion=1.4.1 /DSourceDir=dist\RadialFlow-1.4.1-win-x64 RadialFlow.iss
 
 #ifndef AppVersion
-  #define AppVersion "1.4.0"
+  #define AppVersion "1.4.1"
 #endif
 #ifndef SourceDir
   #define SourceDir "dist\RadialFlow-" + AppVersion + "-win-x64"

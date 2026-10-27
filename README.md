@@ -44,7 +44,7 @@ também nos programas da Blacklist e em tela cheia, desde que o RadialFlow não 
 
 ## Instalar
 
-1. Baixe o `RadialFlow-1.4.0-Setup.exe` na página **Releases** deste repositório.
+1. Baixe o `RadialFlow-1.4.1-Setup.exe` na página **Releases** deste repositório.
 2. Abra o arquivo e siga o assistente. O RadialFlow é instalado em `C:\Program Files\RadialFlow`.
 3. Na página de tarefas, marque os **conversores** que quiser (veja [Converter arquivos](#converter-arquivos)). O
    FFmpeg, para vídeo e áudio, já vem marcado. Dá para instalar os outros depois.
@@ -57,7 +57,7 @@ ou fechar o programa.
 O RadialFlow pede permissão de administrador sempre que abre. É isso que deixa a roda funcionar também em cima de
 janelas do sistema, como o Gerenciador de Tarefas.
 
-Prefere não instalar? Existe também a versão portátil (`RadialFlow-1.4.0-win-x64.zip`). Extraia **todos** os
+Prefere não instalar? Existe também a versão portátil (`RadialFlow-1.4.1-win-x64.zip`). Extraia **todos** os
 arquivos numa pasta e abra o `RadialFlow.exe`. O instalador continua sendo a opção recomendada, porque coloca o
 programa numa pasta que outros programas não conseguem alterar.
 
@@ -79,7 +79,7 @@ O aviso pode aparecer de novo a cada versão nova. Se quiser conferir se o arqui
 compare o hash dele com o do arquivo `SHA256SUMS.txt` publicado junto:
 
 ```powershell
-Get-FileHash .\RadialFlow-1.4.0-Setup.exe
+Get-FileHash .\RadialFlow-1.4.1-Setup.exe
 ```
 
 ## Configurar

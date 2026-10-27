@@ -15,7 +15,7 @@
 
   <!-- Identidade do produto (aparece nas propriedades do .exe, no log e na janela "Sobre"). -->
   <PropertyGroup>
-    <Version>1.4.0</Version>
+    <Version>1.4.1</Version>
     <FileVersion>$(Version).0</FileVersion>
     <AssemblyVersion>$(Version).0</AssemblyVersion>
     <InformationalVersion>$(Version)</InformationalVersion>
