@@ -19,6 +19,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using RadialFlow.Infrastructure;
 using RadialFlow.Security;
 
 namespace RadialFlow.Services;
@@ -132,9 +133,8 @@ internal sealed class ToolLocator(ToolSearchEnvironment environment)
         lock (_gate) _rejected.TryGetValue(toolName, out rejectedPath);
 
         return rejectedPath is null
-            ? $"O {friendly} não está instalado. Instale-o em Configurações > Conversores (um clique) e tente de novo."
-            : $"O {friendly} foi encontrado em '{rejectedPath}', mas não foi usado por segurança: " +
-              "essa pasta pode ser alterada sem permissão de administrador. Instale-o em Configurações > Conversores.";
+            ? Loc.Format("Tools.Missing", friendly)
+            : Loc.Format("Tools.Rejected", friendly, rejectedPath);
     }
 
     public void ResetCache()

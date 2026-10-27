@@ -1,7 +1,8 @@
 <Window x:Class="RadialFlow.UI.ProgressWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="RadialFlow — Operação em andamento"
+        xmlns:loc="clr-namespace:RadialFlow.UI.Markup"
+        Title="{loc:Loc Progress.WindowTitle}"
         Width="480" Height="250"
         WindowStartupLocation="CenterScreen"
         WindowStyle="None" AllowsTransparency="True"
@@ -37,7 +38,7 @@
                         <TextBlock x:Name="IconGlyph" Text="&#xE9F5;" FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets" FontSize="17"
                                    Foreground="{DynamicResource AccentInkBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </Grid>
-                    <TextBlock Grid.Column="1" x:Name="TxtTitle" Text="Processando…" FontSize="16" FontWeight="SemiBold"
+                    <TextBlock Grid.Column="1" x:Name="TxtTitle" Text="{loc:Loc Progress.Processing}" FontSize="16" FontWeight="SemiBold"
                                Foreground="{DynamicResource TextBrush}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
                 </Grid>
 
@@ -50,7 +51,7 @@
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
-                    <TextBlock Grid.Column="0" x:Name="TxtStatus" Text="Iniciando…" FontSize="12.5"
+                    <TextBlock Grid.Column="0" x:Name="TxtStatus" Text="{loc:Loc Progress.Starting}" FontSize="12.5"
                                Foreground="{DynamicResource TextDimBrush}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
                     <TextBlock Grid.Column="1" x:Name="TxtPercent" Text="0%" FontSize="13" FontWeight="Bold" Margin="12,0,0,0"
                                Foreground="{DynamicResource AccentTextBrush}" VerticalAlignment="Center"/>
@@ -58,9 +59,9 @@
 
                 <!-- Ações -->
                 <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Bottom">
-                    <Button x:Name="BtnOpenFolder" Content="Abrir pasta" Style="{StaticResource PrimaryButton}" Visibility="Collapsed"
+                    <Button x:Name="BtnOpenFolder" Content="{loc:Loc Progress.OpenFolder}" Style="{StaticResource PrimaryButton}" Visibility="Collapsed"
                             MinWidth="110" Margin="0,0,8,0" Click="BtnOpenFolder_Click"/>
-                    <Button x:Name="BtnCancel" Content="Cancelar" MinWidth="96" Click="BtnCancel_Click"/>
+                    <Button x:Name="BtnCancel" Content="{loc:Loc Common.Cancel}" MinWidth="96" Click="BtnCancel_Click"/>
                 </StackPanel>
             </Grid>
         </Border>

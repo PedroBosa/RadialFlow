@@ -92,7 +92,7 @@ public sealed class CustomMenuItem
 public sealed class CustomMenuProfile
 {
     public string Id { get; set; } = Guid.NewGuid().ToString("N");
-    public string Name { get; set; } = "Novo menu";
+    public string Name { get; set; } = Loc.Get("Menus.DefaultProfileName");
     public bool Enabled { get; set; } = true;
 
     /// <summary>Maior prioridade é aplicada primeiro; empate é resolvido por nome/id.</summary>
@@ -141,7 +141,7 @@ internal static class CustomMenuNormalizer
         {
             profile.Id = NormalizeId(profile.Id);
             profile.Name = Truncate((profile.Name ?? "").Trim(), MaxNameLength);
-            if (profile.Name.Length == 0) profile.Name = "Novo menu";
+            if (profile.Name.Length == 0) profile.Name = Loc.Get("Menus.DefaultProfileName");
             profile.ProcessName = NormalizeProcessName(profile.ProcessName);
             profile.TitleContains = Truncate((profile.TitleContains ?? "").Trim(), MaxDescriptionLength);
             profile.Priority = Math.Clamp(profile.Priority, MinPriority, MaxPriority);

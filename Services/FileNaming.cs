@@ -16,6 +16,7 @@ using System.Buffers;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using RadialFlow.Infrastructure;
 using RadialFlow.Security;
 
 namespace RadialFlow.Services;
@@ -38,7 +39,7 @@ public static class FileNaming
     public static string GetUniquePath(string path)
     {
         if (!TryGetUniquePath(path, out string unique))
-            throw new ArgumentException($"Caminho inválido ou inseguro: '{path}'.", nameof(path));
+            throw new ArgumentException(Loc.Format("FileNaming.InvalidPath", path), nameof(path));
         return unique;
     }
 
@@ -116,19 +117,19 @@ public static class FileNaming
 
         if (candidate.Length == 0)
         {
-            error = "O nome não pode ficar vazio.";
+            error = Loc.Get("FileNaming.Empty");
             return false;
         }
 
         if (candidate.Length > MaxFileNameLength)
         {
-            error = $"O nome pode ter no máximo {MaxFileNameLength} caracteres.";
+            error = Loc.Format("FileNaming.TooLong", MaxFileNameLength);
             return false;
         }
 
         if (candidate is "." or "..")
         {
-            error = "\".\" e \"..\" não são nomes válidos.";
+            error = Loc.Get("FileNaming.DotNames");
             return false;
         }
 
@@ -137,20 +138,20 @@ public static class FileNaming
             if (c < 0x20 || InvalidNameChars.Contains(c))
             {
                 string shown = c < 0x20 ? $"\\u{(int)c:X4}" : c.ToString();
-                error = $"O nome não pode conter o caractere '{shown}' (nem \\ / : * ? \" < > |).";
+                error = Loc.Format("FileNaming.InvalidChar", shown);
                 return false;
             }
         }
 
         if (candidate[^1] == '.')
         {
-            error = "O nome não pode terminar com ponto.";
+            error = Loc.Get("FileNaming.TrailingDot");
             return false;
         }
 
         if (TrustedPath.IsReservedDeviceName(candidate))
         {
-            error = $"'{candidate}' é um nome reservado do Windows.";
+            error = Loc.Format("FileNaming.Reserved", candidate);
             return false;
         }
 

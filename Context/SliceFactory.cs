@@ -19,6 +19,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using RadialFlow.Config;
+using RadialFlow.Infrastructure;
 using RadialFlow.Services;
 using RadialFlow.UI;
 
@@ -125,19 +126,26 @@ public static class SliceFactory
 
         var slices = new List<RadialSlice>
         {
-            new RadialSlice("Comprimir",      "\uF012", () => actions.Run(RadialAction.Compress, c), null, "Compactar em .zip (ou extrair, se já for .zip)", nameof(RadialAction.Compress)),
+            new RadialSlice(Loc.Get("Wheel.Slice.Compress"), "\uF012", () => actions.Run(RadialAction.Compress, c), null,
+                Loc.Get("Wheel.Desc.Compress"), nameof(RadialAction.Compress)),
         };
 
         // Converter só aparece quando existe ao menos uma conversão que funciona para TODOS os itens
         // (pasta, formato desconhecido ou ferramenta ausente: a fatia some em vez de levar a um beco sem saída).
         if (convertSubSlices is { Count: > 0 })
-            slices.Add(new RadialSlice("Converter", "\uE8AB", () => actions.Run(RadialAction.Convert, c), convertSubSlices, "Converter para outro formato", nameof(RadialAction.Convert)));
+            slices.Add(new RadialSlice(Loc.Get("Wheel.Slice.Convert"), "\uE8AB", () => actions.Run(RadialAction.Convert, c),
+                convertSubSlices, Loc.Get("Wheel.Desc.Convert"), nameof(RadialAction.Convert)));
 
-        slices.Add(new RadialSlice("Copiar caminho", "\uE71B", () => actions.Run(RadialAction.CopyPath, c), null, "Copiar o caminho completo", nameof(RadialAction.CopyPath)));
-        slices.Add(new RadialSlice("Mover para",     "\uE838", () => actions.Run(RadialAction.MoveTo, c), null, "Mover para outra pasta", nameof(RadialAction.MoveTo)));
-        slices.Add(new RadialSlice("Enviar para",    "\uE724", () => actions.Run(RadialAction.SendTo, c), null, "Copiar o arquivo para colar em outro app", nameof(RadialAction.SendTo)));
-        slices.Add(new RadialSlice("Renomear",       "\uE8AC", () => actions.Run(RadialAction.Rename, c), null,
-            paths.Count > 1 ? "Renomear seleção" : "Renomear", nameof(RadialAction.Rename)));
+        slices.Add(new RadialSlice(Loc.Get("Wheel.Slice.CopyPath"), "\uE71B", () => actions.Run(RadialAction.CopyPath, c), null,
+            Loc.Get("Wheel.Desc.CopyPath"), nameof(RadialAction.CopyPath)));
+        slices.Add(new RadialSlice(Loc.Get("Wheel.Slice.MoveTo"), "\uE838", () => actions.Run(RadialAction.MoveTo, c), null,
+            Loc.Get("Wheel.Desc.MoveTo"), nameof(RadialAction.MoveTo)));
+        slices.Add(new RadialSlice(Loc.Get("Wheel.Slice.SendTo"), "\uE724", () => actions.Run(RadialAction.SendTo, c), null,
+            Loc.Get("Wheel.Desc.SendTo"), nameof(RadialAction.SendTo)));
+        bool multiple = paths.Count > 1;
+        slices.Add(new RadialSlice(Loc.Get("Wheel.Slice.Rename"), "\uE8AC",
+            () => actions.Run(RadialAction.Rename, c), null,
+            Loc.Get(multiple ? "Wheel.Desc.RenameSelection" : "Wheel.Desc.Rename"), nameof(RadialAction.Rename)));
         return slices.ToArray();
     }
 
@@ -163,16 +171,20 @@ public static class SliceFactory
                     Label: app.Name,
                     Glyph: string.IsNullOrEmpty(app.Glyph) ? "\uE734" : app.Glyph,
                     Execute: () => actions.LaunchFavorite(targetApp),
-                    Description: $"Abrir {app.Name}"));
+                    Description: Loc.Format("Wheel.Desc.OpenApp", app.Name)));
             }
         }
 
         return new[]
         {
-            new RadialSlice("Apps favoritos",  "\uE734", () => actions.Run(RadialAction.FavoriteApps, c), favoriteSubSlices, "Abrir um app favorito", nameof(RadialAction.FavoriteApps)),
-            new RadialSlice("Ajustes rápidos", "\uE713", () => actions.Run(RadialAction.SystemControls, c), null, "Configurações rápidas do Windows", nameof(RadialAction.SystemControls)),
-            new RadialSlice("Área de transf.", "\uE81C", () => actions.Run(RadialAction.ClipboardHistory, c), null, "Histórico da área de transferência", nameof(RadialAction.ClipboardHistory)),
-            new RadialSlice("Bloquear",        "\uE72E", () => actions.Run(RadialAction.LockScreen, c), null, "Bloquear o computador", nameof(RadialAction.LockScreen)),
+            new RadialSlice(Loc.Get("Wheel.Slice.FavoriteApps"), "\uE734", () => actions.Run(RadialAction.FavoriteApps, c),
+                favoriteSubSlices, Loc.Get("Wheel.Desc.FavoriteApps"), nameof(RadialAction.FavoriteApps)),
+            new RadialSlice(Loc.Get("Wheel.Slice.SystemControls"), "\uE713", () => actions.Run(RadialAction.SystemControls, c), null,
+                Loc.Get("Wheel.Desc.SystemControls"), nameof(RadialAction.SystemControls)),
+            new RadialSlice(Loc.Get("Wheel.Slice.ClipboardHistory"), "\uE81C", () => actions.Run(RadialAction.ClipboardHistory, c), null,
+                Loc.Get("Wheel.Desc.ClipboardHistory"), nameof(RadialAction.ClipboardHistory)),
+            new RadialSlice(Loc.Get("Wheel.Slice.LockScreen"), "\uE72E", () => actions.Run(RadialAction.LockScreen, c), null,
+                Loc.Get("Wheel.Desc.LockScreen"), nameof(RadialAction.LockScreen)),
         };
     }
 
@@ -181,13 +193,20 @@ public static class SliceFactory
     // ------------------------------------------------------------------
     private static RadialSlice[] TitleBarSlices(ContextInfo c, ISliceActions actions) => new[]
     {
-        new RadialSlice("Maximizar",     "\uE922", () => actions.Run(RadialAction.Maximize, c), null, "Maximizar ou restaurar", nameof(RadialAction.Maximize)),
-        new RadialSlice("Snap dir.",     "\uE72A", () => actions.Run(RadialAction.SnapRight, c), null, "Ocupar a metade direita da tela", nameof(RadialAction.SnapRight)),
-        new RadialSlice("Fechar",        "\uE8BB", () => actions.Run(RadialAction.Close, c), null, "Fechar a janela", nameof(RadialAction.Close)),
-        new RadialSlice("Transparência", "\uE706", () => actions.Run(RadialAction.Transparency, c), null, "Deixar a janela translúcida", nameof(RadialAction.Transparency)),
-        new RadialSlice("Sempre no topo","\uE718", () => actions.Run(RadialAction.AlwaysOnTop, c), null, "Manter acima das outras janelas", nameof(RadialAction.AlwaysOnTop)),
-        new RadialSlice("Minimizar",     "\uE921", () => actions.Run(RadialAction.Minimize, c), null, "Minimizar a janela", nameof(RadialAction.Minimize)),
-        new RadialSlice("Snap esq.",     "\uE72B", () => actions.Run(RadialAction.SnapLeft, c), null, "Ocupar a metade esquerda da tela", nameof(RadialAction.SnapLeft)),
+        new RadialSlice(Loc.Get("Wheel.Slice.Maximize"), "\uE922", () => actions.Run(RadialAction.Maximize, c), null,
+            Loc.Get("Wheel.Desc.Maximize"), nameof(RadialAction.Maximize)),
+        new RadialSlice(Loc.Get("Wheel.Slice.SnapRight"), "\uE72A", () => actions.Run(RadialAction.SnapRight, c), null,
+            Loc.Get("Wheel.Desc.SnapRight"), nameof(RadialAction.SnapRight)),
+        new RadialSlice(Loc.Get("Wheel.Slice.Close"), "\uE8BB", () => actions.Run(RadialAction.Close, c), null,
+            Loc.Get("Wheel.Desc.Close"), nameof(RadialAction.Close)),
+        new RadialSlice(Loc.Get("Wheel.Slice.Transparency"), "\uE706", () => actions.Run(RadialAction.Transparency, c), null,
+            Loc.Get("Wheel.Desc.Transparency"), nameof(RadialAction.Transparency)),
+        new RadialSlice(Loc.Get("Wheel.Slice.AlwaysOnTop"), "\uE718", () => actions.Run(RadialAction.AlwaysOnTop, c), null,
+            Loc.Get("Wheel.Desc.AlwaysOnTop"), nameof(RadialAction.AlwaysOnTop)),
+        new RadialSlice(Loc.Get("Wheel.Slice.Minimize"), "\uE921", () => actions.Run(RadialAction.Minimize, c), null,
+            Loc.Get("Wheel.Desc.Minimize"), nameof(RadialAction.Minimize)),
+        new RadialSlice(Loc.Get("Wheel.Slice.SnapLeft"), "\uE72B", () => actions.Run(RadialAction.SnapLeft, c), null,
+            Loc.Get("Wheel.Desc.SnapLeft"), nameof(RadialAction.SnapLeft)),
     };
 
     // ------------------------------------------------------------------
@@ -195,11 +214,16 @@ public static class SliceFactory
     // ------------------------------------------------------------------
     private static RadialSlice[] TextFieldSlices(ContextInfo c, ISliceActions actions) => new[]
     {
-        new RadialSlice("Colar",     "\uE77F", () => actions.Run(RadialAction.Paste, c), null, "Colar", nameof(RadialAction.Paste)),
-        new RadialSlice("Traduzir",  "\uE774", () => actions.Run(RadialAction.Translate, c), null, "Traduzir o texto selecionado", nameof(RadialAction.Translate)),
-        new RadialSlice("Pesquisar", "\uE721", () => actions.Run(RadialAction.SearchWeb, c), null, "Pesquisar o texto selecionado na web", nameof(RadialAction.SearchWeb)),
-        new RadialSlice("Formatar",  "\uE8DD", () => actions.Run(RadialAction.Format, c), null, "Negrito (Ctrl+B)", nameof(RadialAction.Format)),
-        new RadialSlice("Limpar",    "\uE894", () => actions.Run(RadialAction.Clear, c), null, "Apagar todo o texto do campo", nameof(RadialAction.Clear)),
+        new RadialSlice(Loc.Get("Wheel.Slice.Paste"), "\uE77F", () => actions.Run(RadialAction.Paste, c), null,
+            Loc.Get("Wheel.Desc.Paste"), nameof(RadialAction.Paste)),
+        new RadialSlice(Loc.Get("Wheel.Slice.Translate"), "\uE774", () => actions.Run(RadialAction.Translate, c), null,
+            Loc.Get("Wheel.Desc.Translate"), nameof(RadialAction.Translate)),
+        new RadialSlice(Loc.Get("Wheel.Slice.SearchWeb"), "\uE721", () => actions.Run(RadialAction.SearchWeb, c), null,
+            Loc.Get("Wheel.Desc.SearchWeb"), nameof(RadialAction.SearchWeb)),
+        new RadialSlice(Loc.Get("Wheel.Slice.Format"), "\uE8DD", () => actions.Run(RadialAction.Format, c), null,
+            Loc.Get("Wheel.Desc.Format"), nameof(RadialAction.Format)),
+        new RadialSlice(Loc.Get("Wheel.Slice.Clear"), "\uE894", () => actions.Run(RadialAction.Clear, c), null,
+            Loc.Get("Wheel.Desc.Clear"), nameof(RadialAction.Clear)),
     };
 
     internal static string GetFormatGlyph(string format) => format.ToLowerInvariant() switch

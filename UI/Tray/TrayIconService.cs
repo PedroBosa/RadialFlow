@@ -118,7 +118,7 @@ public sealed class TrayIconService : IDisposable
             uFlags = NIF_MESSAGE | NIF_ICON | NIF_TIP,
             uCallbackMessage = WM_TRAYICON,
             hIcon = _controller.IsPaused ? _iconPaused : _iconActive,
-            szTip = _controller.IsPaused ? "RadialFlow (pausado)" : "RadialFlow"
+            szTip = _controller.IsPaused ? Loc.Get("Tray.PausedTooltip") : "RadialFlow"
         };
 
         Shell_NotifyIcon(NIM_ADD, ref nid);
@@ -138,7 +138,7 @@ public sealed class TrayIconService : IDisposable
             uID = TRAY_ICON_ID,
             uFlags = NIF_ICON | NIF_TIP,
             hIcon = _controller.IsPaused ? _iconPaused : _iconActive,
-            szTip = _controller.IsPaused ? "RadialFlow (pausado)" : "RadialFlow"
+            szTip = _controller.IsPaused ? Loc.Get("Tray.PausedTooltip") : "RadialFlow"
         };
 
         Shell_NotifyIcon(NIM_MODIFY, ref nid);
@@ -240,18 +240,18 @@ public sealed class TrayIconService : IDisposable
             AppendMenu(hMenu, MF_SEPARATOR, 0, string.Empty);
 
             // Item de pausar / retomar com checkmark se pausado
-            string pauseText = _controller.IsPaused ? "Retomar" : "Pausar";
+            string pauseText = _controller.IsPaused ? Loc.Get("Tray.Resume") : Loc.Get("Tray.Pause");
             uint pauseFlags = MF_STRING | (_controller.IsPaused ? MF_CHECKED : MF_UNCHECKED);
             AppendMenu(hMenu, pauseFlags, (nuint)CMD_PAUSE, pauseText);
 
             // Item de configurações
-            AppendMenu(hMenu, MF_STRING, (nuint)CMD_SETTINGS, "Configurações…");
-            AppendMenu(hMenu, MF_STRING, (nuint)CMD_LOGS, "Abrir pasta de logs");
+            AppendMenu(hMenu, MF_STRING, (nuint)CMD_SETTINGS, Loc.Get("Tray.Settings"));
+            AppendMenu(hMenu, MF_STRING, (nuint)CMD_LOGS, Loc.Get("Tray.OpenLogs"));
 
             AppendMenu(hMenu, MF_SEPARATOR, 0, string.Empty);
 
             // Item de saída
-            AppendMenu(hMenu, MF_STRING, (nuint)CMD_EXIT, "Sair");
+            AppendMenu(hMenu, MF_STRING, (nuint)CMD_EXIT, Loc.Get("Tray.Exit"));
 
             // Padrão MS KB73831: foco na janela antes de abrir menu de tray
             SetForegroundWindow(_hwnd);

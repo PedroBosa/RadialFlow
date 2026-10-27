@@ -22,6 +22,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using RadialFlow.Infrastructure;
 
 namespace RadialFlow.Services;
 
@@ -113,43 +114,43 @@ internal static class ConversionFormats
     private static readonly string[] SpreadsheetTargets = ["pdf", "xlsx", "ods", "csv"];
     private static readonly string[] PresentationTargets = ["pdf", "pptx", "odp"];
 
-    private static readonly Dictionary<string, string> Names = new(StringComparer.Ordinal)
+    private static readonly Dictionary<string, string> NameKeys = new(StringComparer.Ordinal)
     {
-        ["png"] = "PNG — imagem sem perda de qualidade",
-        ["jpg"] = "JPG — foto, arquivo menor",
-        ["pdf"] = "PDF — para enviar ou imprimir",
-        ["ico"] = "ICO — ícone do Windows",
-        ["webp"] = "WEBP — imagem leve para a web",
-        ["heic"] = "HEIC — foto bem compacta (formato do iPhone)",
-        ["gif"] = "GIF — imagem simples, até 256 cores",
-        ["bmp"] = "BMP — imagem sem compressão",
-        ["tiff"] = "TIFF — alta qualidade, para impressão",
+        ["png"] = "Format.Png",
+        ["jpg"] = "Format.Jpg",
+        ["pdf"] = "Format.Pdf",
+        ["ico"] = "Format.Ico",
+        ["webp"] = "Format.Webp",
+        ["heic"] = "Format.Heic",
+        ["gif"] = "Format.Gif",
+        ["bmp"] = "Format.Bmp",
+        ["tiff"] = "Format.Tiff",
 
-        ["mp4"] = "MP4 — vídeo que abre em qualquer lugar",
-        ["mkv"] = "MKV — vídeo, aceita várias faixas",
-        ["webm"] = "WEBM — vídeo para a web",
-        ["mov"] = "MOV — vídeo para Apple e QuickTime",
-        ["mp3"] = "MP3 — áudio que toca em qualquer lugar",
-        ["m4a"] = "M4A — áudio AAC, ótimo para celular",
-        ["wav"] = "WAV — áudio sem compressão",
-        ["flac"] = "FLAC — áudio sem perda, menor que WAV",
-        ["ogg"] = "OGG — áudio Vorbis",
-        ["opus"] = "OPUS — áudio bem compacto",
-        ["aac"] = "AAC — áudio AAC puro",
-        ["aiff"] = "AIFF — áudio sem compressão (Apple)",
+        ["mp4"] = "Format.Mp4",
+        ["mkv"] = "Format.Mkv",
+        ["webm"] = "Format.Webm",
+        ["mov"] = "Format.Mov",
+        ["mp3"] = "Format.Mp3",
+        ["m4a"] = "Format.M4a",
+        ["wav"] = "Format.Wav",
+        ["flac"] = "Format.Flac",
+        ["ogg"] = "Format.Ogg",
+        ["opus"] = "Format.Opus",
+        ["aac"] = "Format.Aac",
+        ["aiff"] = "Format.Aiff",
 
-        ["docx"] = "DOCX — Word",
-        ["odt"] = "ODT — LibreOffice Writer",
-        ["rtf"] = "RTF — texto formatado, abre em qualquer editor",
-        ["txt"] = "TXT — só o texto, sem formatação",
-        ["html"] = "HTML — página da web",
-        ["md"] = "Markdown — texto com formatação simples",
-        ["epub"] = "EPUB — livro digital",
-        ["xlsx"] = "XLSX — Excel",
-        ["ods"] = "ODS — LibreOffice Calc",
-        ["csv"] = "CSV — tabela em texto (só a primeira planilha)",
-        ["pptx"] = "PPTX — PowerPoint",
-        ["odp"] = "ODP — LibreOffice Impress",
+        ["docx"] = "Format.Docx",
+        ["odt"] = "Format.Odt",
+        ["rtf"] = "Format.Rtf",
+        ["txt"] = "Format.Txt",
+        ["html"] = "Format.Html",
+        ["md"] = "Format.Md",
+        ["epub"] = "Format.Epub",
+        ["xlsx"] = "Format.Xlsx",
+        ["ods"] = "Format.Ods",
+        ["csv"] = "Format.Csv",
+        ["pptx"] = "Format.Pptx",
+        ["odp"] = "Format.Odp",
     };
 
     // ------------------------------------------------------------------
@@ -231,11 +232,11 @@ internal static class ConversionFormats
 
     internal static string DisplayName(string target, FileCategory category) => (target, category) switch
     {
-        ("gif", FileCategory.Video) => "GIF — animação curta, sem som",
-        ("mp3", FileCategory.Video) => "MP3 — só o áudio",
-        ("m4a", FileCategory.Video) => "M4A — só o áudio (AAC)",
-        ("wav", FileCategory.Video) => "WAV — só o áudio, sem compressão",
-        _ => Names.TryGetValue(target, out string? name) ? name : target.ToUpperInvariant()
+        ("gif", FileCategory.Video) => Loc.Get("Format.GifVideo"),
+        ("mp3", FileCategory.Video) => Loc.Get("Format.Mp3Video"),
+        ("m4a", FileCategory.Video) => Loc.Get("Format.M4aVideo"),
+        ("wav", FileCategory.Video) => Loc.Get("Format.WavVideo"),
+        _ => NameKeys.TryGetValue(target, out string? key) ? Loc.Get(key) : target.ToUpperInvariant()
     };
 
     internal static string EngineName(ConversionEngine engine) => engine switch
@@ -459,7 +460,7 @@ internal static class ConversionFormats
             ".odt" => "odt",
             ".rtf" => "rtf",
             ".epub" => "epub",
-            var e => throw new ArgumentOutOfRangeException(nameof(sourceExtension), e, "O Pandoc não lê este formato.")
+            var e => throw new ArgumentOutOfRangeException(nameof(sourceExtension), e, Loc.Get("ConversionService.PandocCannotRead"))
         };
         string writer = target switch
         {
@@ -467,7 +468,7 @@ internal static class ConversionFormats
             "txt" => "plain",
             "html" => "html5",
             "docx" or "odt" or "rtf" or "epub" => target,
-            _ => throw new ArgumentOutOfRangeException(nameof(target), target, "O Pandoc não grava este formato aqui.")
+            _ => throw new ArgumentOutOfRangeException(nameof(target), target, Loc.Get("ConversionService.PandocCannotWrite"))
         };
 
         var args = new List<string> { "-f", reader, "-t", writer, "-s" };

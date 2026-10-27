@@ -253,7 +253,7 @@ public static class SettingsService
     }
 
     private static string SaveFailureMessage(Exception ex) =>
-        $"Não foi possível salvar as configurações. O arquivo de configurações não foi alterado.\n\nDetalhe: {ex.Message}";
+        Loc.Format("Settings.SaveFailedDetailFormat", ex.Message);
 
     /// <summary>
     /// Decide se o Agendador de Tarefas precisa ser tocado neste Save. Puro de propósito: os testes cobrem a

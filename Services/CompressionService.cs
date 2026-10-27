@@ -15,6 +15,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Threading;
 using System.Threading.Tasks;
+using RadialFlow.Infrastructure;
 
 namespace RadialFlow.Services;
 
@@ -24,8 +25,13 @@ public static class CompressionService
 {
     private const int BufferSize = 81920; // 80 KB por bloco
 
-    // Limite do formato ZIP para datas: 1980-01-01 .. 2107-12-31.
+    // Limite do formato ZIP para datas: 1980-01-01 .. 2107-12-31 23:59:58 (resolução de 2 s).
     private static readonly DateTime ZipMinDate = new(1980, 1, 1);
+    private static readonly DateTime ZipMaxDate = new(2107, 12, 31, 23, 59, 58);
+
+    /// <summary>Arquivos com data fora do intervalo do ZIP (ex.: relógio adiantado) não podem derrubar a compactação.</summary>
+    internal static DateTime ClampTimestamp(DateTime value) =>
+        value < ZipMinDate ? ZipMinDate : value > ZipMaxDate ? ZipMaxDate : value;
 
     public static async Task CompressAsync(
         IReadOnlyList<string> sourcePaths,
@@ -96,14 +102,13 @@ public static class CompressionService
 
                     var (fullPath, relPath, _) = fileEntries[i];
 
-                    string currentStatus = $"Compactando ({i + 1}/{fileEntries.Count}): {Path.GetFileName(fullPath)}";
+                    string currentStatus = Loc.Format("Compression.Compressing", i + 1, fileEntries.Count, Path.GetFileName(fullPath));
                     double percent = totalBytes > 0 ? (double)processedBytes / totalBytes * 100.0 : 0.0;
                     progress?.Report(new ProgressReport(percent, currentStatus));
 
                     var entry = archive.CreateEntry(relPath.Replace('\\', '/'), CompressionLevel.Optimal);
 
-                    DateTime written = File.GetLastWriteTime(fullPath);
-                    entry.LastWriteTime = written < ZipMinDate ? ZipMinDate : written;
+                    entry.LastWriteTime = ClampTimestamp(File.GetLastWriteTime(fullPath));
 
                     await using var entryStream = entry.Open();
                     await using var sourceStream = new FileStream(fullPath, FileMode.Open, FileAccess.Read,
@@ -124,7 +129,7 @@ public static class CompressionService
             }
 
             completed = true;
-            progress?.Report(new ProgressReport(100.0, "Compactação concluída com sucesso!"));
+            progress?.Report(new ProgressReport(100.0, Loc.Get("Compression.CompressDone")));
         }
         finally
         {
@@ -168,7 +173,7 @@ public static class CompressionService
 
             var entry = archive.Entries[i];
             double percent = (double)i / totalEntries * 100.0;
-            progress?.Report(new ProgressReport(percent, $"Extraindo ({i + 1}/{totalEntries}): {entry.Name}"));
+            progress?.Report(new ProgressReport(percent, Loc.Format("Compression.Extracting", i + 1, totalEntries, entry.Name)));
 
             string targetPath = ResolveSafeTarget(destRoot, entry.FullName);
 
@@ -193,19 +198,19 @@ public static class CompressionService
             }
         }
 
-        progress?.Report(new ProgressReport(100.0, "Extração concluída com sucesso!"));
+        progress?.Report(new ProgressReport(100.0, Loc.Get("Compression.ExtractDone")));
     }
 
     private static string ResolveSafeTarget(string destRoot, string entryFullName)
     {
         // ':' bloqueia unidade ("C:\...") e streams alternativos do NTFS ("a.txt:x").
         if (entryFullName.Contains(':'))
-            throw new InvalidDataException($"Entrada insegura no zip (caractere inválido): {entryFullName}");
+            throw new InvalidDataException(Loc.Format("Compression.UnsafeEntryChar", entryFullName));
 
         string combined = Path.GetFullPath(Path.Combine(destRoot, entryFullName));
 
         if (!combined.StartsWith(destRoot, StringComparison.OrdinalIgnoreCase))
-            throw new InvalidDataException($"Entrada insegura no zip (tenta sair da pasta de destino): {entryFullName}");
+            throw new InvalidDataException(Loc.Format("Compression.UnsafeEntryEscape", entryFullName));
 
         return combined;
     }

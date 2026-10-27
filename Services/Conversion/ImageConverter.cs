@@ -18,6 +18,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using RadialFlow.Infrastructure;
 
 namespace RadialFlow.Services;
 
@@ -56,7 +57,7 @@ internal static class ImageConverter
             "gif" => new GifBitmapEncoder(),
             "tiff" => new TiffBitmapEncoder { Compression = TiffCompressOption.Lzw },
             "heic" => BitmapEncoder.Create(WicCodecs.HeifContainer),
-            _ => throw new NotSupportedException($"O Windows não grava imagens .{target}.")
+            _ => throw new NotSupportedException(Loc.Format("ImageConverter.CannotWrite", target))
         };
 
         encoder.Frames.Add(BitmapFrame.Create(PrepareFor(image, target)));
@@ -81,12 +82,10 @@ internal static class ImageConverter
         // ArgumentException: variante que o codec do Windows não decodifica (ex.: AVIF 4:4:4 sem perda).
         catch (Exception ex) when (ex is NotSupportedException or FileFormatException or COMException or ArgumentException)
         {
-            throw new InvalidOperationException(
-                "O Windows não conseguiu abrir esta imagem. O arquivo pode estar corrompido, ou falta a extensão de imagem " +
-                "da Microsoft Store para este formato (por exemplo, Extensões de Imagem HEIF ou WebP).", ex);
+            throw new InvalidOperationException(Loc.Get("ImageConverter.CannotOpen"), ex);
         }
 
-        if (decoder.Frames.Count == 0) throw new InvalidOperationException("A imagem não tem nenhum quadro.");
+        if (decoder.Frames.Count == 0) throw new InvalidOperationException(Loc.Get("ImageConverter.NoFrames"));
 
         BitmapFrame frame = decoder.Frames[0];
         BitmapSource image = frame;

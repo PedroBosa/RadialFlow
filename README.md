@@ -81,7 +81,9 @@ Get-FileHash .\RadialFlow-1.2.0-Setup.exe
 Clique no ícone do RadialFlow perto do relógio.
 
 - **Geral**: iniciar com o Windows, pausar em jogos e vídeos em tela cheia, quanto é preciso arrastar para a roda
-  abrir, quanto tempo esperar para as opções extras aparecerem, a cor e o estilo da roda (tamanho e alto contraste).
+  abrir, quanto tempo esperar para as opções extras aparecerem.
+- **Aparência**: cor de destaque, estilo da roda e idioma da interface — português, inglês ou espanhol. A troca de
+  idioma vale no próximo início.
 - **Blacklist**: programas em que a roda nunca abre (útil em programas 3D e jogos, que usam o botão direito).
 - **Apps favoritos**: os atalhos que aparecem quando você abre a roda na área de trabalho.
 - **Menus**: itens extras que aparecem só em certos aplicativos, janelas ou contextos (veja abaixo).

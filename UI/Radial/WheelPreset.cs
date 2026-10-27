@@ -11,36 +11,38 @@
 
 using System;
 using System.Collections.Generic;
+using RadialFlow.Infrastructure;
 
 namespace RadialFlow.UI;
 
 internal sealed record WheelPreset(
     string Key,
-    string Label,
-    string Description,
+    string LabelKey,
+    string DescriptionKey,
     double Scale,
     bool UsesHighContrast)
 {
     internal const string DefaultKey = "Standard";
 
+    // Públicas: o ComboBox das Configurações liga por DisplayMemberPath="Label",
+    // e o binding do WPF só enxerga propriedades públicas.
+    public string Label => Loc.Get(LabelKey);
+    public string Description => Loc.Get(DescriptionKey);
+
     internal static readonly WheelPreset Standard = new(
-        DefaultKey, "Padrão",
-        "Equilibrado, com o fundo desfocado do Windows.",
+        DefaultKey, "Wheel.Preset.Standard.Label", "Wheel.Preset.Standard.Description",
         Scale: 1.0, UsesHighContrast: false);
 
     internal static readonly WheelPreset Compact = new(
-        "Compact", "Compacto",
-        "Roda menor, para telas pequenas ou gestos curtos.",
+        "Compact", "Wheel.Preset.Compact.Label", "Wheel.Preset.Compact.Description",
         Scale: 0.85, UsesHighContrast: false);
 
     internal static readonly WheelPreset Large = new(
-        "Large", "Amplo",
-        "Roda maior, com fatias e rótulos mais fáceis de acertar.",
+        "Large", "Wheel.Preset.Large.Label", "Wheel.Preset.Large.Description",
         Scale: 1.15, UsesHighContrast: false);
 
     internal static readonly WheelPreset HighContrast = new(
-        "HighContrast", "Alto contraste",
-        "Superfícies opacas e contornos fortes, sem fundo desfocado.",
+        "HighContrast", "Wheel.Preset.HighContrast.Label", "Wheel.Preset.HighContrast.Description",
         Scale: 1.0, UsesHighContrast: true);
 
     internal static readonly IReadOnlyList<WheelPreset> All =

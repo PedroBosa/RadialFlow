@@ -70,7 +70,7 @@ public sealed partial class App : Application, IDisposable
             AppLog.Error("App", "Falha na inicialização.", ex);
             ReleaseServices();
             AppLog.Flush(TimeSpan.FromSeconds(2));
-            MessageBox.Show($"O RadialFlow não pôde iniciar:\n{ex.Message}\n\nDetalhes: {AppLog.FilePath}", "RadialFlow",
+            MessageBox.Show(Loc.Format("App.StartupFailed", ex.Message, AppLog.FilePath), "RadialFlow",
                 MessageBoxButton.OK, MessageBoxImage.Error);
             Shutdown(1);
             return;
@@ -110,7 +110,7 @@ public sealed partial class App : Application, IDisposable
         if (Services.ConverterInstaller.CheckCanInstall() is { } reason)
         {
             AppLog.Warning("App", reason);
-            Dialogs.Message(null, "Conversores", reason, DialogIcon.Warning);
+            Dialogs.Message(null, Loc.Get("Converters.Title"), reason, DialogIcon.Warning);
             ExitConverterSetup(2);
             return;
         }

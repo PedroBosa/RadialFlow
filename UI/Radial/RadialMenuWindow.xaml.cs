@@ -24,6 +24,7 @@ using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Threading;
+using RadialFlow.Infrastructure;
 
 namespace RadialFlow.UI;
 
@@ -278,7 +279,7 @@ public partial class RadialMenuWindow : Window
             ShowHint(fromKeyboard
                 ? KeyboardHint(slice, hasSub)
                 : hasSub
-                    ? (string.IsNullOrEmpty(slice.Description) ? "Segure para ver as opções" : $"{slice.Description} · segure para ver as opções")
+                    ? (string.IsNullOrEmpty(slice.Description) ? Loc.Get("Wheel.HoldForOptions") : $"{slice.Description} · {Loc.Get("Wheel.HoldToSeeOptions")}")
                     : slice.Description);
 
             // Pelo teclado o submenu abre no Enter: nada de espera nem de traço de tempo.
@@ -293,7 +294,7 @@ public partial class RadialMenuWindow : Window
         {
             // No centro, dentro de um submenu: segurar volta ao menu anterior.
             ShowHub(null);   // seta "voltar"
-            ShowHint("Segure no centro para voltar");
+            ShowHint(Loc.Get("Wheel.HoldCenterToBack"));
             StartBackDwellProgress(DwellDuration);   // o círculo fecha exatamente quando volta
             _backDwellTimer.Start();
         }

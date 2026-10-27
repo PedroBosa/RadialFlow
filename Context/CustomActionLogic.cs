@@ -21,6 +21,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using RadialFlow.Config;
+using RadialFlow.Infrastructure;
 using RadialFlow.Security;
 using RadialFlow.Services;
 
@@ -58,7 +59,8 @@ internal static class CustomActionLogic
         ".exe", ".com", ".bat", ".cmd", ".ps1", ".psm1", ".vbs", ".vbe",
         ".js", ".jse", ".wsf", ".wsh", ".hta", ".msi", ".msc", ".scr",
         ".cpl", ".reg", ".lnk", ".url", ".jar", ".py", ".pyw", ".pif",
-        ".application"
+        ".application", ".chm", ".docm", ".xlsm", ".pptm", ".settingcontent-ms",
+        ".scf", ".diagcab", ".search-ms", ".library-ms"
     };
 
     private static readonly Dictionary<string, byte> NamedKeys = new(StringComparer.OrdinalIgnoreCase)
@@ -246,17 +248,17 @@ internal static class CustomActionLogic
         reason = null;
 
         string value = (combo ?? "").Trim();
-        if (value.Length == 0) { reason = "informe o atalho (ex.: Ctrl+Shift+P)"; return false; }
+        if (value.Length == 0) { reason = Loc.Get("Hotkey.Empty"); return false; }
 
         string[] parts = value.Split('+', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
         if (parts.Length < 2)
         {
-            reason = "use pelo menos um modificador e uma tecla (ex.: Ctrl+P)";
+            reason = Loc.Get("Hotkey.NeedModifierAndKey");
             return false;
         }
         if (parts.Length > 4)
         {
-            reason = "no máximo 4 teclas (modificadores + tecla final)";
+            reason = Loc.Get("Hotkey.TooManyKeys");
             return false;
         }
 
@@ -269,19 +271,19 @@ internal static class CustomActionLogic
             {
                 if (modifiers.Contains(modifier))
                 {
-                    reason = $"modificador repetido: {part}";
+                    reason = Loc.Format("Hotkey.RepeatedModifier", part);
                     return false;
                 }
                 modifiers.Add(modifier);
             }
             else if (finalKey is not null)
             {
-                reason = "use apenas uma tecla final";
+                reason = Loc.Get("Hotkey.SingleFinalKey");
                 return false;
             }
             else if (!TryParseKey(part, out byte key))
             {
-                reason = $"tecla desconhecida: {part}";
+                reason = Loc.Format("Hotkey.UnknownKey", part);
                 return false;
             }
             else
@@ -292,7 +294,7 @@ internal static class CustomActionLogic
 
         if (finalKey is null)
         {
-            reason = "falta a tecla final (ex.: Ctrl+P)";
+            reason = Loc.Get("Hotkey.MissingFinalKey");
             return false;
         }
 

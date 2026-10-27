@@ -81,7 +81,7 @@ internal static class ExplorerItemResolver
         return result;
     }
 
-    private static string? FindInFolder(string folder, string name)
+    internal static string? FindInFolder(string folder, string name)
     {
         try
         {
@@ -90,9 +90,17 @@ internal static class ExplorerItemResolver
             string exact = Path.Combine(safeFolder, name);
             if (File.Exists(exact) || Directory.Exists(exact)) return exact;
 
-            // Extensões ocultas: "Relatório" -> "Relatório.docx", "App" -> "App.lnk"
-            foreach (var entry in Directory.EnumerateFileSystemEntries(safeFolder, name + ".*"))
-                return TrustedPath.TryGetSafeFullPath(entry, out string full) ? full : null;
+            // Extensões ocultas: "Relatório" -> "Relatório.docx", "App" -> "App.lnk".
+            // Mais de um candidato é ambíguo: agir no primeiro que o disco devolver poderia
+            // atingir o arquivo errado (a ordem de enumeração não é garantida).
+            string? match = null;
+            foreach (string entry in Directory.EnumerateFileSystemEntries(safeFolder, name + ".*"))
+            {
+                if (!TrustedPath.TryGetSafeFullPath(entry, out string full)) return null;
+                if (match is not null) return null;
+                match = full;
+            }
+            return match;
         }
         catch { /* pasta inacessível: tenta a próxima */ }
 

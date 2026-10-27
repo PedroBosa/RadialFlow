@@ -21,6 +21,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using RadialFlow.Infrastructure;
 using RadialFlow.Security;
 
 namespace RadialFlow.Services;
@@ -47,9 +48,9 @@ public static class ConversionService
     {
         // Caminhos canônicos e absolutos: também impede que um nome começando com "-" vire opção da ferramenta.
         if (!TrustedPath.TryGetSafeFullPath(sourcePath, out string safeSource) || !File.Exists(safeSource))
-            throw new FileNotFoundException("Arquivo de origem inválido ou inexistente.", sourcePath);
+            throw new FileNotFoundException(Loc.Get("ConversionService.SourceInvalid"), sourcePath);
         if (!TrustedPath.TryGetSafeFullPath(destinationPath, out string safeDestination))
-            throw new ArgumentException($"Caminho de destino inválido: '{destinationPath}'.", nameof(destinationPath));
+            throw new ArgumentException(Loc.Format("ConversionService.DestinationInvalid", destinationPath), nameof(destinationPath));
 
         sourcePath = safeSource;
         destinationPath = safeDestination;
@@ -65,12 +66,12 @@ public static class ConversionService
 
         await RunWithPartialOutputCleanupAsync(destinationPath, async () =>
         {
-            progress?.Report(new ProgressReport(5.0, $"Convertendo {Path.GetFileName(sourcePath)} para .{target}..."));
+            progress?.Report(new ProgressReport(5.0, Loc.Format("ConversionService.ConvertingFormat", Path.GetFileName(sourcePath), target)));
 
             switch (engine)
             {
                 case ConversionEngine.Wic:
-                    progress?.Report(new ProgressReport(40.0, "Convertendo a imagem..."));
+                    progress?.Report(new ProgressReport(40.0, Loc.Get("ConversionService.ConvertingImage")));
                     await Task.Run(() => ImageConverter.Convert(sourcePath, target, destinationPath), cancellationToken).ConfigureAwait(false);
                     break;
 
@@ -101,7 +102,7 @@ public static class ConversionService
                     break;
             }
 
-            progress?.Report(new ProgressReport(100.0, "Conversão concluída."));
+            progress?.Report(new ProgressReport(100.0, Loc.Get("ConversionService.Done")));
         }).ConfigureAwait(false);
     }
 
@@ -120,7 +121,7 @@ public static class ConversionService
         int total = jobs.Count;
         if (total == 0)
         {
-            progress?.Report(new ProgressReport(100.0, "Nenhum arquivo para converter."));
+            progress?.Report(new ProgressReport(100.0, Loc.Get("ConversionService.NothingToConvert")));
             return new ConversionBatchResult(items);
         }
 
@@ -149,15 +150,15 @@ public static class ConversionService
             catch (Exception ex)
             {
                 items.Add(new ConversionBatchItem(job.Source, job.Destination, false, ex.Message));
-                progress?.Report(new ProgressReport(span * (i + 1), $"({i + 1}/{total}) Falha em {name}. Continuando..."));
+                progress?.Report(new ProgressReport(span * (i + 1), Loc.Format("ConversionService.ItemFailed", i + 1, total, name)));
             }
         }
 
         int succeeded = items.Count(item => item.Success);
         int failed = total - succeeded;
         string summary = failed == 0
-            ? $"Conversão concluída: {succeeded} arquivo(s)."
-            : $"{succeeded} de {total} arquivos convertidos; {failed} com erro.";
+            ? Loc.Format("ConversionService.BatchDone", succeeded)
+            : Loc.Format("ConversionService.BatchSummary", succeeded, total, failed);
         progress?.Report(new ProgressReport(100.0, summary));
 
         return new ConversionBatchResult(items);
@@ -195,7 +196,7 @@ public static class ConversionService
     /// <summary>Mensagem quando não há como converter: diz qual programa resolveria.</summary>
     internal static string DescribeUnavailable(string srcExt, string target, FileCategory category)
     {
-        if (srcExt == ".pdf") return "Converter a partir de PDF não é suportado.";
+        if (srcExt == ".pdf") return Loc.Get("ConversionService.PdfUnsupported");
 
         string tool = category switch
         {
@@ -206,7 +207,7 @@ public static class ConversionService
             _ => ""
         };
 
-        string what = $"Não há como converter {srcExt} para .{target} neste computador.";
+        string what = Loc.Format("ConversionService.Unavailable", srcExt, target);
         return tool.Length == 0 ? what : $"{what} {ToolResolver.DescribeMissing(tool)}";
     }
 
@@ -248,7 +249,7 @@ public static class ConversionService
         var tools = new ConversionToolset { HasFFmpeg = true, FfmpegEncoders = encoders };
 
         List<string> args = ConversionFormats.BuildFfmpegMediaArguments(source, target, fromVideo, tools, destination)
-            ?? throw new NotSupportedException($"O FFmpeg instalado não tem o codificador necessário para .{target}.");
+            ?? throw new NotSupportedException(Loc.Format("ConversionService.EncoderMissing", target));
 
         await RunFfmpegWithProgressAsync(ffmpeg, args, progress, ct).ConfigureAwait(false);
     }
@@ -268,14 +269,14 @@ public static class ConversionService
             if (!TryParseFfmpegProgress(line, ref totalDuration, out TimeSpan current, out double percentage)) return;
 
             progress?.Report(new ProgressReport(percentage,
-                $"Processando: {current:hh\\:mm\\:ss} / {totalDuration:hh\\:mm\\:ss} ({percentage:0}%)"));
+                Loc.Format("ConversionService.Processing", $"{current:hh\\:mm\\:ss} / {totalDuration:hh\\:mm\\:ss} ({percentage:0}%)")));
         }
         ToolResult result = await RunToolAsync(ffmpegPath, args, workingDirectory: null, OnErrorLine, ct).ConfigureAwait(false);
 
         if (result.ExitCode != 0)
-            throw new InvalidOperationException($"FFmpeg encerrou com código {result.ExitCode}.\n{Truncate(result.ErrorTail, 600)}");
+            throw new InvalidOperationException(Loc.Format("ConversionService.FfmpegExit", result.ExitCode, Truncate(result.ErrorTail, 600)));
 
-        progress?.Report(new ProgressReport(100.0, "Conversão de mídia concluída com sucesso!"));
+        progress?.Report(new ProgressReport(100.0, Loc.Get("ConversionService.MediaDone")));
     }
 
     /// <summary>
@@ -329,7 +330,7 @@ public static class ConversionService
         {
             string docx = Path.Combine(work, Path.GetFileNameWithoutExtension(source) + ".docx");
             await RunPandocAsync(source, srcExt, "docx", docx, progress, ct).ConfigureAwait(false);
-            progress?.Report(new ProgressReport(60.0, "Gerando o PDF..."));
+            progress?.Report(new ProgressReport(60.0, Loc.Get("ConversionService.GeneratingPdf")));
             await ConvertWithLibreOfficeAsync(docx, ".docx", "pdf", destination, progress, ct).ConfigureAwait(false);
         }
         finally
@@ -359,7 +360,7 @@ public static class ConversionService
             await RunProcessAsync(soffice, args, progress, ct, workingDirectory: work).ConfigureAwait(false);
 
             string? produced = Directory.EnumerateFiles(outDir).FirstOrDefault()
-                ?? throw new InvalidOperationException("O LibreOffice não gerou nenhum arquivo.");
+                ?? throw new InvalidOperationException(Loc.Get("ConversionService.LibreOfficeNoFile"));
 
             File.Move(produced, destination, overwrite: false);
         }
@@ -452,7 +453,7 @@ public static class ConversionService
     internal static async Task RunProcessAsync(string executable, IReadOnlyList<string> args,
         IProgress<ProgressReport>? progress, CancellationToken ct, string? workingDirectory = null, TimeSpan? timeout = null)
     {
-        progress?.Report(new ProgressReport(40.0, $"Convertendo com o {Path.GetFileNameWithoutExtension(executable)}..."));
+        progress?.Report(new ProgressReport(40.0, Loc.Format("ConversionService.ConvertingWith", Path.GetFileNameWithoutExtension(executable))));
 
         TimeSpan limitAfter = timeout ?? ToolTimeout;
         using var limit = CancellationTokenSource.CreateLinkedTokenSource(ct);
@@ -466,15 +467,16 @@ public static class ConversionService
         catch (OperationCanceledException) when (!ct.IsCancellationRequested)
         {
             // O launcher já encerrou a ferramenta e os processos filhos dela.
-            string time = limitAfter.TotalMinutes >= 1 ? $"{limitAfter.TotalMinutes:0} minutos" : $"{limitAfter.TotalSeconds:0} segundos";
+            string time = limitAfter.TotalMinutes >= 1
+                ? Loc.Format("ConversionService.TimeoutMinutes", limitAfter.TotalMinutes)
+                : Loc.Format("ConversionService.TimeoutSeconds", limitAfter.TotalSeconds);
             throw new TimeoutException(
-                $"O {Path.GetFileNameWithoutExtension(executable)} não terminou em {time} e foi encerrado. " +
-                "O arquivo pode ter algo que ele não consegue converter.");
+                Loc.Format("ConversionService.Timeout", Path.GetFileNameWithoutExtension(executable), time));
         }
 
         if (result.ExitCode != 0)
             throw new InvalidOperationException(
-                $"Erro ao executar {Path.GetFileName(executable)} (código {result.ExitCode}):\n{Truncate(result.ErrorTail, 600)}");
+                Loc.Format("ConversionService.ToolFailed", Path.GetFileName(executable), result.ExitCode, Truncate(result.ErrorTail, 600)));
     }
 
     private static string Truncate(string s, int max) => s.Length <= max ? s : "…" + s[^max..];

@@ -114,8 +114,8 @@ public partial class ProgressWindow : Window, IProgress<ProgressReport>
             IconDisc.SetResourceReference(System.Windows.Shapes.Shape.FillProperty, "DangerBrush");
             IconGlyph.SetResourceReference(System.Windows.Controls.TextBlock.ForegroundProperty, "SurfaceBrush");
             TxtStatus.Text = errorMessage;
-            TxtPercent.Text = "Erro";
-            BtnCancel.Content = "Fechar";
+            TxtPercent.Text = Loc.Get("Progress.Error");
+            BtnCancel.Content = Loc.Get("Common.Close");
             BtnCancel.IsEnabled = true;
         });
     }
@@ -134,7 +134,7 @@ public partial class ProgressWindow : Window, IProgress<ProgressReport>
             TxtStatus.Text = message;
             PrgBar.SetResourceReference(System.Windows.Controls.Control.ForegroundProperty,
                 warning ? "WarningBrush" : "AccentBrush");
-            TxtPercent.Text = warning ? "Atenção" : "100%";
+            TxtPercent.Text = warning ? Loc.Get("Progress.Warning") : "100%";
             TxtPercent.SetResourceReference(System.Windows.Controls.TextBlock.ForegroundProperty,
                 warning ? "WarningBrush" : "AccentTextBrush");
             IconGlyph.Text = warning ? "\uE7BA" : "\uE73E";
@@ -142,7 +142,7 @@ public partial class ProgressWindow : Window, IProgress<ProgressReport>
                 warning ? "WarningBrush" : "AccentBrush");
             IconGlyph.SetResourceReference(System.Windows.Controls.TextBlock.ForegroundProperty,
                 warning ? "WarningInkBrush" : "AccentInkBrush");
-            BtnCancel.Content = "Fechar";
+            BtnCancel.Content = Loc.Get("Common.Close");
             BtnCancel.IsEnabled = true;
 
             if (!string.IsNullOrEmpty(_outputFileOrFolder))
@@ -169,7 +169,7 @@ public partial class ProgressWindow : Window, IProgress<ProgressReport>
         {
             _completed = true;
             IconGlyph.Text = "\uE73E";   // check
-            BtnCancel.Content = "Fechar";
+            BtnCancel.Content = Loc.Get("Common.Close");
             if (!string.IsNullOrEmpty(_outputFileOrFolder))
                 BtnOpenFolder.Visibility = Visibility.Visible;
         }
@@ -187,7 +187,7 @@ public partial class ProgressWindow : Window, IProgress<ProgressReport>
         if (!_completed)
         {
             _cts.Cancel();
-            TxtStatus.Text = "Cancelamento solicitado...";
+            TxtStatus.Text = Loc.Get("Progress.CancelRequested");
             BtnCancel.IsEnabled = false;
         }
         else

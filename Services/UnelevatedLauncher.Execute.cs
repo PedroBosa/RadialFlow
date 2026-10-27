@@ -153,7 +153,7 @@ public static partial class UnelevatedLauncher
             return full;
 
         throw new UnelevatedLaunchException(UnelevatedLaunchFailure.UntrustedExecutable,
-            $"'{Path.GetFileName(executable)}' não existe ou não está em um local protegido e não será executado.");
+            Loc.Format("Launcher.UntrustedExecutable", Path.GetFileName(executable)));
     }
 
     private static string? ValidateWorkingDirectory(string? workingDirectory)
@@ -164,7 +164,7 @@ public static partial class UnelevatedLauncher
             return full;
 
         throw new UnelevatedLaunchException(UnelevatedLaunchFailure.InvalidArguments,
-            $"A pasta de trabalho '{workingDirectory}' é inválida ou não existe.");
+            Loc.Format("Launcher.InvalidWorkingDirectory", workingDirectory));
     }
 
     /// <summary>
@@ -181,17 +181,17 @@ public static partial class UnelevatedLauncher
             foreach (string? argument in arguments)
             {
                 if (argument is null)
-                    throw new UnelevatedLaunchException(UnelevatedLaunchFailure.InvalidArguments, "Argumento nulo.");
+                    throw new UnelevatedLaunchException(UnelevatedLaunchFailure.InvalidArguments, Loc.Get("Launcher.NullArgument"));
                 if (argument.Contains('\0'))
                     throw new UnelevatedLaunchException(UnelevatedLaunchFailure.InvalidArguments,
-                        "Argumento com caractere NUL.");
+                        Loc.Get("Launcher.NulCharArgument"));
 
                 builder.Append(' ');
                 AppendArgument(builder, argument);
 
                 if (builder.Length > MaxCommandLineLength)
                     throw new UnelevatedLaunchException(UnelevatedLaunchFailure.InvalidArguments,
-                        "A linha de comando é longa demais.");
+                        Loc.Get("Launcher.CommandLineTooLong"));
             }
         }
 
@@ -255,13 +255,11 @@ public static partial class UnelevatedLauncher
                 // Nunca existe um plano B elevado: sem token do usuário, não executa.
                 shellToken = OpenShellPrimaryToken(TOKEN_ALL_ACCESS)
                     ?? throw new UnelevatedLaunchException(UnelevatedLaunchFailure.ShellUnavailable,
-                        "O RadialFlow é administrador e não encontrou o Explorer (shell do usuário) para iniciar a " +
-                        "ferramenta sem privilégios de administrador. Nada foi executado.");
+                        Loc.Get("Launcher.ShellUnavailable"));
 
                 if (IsTokenElevated(shellToken) != false)
                     throw new UnelevatedLaunchException(UnelevatedLaunchFailure.ElevatedToken,
-                        "A sessão do usuário só tem token de administrador (UAC desligado?). " +
-                        "A ferramenta não será executada como administrador.");
+                        Loc.Get("Launcher.ElevatedTokenSession"));
             }
 
             var security = new SECURITY_ATTRIBUTES { nLength = Marshal.SizeOf<SECURITY_ATTRIBUTES>(), bInheritHandle = true };
@@ -270,7 +268,7 @@ public static partial class UnelevatedLauncher
 
             // stdin = NUL: a ferramenta nunca fica esperando teclado nem herda o stdin do RadialFlow.
             nul = CreateFileW("NUL", GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE, ref security, OPEN_EXISTING, 0, IntPtr.Zero);
-            if (nul.IsInvalid) throw Failure("Falha ao abrir NUL para stdin");
+            if (nul.IsInvalid) throw Failure(Loc.Get("Launcher.NulOpenFailed"));
 
             job = CreateKillOnCloseJob();
 
@@ -291,7 +289,7 @@ public static partial class UnelevatedLauncher
                 // Prova no resultado, não só na intenção: o token DO PROCESSO CRIADO não é elevado.
                 if (elevatedHost && IsProcessElevated(process) == true)
                     throw new UnelevatedLaunchException(UnelevatedLaunchFailure.ElevatedToken,
-                        "O processo foi criado com token elevado e foi encerrado antes de executar qualquer código.");
+                        Loc.Get("Launcher.ElevatedProcess"));
 
                 if (job is not null && !AssignProcessToJobObject(job, process))
                 {
@@ -355,7 +353,7 @@ public static partial class UnelevatedLauncher
         GC.KeepAlive(stdout);
         GC.KeepAlive(stderr);
 
-        if (!created) throw Failure("CreateProcessWithTokenW falhou", error);
+        if (!created) throw Failure(Loc.Get("Launcher.Win32.CreateProcessWithToken"), error);
         return info;
     }
 
@@ -374,7 +372,7 @@ public static partial class UnelevatedLauncher
         try
         {
             if (!InitializeProcThreadAttributeList(attributeList, 1, 0, ref size))
-                throw Failure("InitializeProcThreadAttributeList falhou");
+                throw Failure(Loc.Get("Launcher.Win32.AttributeListInit"));
 
             try
             {
@@ -382,7 +380,7 @@ public static partial class UnelevatedLauncher
                 {
                     if (!UpdateProcThreadAttribute(attributeList, 0, PROC_THREAD_ATTRIBUTE_HANDLE_LIST,
                             (IntPtr)handles, (nuint)(inherited.Length * IntPtr.Size), IntPtr.Zero, IntPtr.Zero))
-                        throw Failure("UpdateProcThreadAttribute falhou");
+                        throw Failure(Loc.Get("Launcher.Win32.AttributeListUpdate"));
 
                     var startup = new STARTUPINFOEX
                     {
@@ -409,7 +407,7 @@ public static partial class UnelevatedLauncher
                     GC.KeepAlive(stdout);
                     GC.KeepAlive(stderr);
 
-                    if (!created) throw Failure("CreateProcessW falhou", error);
+                    if (!created) throw Failure(Loc.Get("Launcher.Win32.CreateProcess"), error);
                     return info;
                 }
             }
@@ -428,11 +426,11 @@ public static partial class UnelevatedLauncher
     private static (SafeFileHandle Read, SafeFileHandle Write) CreateInheritablePipe(ref SECURITY_ATTRIBUTES security)
     {
         if (!CreatePipe(out SafeFileHandle read, out SafeFileHandle write, ref security, PipeBufferBytes))
-            throw Failure("CreatePipe falhou");
+            throw Failure(Loc.Get("Launcher.Win32.CreatePipe"));
 
         if (!SetHandleInformation(read, HANDLE_FLAG_INHERIT, 0))
         {
-            UnelevatedLaunchException error = Failure("SetHandleInformation falhou");
+            UnelevatedLaunchException error = Failure(Loc.Get("Launcher.Win32.SetHandleInfo"));
             read.Dispose();
             write.Dispose();
             throw error;
@@ -588,7 +586,7 @@ public static partial class UnelevatedLauncher
         public void Resume()
         {
             if (ResumeThread(_thread) == uint.MaxValue)
-                throw Failure("ResumeThread falhou");
+                throw Failure(Loc.Get("Launcher.Win32.ResumeThread"));
 
             _thread.Dispose();
         }
@@ -596,7 +594,7 @@ public static partial class UnelevatedLauncher
         public int GetExitCode() =>
             GetExitCodeProcess(Handle, out uint code)
                 ? unchecked((int)code)
-                : throw Failure("GetExitCodeProcess falhou");
+                : throw Failure(Loc.Get("Launcher.Win32.GetExitCode"));
 
         /// <summary>Encerra a árvore (job) e o processo principal. Idempotente; nunca lança.</summary>
         public void Terminate()

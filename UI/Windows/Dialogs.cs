@@ -16,6 +16,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Shapes;
+using RadialFlow.Infrastructure;
 
 namespace RadialFlow.UI;
 
@@ -67,12 +68,16 @@ internal static class Dialogs
     }
 
     public static void Message(Window? owner, string title, string message, DialogIcon icon = DialogIcon.Info) =>
-        Choose(owner, title, message, icon, ["OK"], 0, 0);
+        Choose(owner, title, message, icon, [Loc.Get("Common.OK")], 0, 0);
 
     /// <summary>true se o usuário confirmou. Por segurança o foco pode ficar no botão de cancelar.</summary>
-    public static bool Confirm(Window? owner, string title, string message, string confirmText = "Sim",
-        string cancelText = "Não", DialogIcon icon = DialogIcon.Question, bool defaultIsConfirm = true) =>
-        Choose(owner, title, message, icon, [cancelText, confirmText], defaultIsConfirm ? 1 : 0, 0) == 1;
+    public static bool Confirm(Window? owner, string title, string message, string? confirmText = null,
+        string? cancelText = null, DialogIcon icon = DialogIcon.Question, bool defaultIsConfirm = true)
+    {
+        string confirm = confirmText ?? Loc.Get("Common.Yes");
+        string cancel = cancelText ?? Loc.Get("Common.No");
+        return Choose(owner, title, message, icon, [cancel, confirm], defaultIsConfirm ? 1 : 0, 0) == 1;
+    }
 
     /// <summary>
     /// Pede um texto. <paramref name="validate"/> devolve a mensagem de erro (ou null se válido); o erro aparece
@@ -81,17 +86,19 @@ internal static class Dialogs
     /// <param name="selectLength">Quantos caracteres do início ficam selecionados (-1 = tudo). Renomear seleciona só o nome, sem a extensão.</param>
     /// <returns>O texto confirmado, ou null se o usuário cancelou.</returns>
     public static string? PromptText(Window? owner, string title, string label, string initial,
-        Func<string, string?>? validate = null, int selectLength = -1, string okText = "OK")
+        Func<string, string?>? validate = null, int selectLength = -1, string? okText = null)
     {
-        (string First, string Second)? result = Prompt(owner, title, label, initial, selectLength, null, null, validate, null, okText);
+        (string First, string Second)? result = Prompt(owner, title, label, initial, selectLength, null, null, validate, null,
+            okText ?? Loc.Get("Common.OK"));
         return result?.First;
     }
 
     /// <summary>Dois campos (ex.: processo e descrição). Devolve null se cancelado.</summary>
     public static (string First, string Second)? PromptPair(Window? owner, string title,
         string firstLabel, string firstInitial, string secondLabel, string secondInitial,
-        Func<string, string, string?>? validate = null, string okText = "Adicionar") =>
-        Prompt(owner, title, firstLabel, firstInitial, -1, secondLabel, secondInitial, null, validate, okText);
+        Func<string, string, string?>? validate = null, string? okText = null) =>
+        Prompt(owner, title, firstLabel, firstInitial, -1, secondLabel, secondInitial, null, validate,
+            okText ?? Loc.Get("Common.Add"));
 
     private static (string First, string Second)? Prompt(Window? owner, string title, string firstLabel, string firstInitial,
         int selectLength, string? secondLabel, string? secondInitial,
@@ -110,7 +117,7 @@ internal static class Dialogs
         content.Children.Add(error);
 
         var ok = new Button { Content = okText, MinWidth = 104, IsDefault = true, Style = (Style)window.FindResource("PrimaryButton") };
-        var cancel = new Button { Content = "Cancelar", MinWidth = 96, IsCancel = true, Margin = new Thickness(8, 0, 0, 0) };
+        var cancel = new Button { Content = Loc.Get("Common.Cancel"), MinWidth = 96, IsCancel = true, Margin = new Thickness(8, 0, 0, 0) };
         ok.Click += (_, _) =>
         {
             string a = first.Text, b = second?.Text ?? "";

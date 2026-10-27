@@ -15,6 +15,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using RadialFlow.Infrastructure;
 using RadialFlow.Security;
 using RadialFlow.Services;
 
@@ -113,13 +114,13 @@ public static partial class ActionRouter
 
             if (paths is null || paths.Count == 0)
             {
-                reason = "Nenhum arquivo ou pasta.";
+                reason = Loc.Get("Reason.NoFiles");
                 return false;
             }
 
             if (paths.Count > MaxPaths)
             {
-                reason = $"Seleção grande demais ({paths.Count} itens).";
+                reason = Loc.Format("Reason.TooManyItems", paths.Count);
                 return false;
             }
 
@@ -130,7 +131,7 @@ public static partial class ActionRouter
             {
                 if (!TrustedPath.TryGetSafeFullPath(path, out string full))
                 {
-                    reason = $"Caminho inválido ou inseguro: '{path}'.";
+                    reason = Loc.Format("Reason.InvalidPath", path);
                     return false;
                 }
 
@@ -194,7 +195,7 @@ public static partial class ActionRouter
 
             if (!TrustedPath.TryGetSafeFullPath(sourcePath, out string source))
             {
-                error = "Caminho de origem inválido.";
+                error = Loc.Get("Reason.RenameSourceInvalid");
                 return false;
             }
 
@@ -202,7 +203,7 @@ public static partial class ActionRouter
             string? dir = Path.GetDirectoryName(source);
             if (dir is null)
             {
-                error = "Não é possível renomear a raiz de uma unidade.";
+                error = Loc.Get("Reason.RenameRoot");
                 return false;
             }
 
@@ -211,7 +212,7 @@ public static partial class ActionRouter
             if (!TrustedPath.TryGetSafeFullPath(Path.Combine(dir, name), out string candidate) ||
                 !string.Equals(Path.GetDirectoryName(candidate), dir, StringComparison.OrdinalIgnoreCase))
             {
-                error = "O novo nome sairia da pasta atual.";
+                error = Loc.Get("Reason.RenameEscapesFolder");
                 return false;
             }
 
@@ -230,13 +231,13 @@ public static partial class ActionRouter
 
             if (paths is null || paths.Count < 2)
             {
-                reason = "Selecione dois ou mais arquivos.";
+                reason = Loc.Get("Reason.RenameSelectTwo");
                 return false;
             }
 
             if (paths.Count > MaxPaths)
             {
-                reason = $"Seleção grande demais ({paths.Count} itens).";
+                reason = Loc.Format("Reason.TooManyItems", paths.Count);
                 return false;
             }
 
@@ -245,28 +246,28 @@ public static partial class ActionRouter
             {
                 if (!TrustedPath.TryGetSafeFullPath(path, out string full))
                 {
-                    reason = $"Caminho inválido ou inseguro: '{path}'.";
+                    reason = Loc.Format("Reason.InvalidPath", path);
                     return false;
                 }
 
                 full = Path.TrimEndingDirectorySeparator(full);
                 if (!File.Exists(full))
                 {
-                    reason = "A renomeação em lote aceita apenas arquivos (pastas, uma por vez).";
+                    reason = Loc.Get("Reason.RenameOnlyFiles");
                     return false;
                 }
 
                 string? parent = Path.GetDirectoryName(full);
                 if (parent is null)
                 {
-                    reason = "Não é possível renomear a raiz de uma unidade.";
+                    reason = Loc.Get("Reason.RenameRoot");
                     return false;
                 }
 
                 if (folder is null) folder = parent;
                 else if (!string.Equals(folder, parent, StringComparison.OrdinalIgnoreCase))
                 {
-                    reason = "Os arquivos precisam estar todos na mesma pasta.";
+                    reason = Loc.Get("Reason.RenameSameFolder");
                     return false;
                 }
             }
@@ -287,7 +288,7 @@ public static partial class ActionRouter
             string? parent = Path.GetDirectoryName(first);
             if (parent is null)
             {
-                error = "Não é possível compactar ou extrair a raiz de uma unidade.";
+                error = Loc.Get("Reason.ArchiveRoot");
                 return false;
             }
 
@@ -297,12 +298,12 @@ public static partial class ActionRouter
                 Path.GetExtension(first).Equals(".zip", StringComparison.OrdinalIgnoreCase))
             {
                 string folderName = Path.GetFileNameWithoutExtension(first);
-                if (folderName.Length == 0) folderName = "Extraído";
+                if (folderName.Length == 0) folderName = Loc.Get("Action.ExtractedFolderName");
 
                 // Nunca mescla/sobrescreve uma pasta existente.
                 if (!FileNaming.TryGetUniquePath(Path.Combine(parent, folderName), out string outDir))
                 {
-                    error = "Não foi possível montar a pasta de destino.";
+                    error = Loc.Get("Reason.ArchiveFolderName");
                     return false;
                 }
 
@@ -313,10 +314,10 @@ public static partial class ActionRouter
             string baseName = firstIsDirectory ? Path.GetFileName(first) : Path.GetFileNameWithoutExtension(first);
             if (baseName.Length == 0) baseName = Path.GetFileName(first);   // ".gitignore" -> ".gitignore.zip"
 
-            string zipName = safe.Count == 1 ? $"{baseName}.zip" : $"{baseName}_compactado.zip";
+            string zipName = safe.Count == 1 ? $"{baseName}.zip" : $"{baseName}{Loc.Get("Action.CompressedSuffix")}.zip";
             if (!FileNaming.TryGetUniquePath(Path.Combine(parent, zipName), out string zip))
             {
-                error = "Não foi possível montar o nome do arquivo .zip.";
+                error = Loc.Get("Reason.ArchiveZipName");
                 return false;
             }
 

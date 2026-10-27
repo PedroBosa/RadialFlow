@@ -559,4 +559,284 @@
   <data name="Menus.PreviewSampleAppOther" xml:space="preserve"><value>Otro app</value></data>
   <data name="Menus.PreviewSampleConversionLabel" xml:space="preserve"><value>{0} — vista previa</value></data>
   <data name="Menus.PreviewSampleConversionGroup" xml:space="preserve"><value>Vista previa</value></data>
+  <data name="Wheel.Slice.Compress" xml:space="preserve"><value>Comprimir</value></data>
+  <data name="Wheel.Slice.Convert" xml:space="preserve"><value>Convertir</value></data>
+  <data name="Wheel.Slice.CopyPath" xml:space="preserve"><value>Copiar ruta</value></data>
+  <data name="Wheel.Slice.MoveTo" xml:space="preserve"><value>Mover a</value></data>
+  <data name="Wheel.Slice.SendTo" xml:space="preserve"><value>Enviar a</value></data>
+  <data name="Wheel.Slice.Rename" xml:space="preserve"><value>Cambiar nombre</value></data>
+  <data name="Wheel.Slice.FavoriteApps" xml:space="preserve"><value>Apps favoritas</value></data>
+  <data name="Wheel.Slice.SystemControls" xml:space="preserve"><value>Ajustes rápidos</value></data>
+  <data name="Wheel.Slice.ClipboardHistory" xml:space="preserve"><value>Portapapeles</value></data>
+  <data name="Wheel.Slice.LockScreen" xml:space="preserve"><value>Bloquear</value></data>
+  <data name="Wheel.Slice.Maximize" xml:space="preserve"><value>Maximizar</value></data>
+  <data name="Wheel.Slice.SnapRight" xml:space="preserve"><value>Snap der.</value></data>
+  <data name="Wheel.Slice.Close" xml:space="preserve"><value>Cerrar</value></data>
+  <data name="Wheel.Slice.Transparency" xml:space="preserve"><value>Transparencia</value></data>
+  <data name="Wheel.Slice.AlwaysOnTop" xml:space="preserve"><value>Siempre encima</value></data>
+  <data name="Wheel.Slice.Minimize" xml:space="preserve"><value>Minimizar</value></data>
+  <data name="Wheel.Slice.SnapLeft" xml:space="preserve"><value>Snap izq.</value></data>
+  <data name="Wheel.Slice.Paste" xml:space="preserve"><value>Pegar</value></data>
+  <data name="Wheel.Slice.Translate" xml:space="preserve"><value>Traducir</value></data>
+  <data name="Wheel.Slice.SearchWeb" xml:space="preserve"><value>Buscar</value></data>
+  <data name="Wheel.Slice.Format" xml:space="preserve"><value>Formatear</value></data>
+  <data name="Wheel.Slice.Clear" xml:space="preserve"><value>Limpiar</value></data>
+  <data name="Wheel.Desc.Compress" xml:space="preserve"><value>Comprimir en .zip (o extraer, si ya es .zip)</value></data>
+  <data name="Wheel.Desc.Convert" xml:space="preserve"><value>Convertir a otro formato</value></data>
+  <data name="Wheel.Desc.CopyPath" xml:space="preserve"><value>Copiar la ruta completa</value></data>
+  <data name="Wheel.Desc.MoveTo" xml:space="preserve"><value>Mover a otra carpeta</value></data>
+  <data name="Wheel.Desc.SendTo" xml:space="preserve"><value>Copiar el archivo para pegar en otra app</value></data>
+  <data name="Wheel.Desc.Rename" xml:space="preserve"><value>Cambiar nombre</value></data>
+  <data name="Wheel.Desc.RenameSelection" xml:space="preserve"><value>Cambiar nombre a la selección</value></data>
+  <data name="Wheel.Desc.FavoriteApps" xml:space="preserve"><value>Abrir una app favorita</value></data>
+  <data name="Wheel.Desc.SystemControls" xml:space="preserve"><value>Ajustes rápidos de Windows</value></data>
+  <data name="Wheel.Desc.ClipboardHistory" xml:space="preserve"><value>Historial del portapapeles</value></data>
+  <data name="Wheel.Desc.LockScreen" xml:space="preserve"><value>Bloquear el equipo</value></data>
+  <data name="Wheel.Desc.Maximize" xml:space="preserve"><value>Maximizar o restaurar</value></data>
+  <data name="Wheel.Desc.SnapRight" xml:space="preserve"><value>Ocupar la mitad derecha de la pantalla</value></data>
+  <data name="Wheel.Desc.Close" xml:space="preserve"><value>Cerrar la ventana</value></data>
+  <data name="Wheel.Desc.Transparency" xml:space="preserve"><value>Hacer la ventana translúcida</value></data>
+  <data name="Wheel.Desc.AlwaysOnTop" xml:space="preserve"><value>Mantener sobre las demás ventanas</value></data>
+  <data name="Wheel.Desc.Minimize" xml:space="preserve"><value>Minimizar la ventana</value></data>
+  <data name="Wheel.Desc.SnapLeft" xml:space="preserve"><value>Ocupar la mitad izquierda de la pantalla</value></data>
+  <data name="Wheel.Desc.Paste" xml:space="preserve"><value>Pegar</value></data>
+  <data name="Wheel.Desc.Translate" xml:space="preserve"><value>Traducir el texto seleccionado</value></data>
+  <data name="Wheel.Desc.SearchWeb" xml:space="preserve"><value>Buscar el texto seleccionado en la web</value></data>
+  <data name="Wheel.Desc.Format" xml:space="preserve"><value>Negrita (Ctrl+B)</value></data>
+  <data name="Wheel.Desc.Clear" xml:space="preserve"><value>Borrar todo el texto del campo</value></data>
+  <data name="Wheel.Desc.OpenApp" xml:space="preserve"><value>Abrir {0}</value></data>
+  <data name="Wheel.HoldForOptions" xml:space="preserve"><value>Mantén para ver las opciones</value></data>
+  <data name="Wheel.HoldToSeeOptions" xml:space="preserve"><value>mantén para ver las opciones</value></data>
+  <data name="Wheel.HoldCenterToBack" xml:space="preserve"><value>Mantén en el centro para volver</value></data>
+  <data name="Wheel.EnterOpensOptions" xml:space="preserve"><value>Enter abre las opciones</value></data>
+  <data name="Wheel.EnterRuns" xml:space="preserve"><value>Enter ejecuta</value></data>
+  <data name="Wheel.Preset.Standard.Label" xml:space="preserve"><value>Predeterminado</value></data>
+  <data name="Wheel.Preset.Standard.Description" xml:space="preserve"><value>Equilibrado, con el fondo desenfocado de Windows.</value></data>
+  <data name="Wheel.Preset.Compact.Label" xml:space="preserve"><value>Compacto</value></data>
+  <data name="Wheel.Preset.Compact.Description" xml:space="preserve"><value>Rueda más pequeña, para pantallas pequeñas o gestos cortos.</value></data>
+  <data name="Wheel.Preset.Large.Label" xml:space="preserve"><value>Amplio</value></data>
+  <data name="Wheel.Preset.Large.Description" xml:space="preserve"><value>Rueda más grande, con porciones y etiquetas más fáciles de acertar.</value></data>
+  <data name="Wheel.Preset.HighContrast.Label" xml:space="preserve"><value>Alto contraste</value></data>
+  <data name="Wheel.Preset.HighContrast.Description" xml:space="preserve"><value>Superficies opacas y contornos fuertes, sin fondo desenfocado.</value></data>
+  <data name="Accent.Blue" xml:space="preserve"><value>Azul</value></data>
+  <data name="Accent.Violet" xml:space="preserve"><value>Violeta</value></data>
+  <data name="Accent.Teal" xml:space="preserve"><value>Verde azulado</value></data>
+  <data name="Accent.Green" xml:space="preserve"><value>Verde</value></data>
+  <data name="Accent.Orange" xml:space="preserve"><value>Naranja</value></data>
+  <data name="Accent.Pink" xml:space="preserve"><value>Rosa</value></data>
+  <data name="Accent.Windows" xml:space="preserve"><value>Color de Windows</value></data>
+  <data name="Tray.PausedTooltip" xml:space="preserve"><value>RadialFlow (en pausa)</value></data>
+  <data name="Tray.Resume" xml:space="preserve"><value>Reanudar</value></data>
+  <data name="Tray.Pause" xml:space="preserve"><value>Pausar</value></data>
+  <data name="Tray.Settings" xml:space="preserve"><value>Configuración…</value></data>
+  <data name="Tray.OpenLogs" xml:space="preserve"><value>Abrir carpeta de registros</value></data>
+  <data name="Tray.Exit" xml:space="preserve"><value>Salir</value></data>
+  <data name="Conversion.WindowTitle" xml:space="preserve"><value>RadialFlow — Convertir archivo(s)</value></data>
+  <data name="Conversion.TargetFormat" xml:space="preserve"><value>Formato de destino</value></data>
+  <data name="Conversion.SaveToFolder" xml:space="preserve"><value>Guardar en la carpeta</value></data>
+  <data name="Conversion.Button" xml:space="preserve"><value>Convertir</value></data>
+  <data name="Conversion.SampleFile" xml:space="preserve"><value>Archivo.png</value></data>
+  <data name="Conversion.SampleCategory" xml:space="preserve"><value>Categoría detectada: Imagen</value></data>
+  <data name="Conversion.FilesSelected" xml:space="preserve"><value>{0} archivos seleccionados</value></data>
+  <data name="Conversion.NoCommonFormat" xml:space="preserve"><value>Ningún formato de destino funciona para todos los archivos seleccionados.</value></data>
+  <data name="Conversion.FilesOnly" xml:space="preserve"><value>Selecciona solo archivos: las carpetas no se pueden convertir.</value></data>
+  <data name="Conversion.NoneSelected" xml:space="preserve"><value>Ningún archivo seleccionado.</value></data>
+  <data name="Conversion.CategoryDetected" xml:space="preserve"><value>Categoría detectada: {0}</value></data>
+  <data name="Conversion.FilesWithCategory" xml:space="preserve"><value>{0} archivos — {1}</value></data>
+  <data name="Conversion.Category.Image" xml:space="preserve"><value>Imagen</value></data>
+  <data name="Conversion.Category.Video" xml:space="preserve"><value>Vídeo</value></data>
+  <data name="Conversion.Category.Audio" xml:space="preserve"><value>Audio</value></data>
+  <data name="Conversion.Category.Document" xml:space="preserve"><value>Documento</value></data>
+  <data name="Conversion.Category.Spreadsheet" xml:space="preserve"><value>Hoja de cálculo</value></data>
+  <data name="Conversion.Category.Presentation" xml:space="preserve"><value>Presentación</value></data>
+  <data name="Conversion.Category.Unknown" xml:space="preserve"><value>Desconocido / No compatible</value></data>
+  <data name="Conversion.AlreadyInFormatOne" xml:space="preserve"><value>1 archivo ya está en {0} y se omitirá.</value></data>
+  <data name="Conversion.AlreadyInFormatMany" xml:space="preserve"><value>{0} archivos ya están en {1} y se omitirán.</value></data>
+  <data name="Conversion.PickFolderTitle" xml:space="preserve"><value>Seleccionar carpeta de destino</value></data>
+  <data name="Conversion.DestinationTitle" xml:space="preserve"><value>Carpeta de destino</value></data>
+  <data name="Conversion.DestinationInvalid" xml:space="preserve"><value>La carpeta de destino no existe o no es válida.</value></data>
+  <data name="Conversion.DialogTitle" xml:space="preserve"><value>Conversión</value></data>
+  <data name="Conversion.PrepareFailed" xml:space="preserve"><value>No se pudo preparar la conversión.</value></data>
+  <data name="Conversion.InvalidFormat" xml:space="preserve"><value>Formato de destino no válido.</value></data>
+  <data name="Conversion.TooManyFiles" xml:space="preserve"><value>Selección demasiado grande ({0} archivos).</value></data>
+  <data name="Conversion.InvalidFile" xml:space="preserve"><value>Archivo no válido o inexistente: '{0}'.</value></data>
+  <data name="Conversion.DestinationBuildFailed" xml:space="preserve"><value>No se pudo crear el destino de '{0}'.</value></data>
+  <data name="Conversion.AllAlreadyInFormat" xml:space="preserve"><value>Todos los archivos seleccionados ya están en .{0}.</value></data>
+  <data name="Format.Png" xml:space="preserve"><value>PNG — imagen sin pérdida de calidad</value></data>
+  <data name="Format.Jpg" xml:space="preserve"><value>JPG — foto, archivo más pequeño</value></data>
+  <data name="Format.Pdf" xml:space="preserve"><value>PDF — para enviar o imprimir</value></data>
+  <data name="Format.Ico" xml:space="preserve"><value>ICO — icono de Windows</value></data>
+  <data name="Format.Webp" xml:space="preserve"><value>WEBP — imagen ligera para la web</value></data>
+  <data name="Format.Heic" xml:space="preserve"><value>HEIC — foto muy compacta (formato del iPhone)</value></data>
+  <data name="Format.Gif" xml:space="preserve"><value>GIF — imagen simple, hasta 256 colores</value></data>
+  <data name="Format.Bmp" xml:space="preserve"><value>BMP — imagen sin compresión</value></data>
+  <data name="Format.Tiff" xml:space="preserve"><value>TIFF — alta calidad, para imprimir</value></data>
+  <data name="Format.Mp4" xml:space="preserve"><value>MP4 — vídeo que se reproduce en cualquier lugar</value></data>
+  <data name="Format.Mkv" xml:space="preserve"><value>MKV — vídeo, admite varias pistas</value></data>
+  <data name="Format.Webm" xml:space="preserve"><value>WEBM — vídeo para la web</value></data>
+  <data name="Format.Mov" xml:space="preserve"><value>MOV — vídeo para Apple y QuickTime</value></data>
+  <data name="Format.Mp3" xml:space="preserve"><value>MP3 — audio que suena en cualquier lugar</value></data>
+  <data name="Format.M4a" xml:space="preserve"><value>M4A — audio AAC, ideal para el móvil</value></data>
+  <data name="Format.Wav" xml:space="preserve"><value>WAV — audio sin compresión</value></data>
+  <data name="Format.Flac" xml:space="preserve"><value>FLAC — audio sin pérdida, más pequeño que WAV</value></data>
+  <data name="Format.Ogg" xml:space="preserve"><value>OGG — audio Vorbis</value></data>
+  <data name="Format.Opus" xml:space="preserve"><value>OPUS — audio muy compacto</value></data>
+  <data name="Format.Aac" xml:space="preserve"><value>AAC — audio AAC puro</value></data>
+  <data name="Format.Aiff" xml:space="preserve"><value>AIFF — audio sin compresión (Apple)</value></data>
+  <data name="Format.Docx" xml:space="preserve"><value>DOCX — Word</value></data>
+  <data name="Format.Odt" xml:space="preserve"><value>ODT — LibreOffice Writer</value></data>
+  <data name="Format.Rtf" xml:space="preserve"><value>RTF — texto con formato, se abre en cualquier editor</value></data>
+  <data name="Format.Txt" xml:space="preserve"><value>TXT — solo el texto, sin formato</value></data>
+  <data name="Format.Html" xml:space="preserve"><value>HTML — página web</value></data>
+  <data name="Format.Md" xml:space="preserve"><value>Markdown — texto con formato simple</value></data>
+  <data name="Format.Epub" xml:space="preserve"><value>EPUB — libro digital</value></data>
+  <data name="Format.Xlsx" xml:space="preserve"><value>XLSX — Excel</value></data>
+  <data name="Format.Ods" xml:space="preserve"><value>ODS — LibreOffice Calc</value></data>
+  <data name="Format.Csv" xml:space="preserve"><value>CSV — tabla en texto (solo la primera hoja)</value></data>
+  <data name="Format.Pptx" xml:space="preserve"><value>PPTX — PowerPoint</value></data>
+  <data name="Format.Odp" xml:space="preserve"><value>ODP — LibreOffice Impress</value></data>
+  <data name="Format.GifVideo" xml:space="preserve"><value>GIF — animación corta, sin sonido</value></data>
+  <data name="Format.Mp3Video" xml:space="preserve"><value>MP3 — solo el audio</value></data>
+  <data name="Format.M4aVideo" xml:space="preserve"><value>M4A — solo el audio (AAC)</value></data>
+  <data name="Format.WavVideo" xml:space="preserve"><value>WAV — solo el audio, sin compresión</value></data>
+  <data name="Menus.DefaultProfileName" xml:space="preserve"><value>Menú nuevo</value></data>
+  <data name="FileNaming.InvalidPath" xml:space="preserve"><value>Ruta no válida o insegura: '{0}'.</value></data>
+  <data name="ConversionService.PandocCannotRead" xml:space="preserve"><value>Pandoc no puede leer este formato.</value></data>
+  <data name="ConversionService.PandocCannotWrite" xml:space="preserve"><value>Pandoc no puede guardar este formato aquí.</value></data>
+  <data name="ImageConverter.CannotWrite" xml:space="preserve"><value>Windows no puede guardar imágenes .{0}.</value></data>
+  <data name="ImageConverter.CannotOpen" xml:space="preserve"><value>Windows no pudo abrir esta imagen. El archivo puede estar dañado o falta la extensión de imagen de Microsoft Store para este formato (por ejemplo, Extensiones de imagen HEIF o WebP).</value></data>
+  <data name="ImageConverter.NoFrames" xml:space="preserve"><value>La imagen no tiene ningún fotograma.</value></data>
+  <data name="Launcher.UntrustedExecutable" xml:space="preserve"><value>'{0}' no existe o no está en una ubicación protegida y no se ejecutará.</value></data>
+  <data name="Launcher.InvalidWorkingDirectory" xml:space="preserve"><value>La carpeta de trabajo '{0}' no es válida o no existe.</value></data>
+  <data name="Launcher.NullArgument" xml:space="preserve"><value>Argumento nulo.</value></data>
+  <data name="Launcher.NulCharArgument" xml:space="preserve"><value>El argumento contiene un carácter NUL.</value></data>
+  <data name="Launcher.CommandLineTooLong" xml:space="preserve"><value>La línea de comandos es demasiado larga.</value></data>
+  <data name="Launcher.ShellUnavailable" xml:space="preserve"><value>RadialFlow se ejecuta como administrador y no encontró el Explorador (shell del usuario) para iniciar la herramienta sin privilegios de administrador. No se ejecutó nada.</value></data>
+  <data name="Launcher.ElevatedTokenSession" xml:space="preserve"><value>La sesión del usuario solo tiene un token de administrador (¿UAC desactivado?). La herramienta no se ejecutará como administrador.</value></data>
+  <data name="Launcher.ElevatedProcess" xml:space="preserve"><value>El proceso se creó con un token elevado y se terminó antes de ejecutar cualquier código.</value></data>
+  <data name="Launcher.NulOpenFailed" xml:space="preserve"><value>No se pudo abrir NUL para stdin</value></data>
+  <data name="Launcher.Win32.CreateProcessWithToken" xml:space="preserve"><value>CreateProcessWithTokenW falló</value></data>
+  <data name="Launcher.Win32.AttributeListInit" xml:space="preserve"><value>InitializeProcThreadAttributeList falló</value></data>
+  <data name="Launcher.Win32.AttributeListUpdate" xml:space="preserve"><value>UpdateProcThreadAttribute falló</value></data>
+  <data name="Launcher.Win32.CreateProcess" xml:space="preserve"><value>CreateProcessW falló</value></data>
+  <data name="Launcher.Win32.CreatePipe" xml:space="preserve"><value>CreatePipe falló</value></data>
+  <data name="Launcher.Win32.SetHandleInfo" xml:space="preserve"><value>SetHandleInformation falló</value></data>
+  <data name="Launcher.Win32.ResumeThread" xml:space="preserve"><value>ResumeThread falló</value></data>
+  <data name="Launcher.Win32.GetExitCode" xml:space="preserve"><value>GetExitCodeProcess falló</value></data>
+  <data name="Hotkey.Empty" xml:space="preserve"><value>indica el atajo (p. ej., Ctrl+Shift+P)</value></data>
+  <data name="Hotkey.NeedModifierAndKey" xml:space="preserve"><value>usa al menos un modificador y una tecla (p. ej., Ctrl+P)</value></data>
+  <data name="Hotkey.TooManyKeys" xml:space="preserve"><value>como máximo 4 teclas (modificadores + tecla final)</value></data>
+  <data name="Hotkey.RepeatedModifier" xml:space="preserve"><value>modificador repetido: {0}</value></data>
+  <data name="Hotkey.SingleFinalKey" xml:space="preserve"><value>usa solo una tecla final</value></data>
+  <data name="Hotkey.UnknownKey" xml:space="preserve"><value>tecla desconocida: {0}</value></data>
+  <data name="Hotkey.MissingFinalKey" xml:space="preserve"><value>falta la tecla final (p. ej., Ctrl+P)</value></data>
+  <data name="Progress.WindowTitle" xml:space="preserve"><value>RadialFlow — Operación en curso</value></data>
+  <data name="Progress.Processing" xml:space="preserve"><value>Procesando…</value></data>
+  <data name="Progress.Starting" xml:space="preserve"><value>Iniciando…</value></data>
+  <data name="Progress.OpenFolder" xml:space="preserve"><value>Abrir carpeta</value></data>
+  <data name="Progress.Error" xml:space="preserve"><value>Error</value></data>
+  <data name="Progress.Warning" xml:space="preserve"><value>Atención</value></data>
+  <data name="Progress.CancelRequested" xml:space="preserve"><value>Cancelación solicitada...</value></data>
+  <data name="Converters.InstallWindowOne" xml:space="preserve"><value>Instalando {0}</value></data>
+  <data name="Converters.InstallWindowMany" xml:space="preserve"><value>Instalando los conversores</value></data>
+  <data name="Converters.InstallCancelled" xml:space="preserve"><value>Instalación cancelada. Lo que ya había terminado sigue instalado.</value></data>
+  <data name="Converters.InstallFailed" xml:space="preserve"><value>No se pudo instalar: {0}</value></data>
+  <data name="Converters.Title" xml:space="preserve"><value>Conversores</value></data>
+  <data name="App.StartupFailed" xml:space="preserve"><value>RadialFlow no pudo iniciarse:
+{0}
+
+Detalles: {1}</value></data>
+  <data name="Action.RenameNewName" xml:space="preserve"><value>Nombre nuevo</value></data>
+  <data name="Action.RenameSelectionFailed" xml:space="preserve"><value>No se puede cambiar el nombre de esta selección a la vez.</value></data>
+  <data name="Action.RenameExplorerFailed" xml:space="preserve"><value>No se pudo preparar el cambio de nombre en la ventana del Explorador.
+Selecciona los archivos en el Explorador y pulsa F2. No se cambió ningún nombre.</value></data>
+  <data name="Action.RenameFailedTitle" xml:space="preserve"><value>No se pudo cambiar el nombre</value></data>
+  <data name="Action.MovePickerTitle" xml:space="preserve"><value>Mover a...</value></data>
+  <data name="Action.MoveTitle" xml:space="preserve"><value>Mover</value></data>
+  <data name="Action.MoveIntoSelf" xml:space="preserve"><value>No se puede mover '{0}' dentro de sí mismo.</value></data>
+  <data name="Action.MoveConflict" xml:space="preserve"><value>'{0}' ya existe en la carpeta de destino. ¿Qué quieres hacer?</value></data>
+  <data name="Action.MoveStop" xml:space="preserve"><value>Detener</value></data>
+  <data name="Action.MoveKeepBoth" xml:space="preserve"><value>Conservar ambos</value></data>
+  <data name="Action.MoveReplace" xml:space="preserve"><value>Reemplazar</value></data>
+  <data name="Action.MoveFailedTitle" xml:space="preserve"><value>No se pudo mover</value></data>
+  <data name="Action.DestinationIsFolder" xml:space="preserve"><value>El destino es una carpeta con el mismo nombre que un archivo.</value></data>
+  <data name="Action.DestinationIsFile" xml:space="preserve"><value>El destino es un archivo con el mismo nombre que una carpeta.</value></data>
+  <data name="Action.ExtractTitle" xml:space="preserve"><value>Extrayendo {0}...</value></data>
+  <data name="Action.ExtractCancelled" xml:space="preserve"><value>Extracción cancelada por el usuario.</value></data>
+  <data name="Action.ExtractFailed" xml:space="preserve"><value>Error al extraer</value></data>
+  <data name="Action.CompressTitle" xml:space="preserve"><value>Comprimiendo {0} elemento(s)...</value></data>
+  <data name="Action.CompressCancelled" xml:space="preserve"><value>Compresión cancelada por el usuario.</value></data>
+  <data name="Action.CompressFailed" xml:space="preserve"><value>Error al comprimir</value></data>
+  <data name="Action.ConvertOneTitle" xml:space="preserve"><value>Convirtiendo {0}...</value></data>
+  <data name="Action.ConvertManyTitle" xml:space="preserve"><value>Convirtiendo {0} archivos...</value></data>
+  <data name="Action.ConvertCancelled" xml:space="preserve"><value>Conversión cancelada por el usuario.</value></data>
+  <data name="Action.ConvertFailed" xml:space="preserve"><value>Error en la conversión</value></data>
+  <data name="Action.ConvertDone" xml:space="preserve"><value>Conversión completada a .{0}.</value></data>
+  <data name="Action.SkippedOne" xml:space="preserve"><value> 1 archivo ya estaba en el formato.</value></data>
+  <data name="Action.SkippedMany" xml:space="preserve"><value> {0} archivos ya estaban en el formato.</value></data>
+  <data name="Action.ConvertedOne" xml:space="preserve"><value>Archivo convertido a .{0}.</value></data>
+  <data name="Action.ConvertedMany" xml:space="preserve"><value>{0} archivos convertidos a .{1}.</value></data>
+  <data name="Action.ConvertedNone" xml:space="preserve"><value>Ningún archivo se convirtió a .{0} ({1} con errores).</value></data>
+  <data name="Action.ConvertedPartial" xml:space="preserve"><value>{0} de {1} archivos convertidos a .{2}; {3} con errores.</value></data>
+  <data name="Action.ClearDocumentTitle" xml:space="preserve"><value>Borrar documento</value></data>
+  <data name="Action.ClearDocumentMessage" xml:space="preserve"><value>¿Borrar TODO el contenido de este documento?
+(Ctrl+Z lo deshace en la mayoría de las apps.)</value></data>
+  <data name="Action.ClearAll" xml:space="preserve"><value>Borrar todo</value></data>
+  <data name="Action.FavoritesPickerTitle" xml:space="preserve"><value>RadialFlow — Apps favoritas</value></data>
+  <data name="Action.FavoritesHeader" xml:space="preserve"><value>APPS FAVORITAS</value></data>
+  <data name="Action.ExtractedFolderName" xml:space="preserve"><value>Extraído</value></data>
+  <data name="Action.CompressedSuffix" xml:space="preserve"><value>_comprimido</value></data>
+  <data name="Reason.NoFiles" xml:space="preserve"><value>Ningún archivo o carpeta.</value></data>
+  <data name="Reason.TooManyItems" xml:space="preserve"><value>Selección demasiado grande ({0} elementos).</value></data>
+  <data name="Reason.InvalidPath" xml:space="preserve"><value>Ruta no válida o insegura: '{0}'.</value></data>
+  <data name="Reason.RenameSelectTwo" xml:space="preserve"><value>Selecciona dos o más archivos.</value></data>
+  <data name="Reason.RenameOnlyFiles" xml:space="preserve"><value>El cambio de nombre por lotes solo acepta archivos (carpetas, una a la vez).</value></data>
+  <data name="Reason.RenameSameFolder" xml:space="preserve"><value>Los archivos deben estar todos en la misma carpeta.</value></data>
+  <data name="Reason.RenameRoot" xml:space="preserve"><value>No se puede cambiar el nombre de la raíz de una unidad.</value></data>
+  <data name="Reason.RenameSourceInvalid" xml:space="preserve"><value>Ruta de origen no válida.</value></data>
+  <data name="Reason.RenameEscapesFolder" xml:space="preserve"><value>El nuevo nombre saldría de la carpeta actual.</value></data>
+  <data name="Reason.ArchiveRoot" xml:space="preserve"><value>No se puede comprimir o extraer la raíz de una unidad.</value></data>
+  <data name="Reason.ArchiveFolderName" xml:space="preserve"><value>No se pudo crear la carpeta de destino.</value></data>
+  <data name="Reason.ArchiveZipName" xml:space="preserve"><value>No se pudo crear el nombre del archivo .zip.</value></data>
+  <data name="FileNaming.Empty" xml:space="preserve"><value>El nombre no puede quedar vacío.</value></data>
+  <data name="FileNaming.TooLong" xml:space="preserve"><value>El nombre puede tener como máximo {0} caracteres.</value></data>
+  <data name="FileNaming.DotNames" xml:space="preserve"><value>"." y ".." no son nombres válidos.</value></data>
+  <data name="FileNaming.InvalidChar" xml:space="preserve"><value>El nombre no puede contener el carácter '{0}' (ni \ / : * ? &quot; &lt; &gt; |).</value></data>
+  <data name="FileNaming.TrailingDot" xml:space="preserve"><value>El nombre no puede terminar en punto.</value></data>
+  <data name="FileNaming.Reserved" xml:space="preserve"><value>'{0}' es un nombre reservado de Windows.</value></data>
+  <data name="ConversionService.ConvertingFormat" xml:space="preserve"><value>Convirtiendo {0} a .{1}...</value></data>
+  <data name="ConversionService.ConvertingImage" xml:space="preserve"><value>Convirtiendo la imagen...</value></data>
+  <data name="ConversionService.Done" xml:space="preserve"><value>Conversión completada.</value></data>
+  <data name="ConversionService.NothingToConvert" xml:space="preserve"><value>Ningún archivo que convertir.</value></data>
+  <data name="ConversionService.ItemFailed" xml:space="preserve"><value>({0}/{1}) Error en {2}. Continuando...</value></data>
+  <data name="ConversionService.BatchDone" xml:space="preserve"><value>Conversión completada: {0} archivo(s).</value></data>
+  <data name="ConversionService.BatchSummary" xml:space="preserve"><value>{0} de {1} archivos convertidos; {2} con errores.</value></data>
+  <data name="ConversionService.PdfUnsupported" xml:space="preserve"><value>Convertir desde PDF no es compatible.</value></data>
+  <data name="ConversionService.Unavailable" xml:space="preserve"><value>No hay forma de convertir {0} a .{1} en este equipo.</value></data>
+  <data name="ConversionService.SourceInvalid" xml:space="preserve"><value>El archivo de origen no es válido o no existe.</value></data>
+  <data name="ConversionService.DestinationInvalid" xml:space="preserve"><value>Ruta de destino no válida: '{0}'.</value></data>
+  <data name="ConversionService.EncoderMissing" xml:space="preserve"><value>El FFmpeg instalado no tiene el codificador necesario para .{0}.</value></data>
+  <data name="ConversionService.Processing" xml:space="preserve"><value>Procesando: {0}</value></data>
+  <data name="ConversionService.FfmpegExit" xml:space="preserve"><value>FFmpeg finalizó con el código {0}.
+{1}</value></data>
+  <data name="ConversionService.MediaDone" xml:space="preserve"><value>¡Conversión de medios completada con éxito!</value></data>
+  <data name="ConversionService.GeneratingPdf" xml:space="preserve"><value>Generando el PDF...</value></data>
+  <data name="ConversionService.LibreOfficeNoFile" xml:space="preserve"><value>LibreOffice no generó ningún archivo.</value></data>
+  <data name="ConversionService.ConvertingWith" xml:space="preserve"><value>Convirtiendo con {0}...</value></data>
+  <data name="ConversionService.TimeoutMinutes" xml:space="preserve"><value>{0} minutos</value></data>
+  <data name="ConversionService.TimeoutSeconds" xml:space="preserve"><value>{0} segundos</value></data>
+  <data name="ConversionService.Timeout" xml:space="preserve"><value>{0} no terminó en {1} y se cerró. El archivo puede tener algo que no puede convertir.</value></data>
+  <data name="ConversionService.ToolFailed" xml:space="preserve"><value>Error al ejecutar {0} (código {1}):
+{2}</value></data>
+  <data name="Compression.Compressing" xml:space="preserve"><value>Comprimiendo ({0}/{1}): {2}</value></data>
+  <data name="Compression.Extracting" xml:space="preserve"><value>Extrayendo ({0}/{1}): {2}</value></data>
+  <data name="Compression.CompressDone" xml:space="preserve"><value>¡Compresión completada con éxito!</value></data>
+  <data name="Compression.ExtractDone" xml:space="preserve"><value>¡Extracción completada con éxito!</value></data>
+  <data name="Compression.UnsafeEntryChar" xml:space="preserve"><value>Entrada insegura en el zip (carácter no válido): {0}</value></data>
+  <data name="Compression.UnsafeEntryEscape" xml:space="preserve"><value>Entrada insegura en el zip (intenta salir de la carpeta de destino): {0}</value></data>
+  <data name="Tools.Missing" xml:space="preserve"><value>{0} no está instalado. Instálalo en Configuración &gt; Conversores (un clic) y vuelve a intentarlo.</value></data>
+  <data name="Tools.Rejected" xml:space="preserve"><value>{0} se encontró en '{1}', pero no se usó por seguridad: esa carpeta se puede modificar sin permiso de administrador. Instálalo en Configuración &gt; Conversores.</value></data>
+  <data name="Settings.SaveFailedDetailFormat" xml:space="preserve"><value>No se pudo guardar la configuración. El archivo de configuración no se modificó.
+
+Detalle: {0}</value></data>
 </root>

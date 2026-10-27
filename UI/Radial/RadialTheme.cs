@@ -15,6 +15,7 @@
 using System;
 using System.Windows.Media;
 using Microsoft.Win32;
+using RadialFlow.Infrastructure;
 
 namespace RadialFlow.UI;
 
@@ -41,15 +42,15 @@ internal sealed record RadialTheme(
     private static readonly Color DefaultAccent = Color.FromRgb(0x3B, 0x82, 0xF6);
 
     /// <summary>Opções de cor de destaque oferecidas nas Configurações: chave gravada, nome exibido, cor (nula = a do Windows).</summary>
-    internal static readonly (string Key, string Label, Color? Color)[] AccentChoices =
+    internal static (string Key, string Label, Color? Color)[] AccentChoices =>
     [
-        ("Blue",    "Azul",           Color.FromRgb(0x3B, 0x82, 0xF6)),
-        ("Violet",  "Violeta",        Color.FromRgb(0x8B, 0x5C, 0xF6)),
-        ("Teal",    "Verde-água",     Color.FromRgb(0x14, 0xB8, 0xA6)),
-        ("Green",   "Verde",          Color.FromRgb(0x22, 0xC5, 0x5E)),
-        ("Orange",  "Laranja",        Color.FromRgb(0xF9, 0x73, 0x16)),
-        ("Pink",    "Rosa",           Color.FromRgb(0xEC, 0x48, 0x99)),
-        ("Windows", "Cor do Windows", null),
+        ("Blue",    Loc.Get("Accent.Blue"),    Color.FromRgb(0x3B, 0x82, 0xF6)),
+        ("Violet",  Loc.Get("Accent.Violet"),  Color.FromRgb(0x8B, 0x5C, 0xF6)),
+        ("Teal",    Loc.Get("Accent.Teal"),    Color.FromRgb(0x14, 0xB8, 0xA6)),
+        ("Green",   Loc.Get("Accent.Green"),   Color.FromRgb(0x22, 0xC5, 0x5E)),
+        ("Orange",  Loc.Get("Accent.Orange"),  Color.FromRgb(0xF9, 0x73, 0x16)),
+        ("Pink",    Loc.Get("Accent.Pink"),    Color.FromRgb(0xEC, 0x48, 0x99)),
+        ("Windows", Loc.Get("Accent.Windows"), null),
     ];
 
     /// <summary>

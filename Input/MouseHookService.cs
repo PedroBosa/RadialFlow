@@ -343,7 +343,8 @@ public sealed unsafe class MouseHookService : IDisposable
                 if (_state == GestureState.Pending)
                 {
                     _state = GestureState.Idle;
-                    SendInput(2, _replayBuffer, _inputSize);   // clique normal: menu nativo
+                    if (SendInput(2, _replayBuffer, _inputSize) != 2)
+                        AppLog.Warning("Hook", $"Falha ao reinjetar o clique direito (erro {Marshal.GetLastWin32Error()}).");
                     return true;
                 }
                 return false;

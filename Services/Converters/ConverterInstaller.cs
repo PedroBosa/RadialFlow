@@ -6,7 +6,8 @@
 //   * o download vai para <app>\tools\downloads, dentro de Arquivos de
 //     Programas: um programa comum não consegue trocar o arquivo entre a
 //     conferência do hash e a instalação (no %TEMP% conseguiria);
-//   * só HTTPS; redirecionamentos para HTTP não são seguidos;
+//   * só HTTPS: a URL do pacote e a URL final (depois de redirecionamentos)
+//     precisam ser https — um desvio para http é recusado antes de ler o corpo;
 //   * o zip do FFmpeg é extraído por nome (só bin\*.exe e a licença), sem
 //     caminhos vindos do arquivo: nada sai da pasta de destino;
 //   * a etapa de instalação não é cancelada no meio (um MSI interrompido
@@ -279,6 +280,10 @@ internal sealed class ConverterInstaller(ConverterInstallerOptions options)
             {
                 if (!response.IsSuccessStatusCode)
                     throw new InvalidOperationException(Loc.Format("Converters.Error.DownloadFailed", (int)response.StatusCode));
+
+                // O handler pode ter seguido um 302 para http:// antes de chegar aqui.
+                if (response.RequestMessage?.RequestUri is { } finalUri && finalUri.Scheme != Uri.UriSchemeHttps)
+                    throw new InvalidOperationException(Loc.Get("Converters.Error.HttpsOnly"));
 
                 using var hash = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
                 long limit = package.SizeBytes;

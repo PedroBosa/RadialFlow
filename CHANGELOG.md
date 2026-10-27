@@ -34,6 +34,10 @@ Cada versão, da mais nova para a mais antiga. O número da versão está em `Ra
 - **Conjunto curado de ícones nos menus.** O seletor de ícone agora oferece mais opções locais do Windows (arquivos,
   mídia, ações, avisos e sistema). Nada é baixado ou instalado: o conjunto é fixo e aparece igual no editor de itens e
   no de opções do submenu.
+- **Interface em português, inglês e espanhol.** A aba **Configurações → Aparência** agora também escolhe o idioma do
+  aplicativo, com português (Brasil) como padrão — sem depender do idioma do Windows. A escolha vale no próximo
+  início e não reinstala nada. Roda, menus, bandeja, diálogos, conversores e mensagens de erro acompanham o idioma;
+  o instalador continua em português.
 
 ### Melhorias
 

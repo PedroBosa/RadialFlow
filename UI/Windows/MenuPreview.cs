@@ -144,7 +144,7 @@ internal sealed class MenuPreview : Canvas
         {
             var badge = new TextBlock
             {
-                Text = entry.Status == CustomMergeStatus.Replacement ? "substitui" : "extra",
+                Text = Loc.Get(entry.Status == CustomMergeStatus.Replacement ? "Menus.LegendReplaces" : "Menus.LegendExtra"),
                 FontSize = 8.5,
                 Opacity = 0.85,
                 TextAlignment = TextAlignment.Center,

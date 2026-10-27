@@ -186,7 +186,7 @@ public partial class RadialMenuWindow
 
     private static string KeyboardHint(RadialSlice slice, bool hasSubmenu)
     {
-        string action = hasSubmenu ? "Enter abre as opções" : "Enter executa";
+        string action = hasSubmenu ? Loc.Get("Wheel.EnterOpensOptions") : Loc.Get("Wheel.EnterRuns");
         return string.IsNullOrEmpty(slice.Description) ? action : $"{slice.Description} · {action}";
     }
 

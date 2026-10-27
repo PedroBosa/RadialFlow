@@ -225,7 +225,7 @@ public partial class SettingsWindow : Window
     }
 
     private void UpdateAccentLabel() =>
-        AccentName.Text = RadialTheme.AccentChoices.FirstOrDefault(c => c.Key == _accentKey).Label ?? "Azul";
+        AccentName.Text = RadialTheme.AccentChoices.FirstOrDefault(c => c.Key == _accentKey).Label ?? Loc.Get("Accent.Blue");
 
     private WheelPreset _wheelPreset = WheelPreset.Standard;
 

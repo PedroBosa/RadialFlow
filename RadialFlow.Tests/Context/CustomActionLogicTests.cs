@@ -166,6 +166,15 @@ public sealed class CustomActionLogicTests : IDisposable
     [InlineData(".lnk")]
     [InlineData(".url")]
     [InlineData(".msi")]
+    [InlineData(".chm")]
+    [InlineData(".docm")]
+    [InlineData(".xlsm")]
+    [InlineData(".pptm")]
+    [InlineData(".settingcontent-ms")]
+    [InlineData(".scf")]
+    [InlineData(".diagcab")]
+    [InlineData(".search-ms")]
+    [InlineData(".library-ms")]
     public void OpenPath_RecusaExecutaveisEScripts(string extension)
     {
         string file = _temp.Combine("arquivo" + extension);

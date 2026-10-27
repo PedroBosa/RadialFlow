@@ -57,7 +57,9 @@ internal static class ConverterSetup
     public static void Run(IReadOnlyList<ConverterPackage> packages, Action<bool>? onFinished = null)
     {
         Dispatcher ui = Dispatcher.CurrentDispatcher;
-        string title = packages.Count == 1 ? $"Instalando o {packages[0].Name}" : "Instalando os conversores";
+        string title = packages.Count == 1
+            ? Loc.Format("Converters.InstallWindowOne", packages[0].Name)
+            : Loc.Get("Converters.InstallWindowMany");
         var window = new ProgressWindow(title);
 
         bool windowClosed = false, workDone = false, success = false;
@@ -100,13 +102,13 @@ internal static class ConverterSetup
             }
             catch (OperationCanceledException)
             {
-                window.MarkFailed("Instalação cancelada. O que já tinha terminado continua instalado.");
+                window.MarkFailed(Loc.Get("Converters.InstallCancelled"));
                 AppLog.Info("Converters", "Instalação cancelada.");
             }
             catch (Exception ex) when (ex is not OutOfMemoryException)
             {
                 AppLog.Error("Converters", "Falha inesperada ao instalar os conversores.", ex);
-                window.MarkFailed($"Não foi possível instalar: {ex.Message}");
+                window.MarkFailed(Loc.Format("Converters.InstallFailed", ex.Message));
             }
             finally
             {

@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Windows;
 using Microsoft.Win32;
+using RadialFlow.Infrastructure;
 using RadialFlow.Security;
 using RadialFlow.Services;
 
@@ -32,7 +33,7 @@ public partial class ConversionWindow : Window
 
         TxtFileName.Text = sourcePaths.Count == 1
             ? Path.GetFileName(sourcePaths[0])
-            : $"{sourcePaths.Count} arquivos selecionados";
+            : Loc.Format("Conversion.FilesSelected", sourcePaths.Count);
         TxtCategory.Text = DescribeSources(sourcePaths);
 
         string? initialDir = sourcePaths.Count > 0 ? Path.GetDirectoryName(sourcePaths[0]) : null;
@@ -63,14 +64,14 @@ public partial class ConversionWindow : Window
         {
             BtnConvert.IsEnabled = false;
             TxtCategory.Text += allFiles
-                ? "\nNenhum formato de destino funciona para todos os arquivos selecionados."
-                : "\nSelecione apenas arquivos: pastas não podem ser convertidas.";
+                ? "\n" + Loc.Get("Conversion.NoCommonFormat")
+                : "\n" + Loc.Get("Conversion.FilesOnly");
         }
     }
 
     private static string DescribeSources(IReadOnlyList<string> paths)
     {
-        if (paths.Count == 0) return "Nenhum arquivo selecionado.";
+        if (paths.Count == 0) return Loc.Get("Conversion.NoneSelected");
 
         var categories = new List<string>();
         foreach (string path in paths)
@@ -79,21 +80,19 @@ public partial class ConversionWindow : Window
             if (!categories.Contains(name)) categories.Add(name);
         }
 
-        if (paths.Count == 1) return $"Categoria detectada: {categories[0]}";
-        return categories.Count == 1
-            ? $"{paths.Count} arquivos — {categories[0]}"
-            : $"{paths.Count} arquivos — {string.Join(", ", categories)}";
+        if (paths.Count == 1) return Loc.Format("Conversion.CategoryDetected", categories[0]);
+        return Loc.Format("Conversion.FilesWithCategory", paths.Count, string.Join(", ", categories));
     }
 
     private static string GetCategoryName(FileCategory cat) => cat switch
     {
-        FileCategory.Image => "Imagem",
-        FileCategory.Video => "Vídeo",
-        FileCategory.Audio => "Áudio",
-        FileCategory.Document => "Documento",
-        FileCategory.Spreadsheet => "Planilha",
-        FileCategory.Presentation => "Apresentação",
-        _ => "Desconhecido / Não suportado"
+        FileCategory.Image => Loc.Get("Conversion.Category.Image"),
+        FileCategory.Video => Loc.Get("Conversion.Category.Video"),
+        FileCategory.Audio => Loc.Get("Conversion.Category.Audio"),
+        FileCategory.Document => Loc.Get("Conversion.Category.Document"),
+        FileCategory.Spreadsheet => Loc.Get("Conversion.Category.Spreadsheet"),
+        FileCategory.Presentation => Loc.Get("Conversion.Category.Presentation"),
+        _ => Loc.Get("Conversion.Category.Unknown")
     };
 
     private void UpdateBatchNote()
@@ -109,8 +108,8 @@ public partial class ConversionWindow : Window
 
         string target = opt.TargetFormat.ToUpperInvariant();
         TxtBatchNote.Text = already == 1
-            ? $"1 arquivo já está em {target} e será ignorado."
-            : $"{already} arquivos já estão em {target} e serão ignorados.";
+            ? Loc.Format("Conversion.AlreadyInFormatOne", target)
+            : Loc.Format("Conversion.AlreadyInFormatMany", already, target);
         TxtBatchNote.Visibility = Visibility.Visible;
     }
 
@@ -118,7 +117,7 @@ public partial class ConversionWindow : Window
     {
         var dlg = new OpenFolderDialog
         {
-            Title = "Selecionar pasta de destino",
+            Title = Loc.Get("Conversion.PickFolderTitle"),
             InitialDirectory = TxtDestinationDir.Text
         };
 
@@ -135,14 +134,14 @@ public partial class ConversionWindow : Window
         // Pasta digitada pelo usuário: precisa ser absoluta e canônica (sem "..", ADS, nomes reservados).
         if (!TrustedPath.TryGetSafeFullPath(TxtDestinationDir.Text.Trim(), out string outDir) || !Directory.Exists(outDir))
         {
-            Dialogs.Message(this, "Pasta de destino", "A pasta de destino não existe ou é inválida.", DialogIcon.Warning);
+            Dialogs.Message(this, Loc.Get("Conversion.DestinationTitle"), Loc.Get("Conversion.DestinationInvalid"), DialogIcon.Warning);
             return;
         }
 
         if (!ConversionBatch.TryPlan(_sourcePaths, opt.TargetFormat, outDir, out ConversionBatchPlan? plan, out string? error) ||
             plan is null)
         {
-            Dialogs.Message(this, "Conversão", error ?? "Não foi possível preparar a conversão.", DialogIcon.Warning);
+            Dialogs.Message(this, Loc.Get("Conversion.DialogTitle"), error ?? Loc.Get("Conversion.PrepareFailed"), DialogIcon.Warning);
             return;
         }
 

@@ -51,6 +51,11 @@ internal sealed class SettingsStore(string directory, string fileName = "setting
     private const int MinDeadzonePixels = 8;
     private const int MaxDeadzonePixels = 40;
 
+    // Tetos de sanidade para favoriteApps vindos de um settings.json editado à mão.
+    internal const int MaxFavorites = 100;
+    internal const int MaxFavoriteNameLength = 80;
+    internal const int MaxFavoriteArgumentsLength = 2048;
+
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
         WriteIndented = true,
@@ -143,12 +148,13 @@ internal sealed class SettingsStore(string directory, string fileName = "setting
     /// <summary>Remove espaços, linhas sem caminho e duplicatas exatas (caminho + argumentos).</summary>
     private static List<FavoriteAppEntry> NormalizeFavorites(List<FavoriteAppEntry> favorites)
     {
-        var normalized = new List<FavoriteAppEntry>(favorites.Count);
+        var normalized = new List<FavoriteAppEntry>(Math.Min(favorites.Count, MaxFavorites));
         var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
         foreach (FavoriteAppEntry favorite in favorites)
         {
             if (favorite is null) continue;
+            if (normalized.Count >= MaxFavorites) break;
 
             favorite.Name = (favorite.Name ?? "").Trim();
             favorite.ExecutablePath = (favorite.ExecutablePath ?? "").Trim();
@@ -156,17 +162,25 @@ internal sealed class SettingsStore(string directory, string fileName = "setting
             favorite.Glyph = (favorite.Glyph ?? "").Trim();
 
             if (favorite.ExecutablePath.Length == 0) continue;
+            if (favorite.Arguments.Length > MaxFavoriteArgumentsLength) continue;
             if (!seen.Add(favorite.ExecutablePath + "\0" + favorite.Arguments)) continue;
 
+            favorite.Name = Truncate(favorite.Name, MaxFavoriteNameLength);
             normalized.Add(favorite);
         }
 
         int removed = favorites.Count - normalized.Count;
         if (removed > 0)
-            AppLog.Debug("Settings", $"{removed} favorito(s) ignorado(s) na leitura: caminho vazio ou duplicado.");
+            AppLog.Debug("Settings", $"{removed} favorito(s) ignorado(s) na leitura: vazio, duplicado, argumentos longos demais ou acima de {MaxFavorites}.");
 
         return normalized;
     }
+
+    /// <summary>Corta sem partir um par surrogate (emoji/ideograma fora do BMP).</summary>
+    private static string Truncate(string value, int max) =>
+        value.Length <= max ? value
+        : value[max - 1] is >= '\uD800' and <= '\uDBFF' ? value[..(max - 1)]
+        : value[..max];
 
     /// <summary>Normaliza o nome (trim e sem .exe) e remove vazios/duplicatas, preservando o primeiro.</summary>
     private static List<ForegroundBlacklist.BlacklistEntry> NormalizeBlacklist(

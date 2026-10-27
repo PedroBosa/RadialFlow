@@ -238,6 +238,21 @@ public sealed class ConverterInstallerTests : IDisposable
     }
 
     [Fact]
+    public async Task Download_RedirecionadoParaHttp_NaoGravaNada()
+    {
+        string dest = _temp.Combine("x.msi");
+        HttpResponseMessage response = Ok(Content);
+        response.RequestMessage = new HttpRequestMessage(HttpMethod.Get, "http://example.test/pacote/teste-1.0.msi");
+
+        var error = await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            Installer(new FakeHandler(_ => response)).DownloadVerifiedAsync(Package(Content), dest, null, CancellationToken.None));
+
+        Assert.Contains("HTTPS", error.Message);
+        Assert.False(File.Exists(dest));
+        Assert.False(File.Exists(dest + ".partial"));
+    }
+
+    [Fact]
     public async Task Download_SiteRespondeErro_MensagemComOCodigo()
     {
         var error = await Assert.ThrowsAsync<InvalidOperationException>(() =>

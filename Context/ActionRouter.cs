@@ -321,17 +321,16 @@ public static partial class ActionRouter
         if (!Logic.CanRenameTogether(ctx.Paths, out string? reason))
         {
             AppLog.Debug("Action", $"Rename em lote recusado: {reason}");
-            _ui.Invoke(() => Dialogs.Message(null, "Renomear",
-                reason ?? "Não é possível renomear esta seleção de uma vez.", DialogIcon.Warning));
+            _ui.Invoke(() => Dialogs.Message(null, Loc.Get("Common.Rename"),
+                reason ?? Loc.Get("Action.RenameSelectionFailed"), DialogIcon.Warning));
             return;
         }
 
         if (await TryRenameViaShellAsync(ctx.RootWindow, ctx.Paths)) return;
 
         AppLog.Warning("Action", "Rename em lote: o Explorer não aceitou a seleção.");
-        _ui.Invoke(() => Dialogs.Message(null, "Renomear",
-            "Não foi possível preparar a renomeação na janela do Explorer.\n" +
-            "Selecione os arquivos no Explorer e pressione F2. Nada foi renomeado.",
+        _ui.Invoke(() => Dialogs.Message(null, Loc.Get("Common.Rename"),
+            Loc.Get("Action.RenameExplorerFailed"),
             DialogIcon.Warning));
     }
 
@@ -442,7 +441,7 @@ public static partial class ActionRouter
         string? newPath = null;
         int dot = oldName.LastIndexOf('.');
 
-        string? typed = Dialogs.PromptText(null, "Renomear", "Novo nome", oldName,
+        string? typed = Dialogs.PromptText(null, Loc.Get("Common.Rename"), Loc.Get("Action.RenameNewName"), oldName,
             validate: text =>
             {
                 if (!Logic.TryBuildRenameTarget(path, text, out string target, out string? error)) return error;
@@ -451,7 +450,7 @@ public static partial class ActionRouter
             },
             // Seleciona o nome sem a extensão (como o Explorer faz no F2).
             selectLength: dot > 0 ? dot : -1,
-            okText: "Renomear");
+            okText: Loc.Get("Common.Rename"));
 
         if (typed is null || newPath is null) return;
 
@@ -468,7 +467,7 @@ public static partial class ActionRouter
         }
         catch (Exception ex)
         {
-            Dialogs.Message(null, "Não foi possível renomear", ex.Message, DialogIcon.Error);
+            Dialogs.Message(null, Loc.Get("Action.RenameFailedTitle"), ex.Message, DialogIcon.Error);
         }
     }
     /// <summary>
@@ -482,7 +481,7 @@ public static partial class ActionRouter
         // Abre seletor de pasta na thread de UI.
         string? destFolder = _ui.Invoke(() =>
         {
-            var dlg = new Microsoft.Win32.OpenFolderDialog { Title = "Mover para..." };
+            var dlg = new Microsoft.Win32.OpenFolderDialog { Title = Loc.Get("Action.MovePickerTitle") };
             return dlg.ShowDialog() == true ? dlg.FolderName : null;
         });
 
@@ -509,7 +508,7 @@ public static partial class ActionRouter
                         continue;
 
                     case MoveDecision.IntoItself:     // pasta para dentro de si mesma é impossível
-                        _ui.Invoke(() => Dialogs.Message(null, "Mover", $"Não é possível mover '{name}' para dentro dele mesmo.", DialogIcon.Warning));
+                        _ui.Invoke(() => Dialogs.Message(null, Loc.Get("Action.MoveTitle"), Loc.Format("Action.MoveIntoSelf", name), DialogIcon.Warning));
                         continue;
                 }
 
@@ -517,9 +516,9 @@ public static partial class ActionRouter
                 if (plan.Decision == MoveDecision.Conflict)
                 {
                     // 0 = Parar, 1 = Manter os dois, 2 = Substituir (o botão principal é o MENOS destrutivo).
-                    int answer = _ui.Invoke(() => Dialogs.Choose(null, "Mover",
-                        $"'{name}' já existe na pasta de destino. O que fazer?", DialogIcon.Warning,
-                        ["Parar", "Manter os dois", "Substituir"], defaultIndex: 1, cancelIndex: 0));
+                    int answer = _ui.Invoke(() => Dialogs.Choose(null, Loc.Get("Action.MoveTitle"),
+                        Loc.Format("Action.MoveConflict", name), DialogIcon.Warning,
+                        [Loc.Get("Action.MoveStop"), Loc.Get("Action.MoveKeepBoth"), Loc.Get("Action.MoveReplace")], defaultIndex: 1, cancelIndex: 0));
 
                     if (answer == 0) break;
                     if (answer == 1) dest = FileNaming.GetUniquePath(dest);
@@ -532,7 +531,7 @@ public static partial class ActionRouter
             catch (Exception ex)
             {
                 AppLog.Warning("Action", $"Falha ao mover '{src}': {ex.Message}");
-                _ui.Invoke(() => Dialogs.Message(null, "Não foi possível mover",
+                _ui.Invoke(() => Dialogs.Message(null, Loc.Get("Action.MoveFailedTitle"),
                     $"'{Path.GetFileName(src.TrimEnd('\\', '/'))}': {ex.Message}", DialogIcon.Error));
             }
         }
@@ -549,7 +548,7 @@ public static partial class ActionRouter
         if (File.Exists(src))
         {
             if (Directory.Exists(dest))
-                throw new IOException("O destino é uma pasta com o mesmo nome de um arquivo.");
+                throw new IOException(Loc.Get("Action.DestinationIsFolder"));
 
             // File.Move trata outro volume (copia e apaga) e substitui de forma atômica quando possível.
             File.Move(src, dest, overwrite: replace);
@@ -557,7 +556,7 @@ public static partial class ActionRouter
         }
 
         if (File.Exists(dest))
-            throw new IOException("O destino é um arquivo com o mesmo nome de uma pasta.");
+            throw new IOException(Loc.Get("Action.DestinationIsFile"));
 
         string? backup = null;
         try
@@ -643,15 +642,15 @@ public static partial class ActionRouter
         if (plan.Mode == ArchiveMode.Extract)
         {
             string zipFile = plan.Sources[0];
-            RunWithProgress($"Extraindo {Path.GetFileName(zipFile)}...", plan.Output,
+            RunWithProgress(Loc.Format("Action.ExtractTitle", Path.GetFileName(zipFile)), plan.Output,
                 (progress, ct) => CompressionService.DecompressAsync(zipFile, plan.Output, progress, ct),
-                "Extração cancelada pelo usuário.", "Falha ao extrair");
+                Loc.Get("Action.ExtractCancelled"), Loc.Get("Action.ExtractFailed"));
         }
         else
         {
-            RunWithProgress($"Compactando {plan.Sources.Count} item(ns)...", plan.Output,
+            RunWithProgress(Loc.Format("Action.CompressTitle", plan.Sources.Count), plan.Output,
                 (progress, ct) => CompressionService.CompressAsync(plan.Sources, plan.Output, progress, ct),
-                "Compactação cancelada pelo usuário.", "Falha ao compactar");
+                Loc.Get("Action.CompressCancelled"), Loc.Get("Action.CompressFailed"));
         }
 
         return Task.CompletedTask;
@@ -709,8 +708,8 @@ public static partial class ActionRouter
         if (plan.Jobs.Count == 0) return;
 
         string title = plan.Jobs.Count == 1
-            ? $"Convertendo {Path.GetFileName(plan.Jobs[0].Source)}..."
-            : $"Convertendo {plan.Jobs.Count} arquivos...";
+            ? Loc.Format("Action.ConvertOneTitle", Path.GetFileName(plan.Jobs[0].Source))
+            : Loc.Format("Action.ConvertManyTitle", plan.Jobs.Count);
 
         ConversionBatchResult? result = null;
         RunWithProgress(title, plan.Jobs[0].Destination,
@@ -719,7 +718,7 @@ public static partial class ActionRouter
                 result = await ConversionService.ConvertBatchAsync(plan.Jobs, plan.TargetFormat, progress, ct)
                     .ConfigureAwait(false);
             },
-            "Conversão cancelada pelo usuário.", "Falha na conversão",
+            Loc.Get("Action.ConvertCancelled"), Loc.Get("Action.ConvertFailed"),
             completion: () => DescribeBatchResult(result, plan));
     }
 
@@ -729,12 +728,12 @@ public static partial class ActionRouter
         string skipped = plan.Skipped.Count switch
         {
             0 => "",
-            1 => " 1 arquivo já estava no formato.",
-            var count => $" {count} arquivos já estavam no formato.",
+            1 => Loc.Get("Action.SkippedOne"),
+            var count => Loc.Format("Action.SkippedMany", count),
         };
 
         if (result is null)
-            return new CompletionMessage($"Conversão concluída para .{target}.", false);
+            return new CompletionMessage(Loc.Format("Action.ConvertDone", target), false);
 
         foreach (var item in result.Items)
         {
@@ -745,14 +744,14 @@ public static partial class ActionRouter
         if (result.Failed == 0)
         {
             string text = result.Succeeded == 1
-                ? $"Arquivo convertido para .{target}."
-                : $"{result.Succeeded} arquivos convertidos para .{target}.";
+                ? Loc.Format("Action.ConvertedOne", target)
+                : Loc.Format("Action.ConvertedMany", result.Succeeded, target);
             return new CompletionMessage(text + skipped, false);
         }
 
         string summary = result.Succeeded == 0
-            ? $"Nenhum arquivo foi convertido para .{target} ({result.Failed} com erro)."
-            : $"{result.Succeeded} de {plan.Jobs.Count} arquivos convertidos para .{target}; {result.Failed} com erro.";
+            ? Loc.Format("Action.ConvertedNone", target, result.Failed)
+            : Loc.Format("Action.ConvertedPartial", result.Succeeded, plan.Jobs.Count, target, result.Failed);
         return new CompletionMessage(summary + skipped, true);
     }
 
@@ -867,9 +866,9 @@ public static partial class ActionRouter
         if (target.IsDocument)
         {
             // Ação destrutiva: o botão padrão (Enter) é CANCELAR.
-            bool confirmed = _ui.Invoke(() => Dialogs.Confirm(null, "Limpar documento",
-                "Apagar TODO o conteúdo deste documento?\n(Ctrl+Z desfaz na maioria dos aplicativos.)",
-                confirmText: "Apagar tudo", cancelText: "Cancelar", icon: DialogIcon.Warning, defaultIsConfirm: false));
+            bool confirmed = _ui.Invoke(() => Dialogs.Confirm(null, Loc.Get("Action.ClearDocumentTitle"),
+                Loc.Get("Action.ClearDocumentMessage"),
+                confirmText: Loc.Get("Action.ClearAll"), cancelText: Loc.Get("Common.Cancel"), icon: DialogIcon.Warning, defaultIsConfirm: false));
 
             if (!confirmed) return;
 
@@ -974,7 +973,7 @@ public static partial class ActionRouter
     {
         var popup = new Window
         {
-            Title = "RadialFlow — Apps favoritos",
+            Title = Loc.Get("Action.FavoritesPickerTitle"),
             Width = 260,
             SizeToContent = SizeToContent.Height,
             WindowStyle = WindowStyle.None,
@@ -992,7 +991,7 @@ public static partial class ActionRouter
         var list = new StackPanel();
         var title = new TextBlock
         {
-            Text = "APPS FAVORITOS", FontSize = 11, FontWeight = FontWeights.SemiBold,
+            Text = Loc.Get("Action.FavoritesHeader"), FontSize = 11, FontWeight = FontWeights.SemiBold,
             Margin = new Thickness(10, 2, 10, 8)
         };
         title.SetResourceReference(TextBlock.ForegroundProperty, "TextDimBrush");

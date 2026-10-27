@@ -15,6 +15,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using RadialFlow.Infrastructure;
 using RadialFlow.Security;
 
 namespace RadialFlow.Services;
@@ -124,19 +125,19 @@ internal static class ConversionBatch
         string target = ConversionFormats.NormalizeFormat(targetFormat);
         if (!IsSafeFormatToken(target))
         {
-            error = "Formato de destino inválido.";
+            error = Loc.Get("Conversion.InvalidFormat");
             return false;
         }
 
         if (sourcePaths is null || sourcePaths.Count == 0)
         {
-            error = "Nenhum arquivo selecionado.";
+            error = Loc.Get("Conversion.NoneSelected");
             return false;
         }
 
         if (sourcePaths.Count > MaxFiles)
         {
-            error = $"Seleção grande demais ({sourcePaths.Count} arquivos).";
+            error = Loc.Format("Conversion.TooManyFiles", sourcePaths.Count);
             return false;
         }
 
@@ -146,7 +147,7 @@ internal static class ConversionBatch
             if (!TrustedPath.TryGetSafeFullPath(destinationFolder, out string safeFolder) ||
                 !Directory.Exists(safeFolder))
             {
-                error = "A pasta de destino não existe ou é inválida.";
+                error = Loc.Get("Conversion.DestinationInvalid");
                 return false;
             }
 
@@ -162,7 +163,7 @@ internal static class ConversionBatch
         {
             if (!TrustedPath.TryGetSafeFullPath(path, out string source) || !File.Exists(source))
             {
-                error = $"Arquivo inválido ou inexistente: '{path}'.";
+                error = Loc.Format("Conversion.InvalidFile", path);
                 return false;
             }
 
@@ -178,7 +179,7 @@ internal static class ConversionBatch
             string? outputFolder = folder ?? Path.GetDirectoryName(source);
             if (outputFolder is null)
             {
-                error = $"Não foi possível montar o destino de '{Path.GetFileName(source)}'.";
+                error = Loc.Format("Conversion.DestinationBuildFailed", Path.GetFileName(source));
                 return false;
             }
 
@@ -187,7 +188,7 @@ internal static class ConversionBatch
 
             if (!FileNaming.TryGetUniquePath(Path.Combine(outputFolder, $"{baseName}.{target}"), reserved, out string destination))
             {
-                error = $"Não foi possível montar o destino de '{Path.GetFileName(source)}'.";
+                error = Loc.Format("Conversion.DestinationBuildFailed", Path.GetFileName(source));
                 return false;
             }
 
@@ -196,7 +197,7 @@ internal static class ConversionBatch
 
         if (jobs.Count == 0)
         {
-            error = $"Todos os arquivos selecionados já estão em .{target}.";
+            error = Loc.Format("Conversion.AllAlreadyInFormat", target);
             return false;
         }
 

@@ -367,6 +367,52 @@ public sealed class SettingsStoreTests : IDisposable
     }
 
     [Fact]
+    public void Normalize_Favoritos_AcimaDoLimite_MantemOsPrimeiros()
+    {
+        var settings = new AppSettings
+        {
+            FavoriteApps = Enumerable.Range(0, SettingsStore.MaxFavorites + 20)
+                .Select(i => new FavoriteAppEntry($"App {i}", $@"C:\Apps\app{i}.exe"))
+                .ToList()
+        };
+
+        SettingsStore.Normalize(settings);
+
+        Assert.Equal(SettingsStore.MaxFavorites, settings.FavoriteApps.Count);
+        Assert.Equal("App 0", settings.FavoriteApps[0].Name);
+        Assert.Equal($"App {SettingsStore.MaxFavorites - 1}", settings.FavoriteApps[^1].Name);
+    }
+
+    [Fact]
+    public void Normalize_Favoritos_NomeLongo_CortaSemPartirEmoji()
+    {
+        string longName = new string('A', SettingsStore.MaxFavoriteNameLength - 1) + "😀" + new string('B', 50);
+        var settings = new AppSettings { FavoriteApps = [new FavoriteAppEntry(longName, @"C:\a.exe")] };
+
+        SettingsStore.Normalize(settings);
+
+        FavoriteAppEntry favorite = Assert.Single(settings.FavoriteApps);
+        Assert.Equal(new string('A', SettingsStore.MaxFavoriteNameLength - 1), favorite.Name);
+    }
+
+    [Fact]
+    public void Normalize_Favoritos_ArgumentosAbsurdos_SaoDescartados()
+    {
+        var settings = new AppSettings
+        {
+            FavoriteApps =
+            [
+                new FavoriteAppEntry("Ok", @"C:\ok.exe"),
+                new FavoriteAppEntry("Longo", @"C:\longo.exe", new string('x', SettingsStore.MaxFavoriteArgumentsLength + 1))
+            ]
+        };
+
+        SettingsStore.Normalize(settings);
+
+        Assert.Equal("Ok", Assert.Single(settings.FavoriteApps).Name);
+    }
+
+    [Fact]
     public void Normalize_DuasVezes_NaoMudaNada()
     {
         var settings = new AppSettings
