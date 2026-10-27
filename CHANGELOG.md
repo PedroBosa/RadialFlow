@@ -2,7 +2,7 @@
 
 Cada versão, da mais nova para a mais antiga. O número da versão está em `RadialFlow.csproj`.
 
-## Não lançado
+## 1.4.0 — 27/10/2026
 
 ### Novo
 
@@ -16,6 +16,16 @@ Cada versão, da mais nova para a mais antiga. O número da versão está em `Ra
     aparecem no próprio cartão e o arquivo só é gravado quando o registro é aceito.
   - O atalho é só um gatilho local (`RegisterHotKey`), com uma janela receptora invisível; ele não instala nenhum
     hook de teclado nem lê teclas fora da combinação registrada.
+
+### Melhorias
+
+- **Janelas no mesmo visual da roda.** Configurações, editores, diálogos, conversão e progresso usam os mesmos
+  cartões, cantos arredondados e destaques da roda, com textos secundários legíveis nos temas claro e escuro.
+- **Fundo desfocado nas janelas transitórias.** Diálogos, conversão e progresso mostram um vidro fosco do que está
+  atrás da janela, no mesmo tema da roda. Em **Alto contraste**, com a janela fora da tela ou se a captura falhar,
+  a superfície fica opaca — a leitura não depende do desfoque.
+- **Movimento curto nos controles.** Botões, chave liga/desliga e a entrada dos painéis ganham transições de 110 ms;
+  a entrada dos painéis respeita a opção de animações do Windows.
 
 ## 1.3.0 — 27/10/2026
 
