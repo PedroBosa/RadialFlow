@@ -26,6 +26,8 @@ internal sealed record UiPalette(
     Color SurfaceAlt,     // cabeçalho e rodapé
     Color Card,
     Color CardBorder,
+    Color CardTop,        // topo do gradiente do cartão
+    Color CardEdge,       // fio de luz na borda superior do cartão
     Color Text,
     Color TextDim,
     Color Control,        // botões secundários, campos
@@ -38,6 +40,10 @@ internal sealed record UiPalette(
     Color AccentInk,      // texto sobre o destaque
     Color AccentText,     // destaque usado COMO TEXTO (garante contraste sobre Card)
     Color AccentSoft,     // véu do destaque (item selecionado)
+    Color AccentLine,     // contorno suave do destaque
+    Color AccentHalo,     // anel de foco/seleção
+    Color AccentGlow,     // brilho do botão principal
+    Color Gloss,          // realce interno branco translúcido
     Color Danger,
     Color Warning,
     Color WarningInk)
@@ -45,6 +51,8 @@ internal sealed record UiPalette(
     public static UiPalette Create(RadialTheme theme)
     {
         bool light = theme.IsLight;
+
+        static Color Alpha(Color color, byte alpha) => Color.FromArgb(alpha, color.R, color.G, color.B);
 
         Color surface = light ? Color.FromRgb(0xF2, 0xF4, 0xF8) : Color.FromRgb(0x12, 0x15, 0x1D);
         Color card = light ? Colors.White : Color.FromRgb(0x1A, 0x1F, 0x2B);
@@ -56,12 +64,16 @@ internal sealed record UiPalette(
         Color accent = ColorMath.FromHsl(ColorMath.ToHsl(theme.HoverTop).H, ColorMath.ToHsl(theme.HoverTop).S,
             (ColorMath.ToHsl(theme.HoverTop).L + ColorMath.ToHsl(theme.HoverBottom).L) / 2);
 
+        Color accentSoft = Color.FromArgb(light ? (byte)0x26 : (byte)0x3A, theme.Glow.R, theme.Glow.G, theme.Glow.B);
+
         return new UiPalette(
             IsLight: light,
             Surface: surface,
             SurfaceAlt: light ? Color.FromRgb(0xE8, 0xEC, 0xF3) : Color.FromRgb(0x16, 0x1A, 0x24),
             Card: card,
             CardBorder: light ? Color.FromRgb(0xDD, 0xE2, 0xEC) : Color.FromRgb(0x2A, 0x31, 0x42),
+            CardTop: light ? Colors.White : Color.FromRgb(0x20, 0x27, 0x37),
+            CardEdge: Color.FromArgb(light ? (byte)0xF2 : (byte)0x2E, 0xFF, 0xFF, 0xFF),
             Text: light ? Color.FromRgb(0x1B, 0x22, 0x30) : Color.FromRgb(0xF3, 0xF6, 0xFB),
             TextDim: light ? Color.FromRgb(0x5B, 0x65, 0x78) : Color.FromRgb(0xA9, 0xB3, 0xC6),
             Control: light ? Color.FromRgb(0xEE, 0xF1, 0xF7) : Color.FromRgb(0x23, 0x29, 0x39),
@@ -73,7 +85,11 @@ internal sealed record UiPalette(
             AccentPressed: theme.HoverBottom,
             AccentInk: theme.HoverInk,
             AccentText: accentText,
-            AccentSoft: Color.FromArgb(light ? (byte)0x26 : (byte)0x3A, theme.Glow.R, theme.Glow.G, theme.Glow.B),
+            AccentSoft: accentSoft,
+            AccentLine: Alpha(theme.Glow, light ? (byte)0x4D : (byte)0x61),
+            AccentHalo: Alpha(theme.Glow, light ? (byte)0x1A : (byte)0x26),
+            AccentGlow: Alpha(theme.Glow, light ? (byte)0x4D : (byte)0x8C),
+            Gloss: Color.FromArgb(0x3D, 0xFF, 0xFF, 0xFF),
             Danger: light ? Color.FromRgb(0xC4, 0x2B, 0x38) : Color.FromRgb(0xFF, 0x7B, 0x86),
             Warning: Color.FromRgb(0xF5, 0xA5, 0x24),
             WarningInk: Color.FromRgb(0x1F, 0x16, 0x05));
@@ -86,6 +102,8 @@ internal sealed record UiPalette(
         yield return ("SurfaceAlt", SurfaceAlt);
         yield return ("Card", Card);
         yield return ("CardBorder", CardBorder);
+        yield return ("CardTop", CardTop);
+        yield return ("CardEdge", CardEdge);
         yield return ("Text", Text);
         yield return ("TextDim", TextDim);
         yield return ("Control", Control);
@@ -98,6 +116,10 @@ internal sealed record UiPalette(
         yield return ("AccentInk", AccentInk);
         yield return ("AccentText", AccentText);
         yield return ("AccentSoft", AccentSoft);
+        yield return ("AccentLine", AccentLine);
+        yield return ("AccentHalo", AccentHalo);
+        yield return ("AccentGlow", AccentGlow);
+        yield return ("Gloss", Gloss);
         yield return ("Danger", Danger);
         yield return ("Warning", Warning);
         yield return ("WarningInk", WarningInk);
@@ -107,6 +129,15 @@ internal sealed record UiPalette(
 internal static class UiTheme
 {
     private const string BrushDictionaryTag = "RadialFlow.Brushes";
+
+    /// <summary>Pincéis compostos (gradientes) criados em FillBrushes e recriados no Refresh.</summary>
+    internal static readonly string[] GradientBrushKeys =
+    [
+        "CardSurfaceBrush",
+        "CardEdgeBrush",
+        "AccentGradientBrush",
+        "AccentFillBrush"
+    ];
 
     /// <summary>Tema atual: claro/escuro do Windows + cor de destaque escolhida nas configurações.</summary>
     public static RadialTheme CurrentTheme()
@@ -154,6 +185,27 @@ internal static class UiTheme
             dictionary[key + "Brush"] = new SolidColorBrush(color);
             dictionary[key + "Color"] = color;
         }
+
+        dictionary["CardSurfaceBrush"] = Freeze(new LinearGradientBrush(palette.CardTop, palette.Card, 90));
+        dictionary["CardEdgeBrush"] = Freeze(new LinearGradientBrush
+        {
+            StartPoint = new Point(0, 0),
+            EndPoint = new Point(0, 1),
+            GradientStops =
+            {
+                new GradientStop(palette.CardEdge, 0),
+                new GradientStop(palette.CardBorder, 0.3),
+                new GradientStop(palette.CardBorder, 1)
+            }
+        });
+        dictionary["AccentGradientBrush"] = Freeze(new LinearGradientBrush(palette.AccentHover, palette.AccentPressed, 90));
+        dictionary["AccentFillBrush"] = Freeze(new LinearGradientBrush(palette.AccentPressed, palette.AccentHover, 0));
+    }
+
+    private static T Freeze<T>(T value) where T : Freezable
+    {
+        value.Freeze();
+        return value;
     }
 
     // ------------------------------------------------------------------

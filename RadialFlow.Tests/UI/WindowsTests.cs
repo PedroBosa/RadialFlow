@@ -282,8 +282,11 @@ public sealed class WindowsTests : IDisposable
             UiTheme.Refresh(window, RadialTheme.Create(light: false, RadialTheme.ResolveAccent("Orange")));
 
             Color after = ((SolidColorBrush)window.FindResource("AccentBrush")).Color;
+            var gradient = Assert.IsType<LinearGradientBrush>(window.FindResource("AccentGradientBrush"));
             Assert.NotEqual(before, after);
             Assert.True(after.R > after.B, "laranja deveria ter mais vermelho que azul");
+            Assert.True(gradient.GradientStops[0].Color.R > gradient.GradientStops[0].Color.B,
+                "o gradiente também deveria acompanhar o novo destaque");
             window.Close();
         });
     }
@@ -300,10 +303,13 @@ public sealed class WindowsTests : IDisposable
 
             Assert.True(ColorMath.Contrast(p.Text, p.Surface) >= 7, $"{key}: texto/janela");
             Assert.True(ColorMath.Contrast(p.Text, p.Card) >= 7, $"{key}: texto/cartão");
+            Assert.True(ColorMath.Contrast(p.Text, p.CardTop) >= 7, $"{key}: texto/topo do cartão");
             Assert.True(ColorMath.Contrast(p.TextDim, p.Card) >= RadialTheme.MinTextContrast, $"{key}: texto secundário/cartão");
             Assert.True(ColorMath.Contrast(p.TextDim, p.Surface) >= RadialTheme.MinTextContrast, $"{key}: texto secundário/janela");
             Assert.True(ColorMath.Contrast(p.AccentText, p.Card) >= RadialTheme.MinTextContrast, $"{key}: valor em destaque/cartão");
             Assert.True(ColorMath.Contrast(p.AccentInk, p.Accent) >= RadialTheme.MinTextContrast, $"{key}: texto do botão principal");
+            Assert.True(ColorMath.Contrast(p.AccentInk, p.AccentHover) >= RadialTheme.MinTextContrast, $"{key}: texto no topo do gradiente");
+            Assert.True(ColorMath.Contrast(p.AccentInk, p.AccentPressed) >= RadialTheme.MinTextContrast, $"{key}: texto na base do gradiente");
             Assert.True(ColorMath.Contrast(p.Text, p.Control) >= RadialTheme.MinTextContrast, $"{key}: texto do botão");
             Assert.True(ColorMath.Contrast(p.Danger, p.Surface) >= 3, $"{key}: cor de erro");
         }
@@ -313,7 +319,8 @@ public sealed class WindowsTests : IDisposable
     public void Paleta_ExportaTodasAsChavesUsadasPeloEstilo()
     {
         string xaml = System.IO.File.ReadAllText(System.IO.Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "UI", "Theme", "Controls.xaml"));
-        var keys = UiPalette.Create(RadialTheme.Create(false, Colors.CornflowerBlue)).Entries().Select(e => e.Key + "Brush").ToHashSet();
+        var keys = UiPalette.Create(RadialTheme.Create(false, Colors.CornflowerBlue)).Entries().Select(e => e.Key + "Brush")
+            .Concat(UiTheme.GradientBrushKeys).ToHashSet();
 
         // Todo {DynamicResource XxxBrush} citado no estilo precisa existir na paleta.
         var used = System.Text.RegularExpressions.Regex.Matches(xaml, @"DynamicResource (\w+Brush)\}")

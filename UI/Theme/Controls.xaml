@@ -35,12 +35,42 @@
 
     <!-- ================= Cartão ================= -->
     <Style x:Key="Card" TargetType="Border">
-        <Setter Property="Background" Value="{DynamicResource CardBrush}"/>
-        <Setter Property="BorderBrush" Value="{DynamicResource CardBorderBrush}"/>
+        <Setter Property="Background" Value="{DynamicResource CardSurfaceBrush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource CardEdgeBrush}"/>
         <Setter Property="BorderThickness" Value="1"/>
-        <Setter Property="CornerRadius" Value="12"/>
+        <Setter Property="CornerRadius" Value="14"/>
         <Setter Property="Padding" Value="18,16"/>
         <Setter Property="Margin" Value="0,0,0,12"/>
+    </Style>
+
+    <!-- Selo circular do hub: mesmo vocabulário da roda, sem material translúcido. -->
+    <Style x:Key="IconBadge" TargetType="Border">
+        <Setter Property="Width" Value="40"/>
+        <Setter Property="Height" Value="40"/>
+        <Setter Property="CornerRadius" Value="20"/>
+        <Setter Property="Background" Value="{DynamicResource AccentSoftBrush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource AccentLineBrush}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+    </Style>
+
+    <Style x:Key="IconGlyph" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{StaticResource IconFont}"/>
+        <Setter Property="FontSize" Value="17"/>
+        <Setter Property="Foreground" Value="{DynamicResource AccentTextBrush}"/>
+        <Setter Property="HorizontalAlignment" Value="Center"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+    </Style>
+
+    <!-- Valor em pílula: mesmo véu do item selecionado, com contorno de destaque. -->
+    <Style x:Key="ValuePill" TargetType="Border">
+        <Setter Property="Background" Value="{DynamicResource AccentSoftBrush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource AccentLineBrush}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="CornerRadius" Value="999"/>
+        <Setter Property="Padding" Value="10,3"/>
+        <Setter Property="MinWidth" Value="52"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
     </Style>
 
     <!-- ================= Botões ================= -->
@@ -58,20 +88,24 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="Button">
-                    <Border x:Name="bd" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
-                            BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="8" Padding="{TemplateBinding Padding}">
-                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" TextElement.Foreground="{TemplateBinding Foreground}"/>
-                    </Border>
+                    <Grid>
+                        <Border x:Name="focusRing" Margin="-4" CornerRadius="14" BorderThickness="2"
+                                BorderBrush="{DynamicResource AccentTextBrush}" Opacity="0" IsHitTestVisible="False"/>
+                        <Border x:Name="bd" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="10" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" TextElement.Foreground="{TemplateBinding Foreground}"/>
+                        </Border>
+                    </Grid>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
                             <Setter TargetName="bd" Property="Background" Value="{DynamicResource ControlHoverBrush}"/>
-                            <Setter TargetName="bd" Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+                            <Setter TargetName="bd" Property="BorderBrush" Value="{DynamicResource AccentLineBrush}"/>
                         </Trigger>
                         <Trigger Property="IsPressed" Value="True">
                             <Setter TargetName="bd" Property="Opacity" Value="0.82"/>
                         </Trigger>
                         <Trigger Property="IsKeyboardFocused" Value="True">
-                            <Setter TargetName="bd" Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+                            <Setter TargetName="focusRing" Property="Opacity" Value="1"/>
                         </Trigger>
                         <Trigger Property="IsEnabled" Value="False">
                             <Setter TargetName="bd" Property="Opacity" Value="0.45"/>
@@ -83,24 +117,47 @@
     </Style>
 
     <Style x:Key="PrimaryButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
-        <Setter Property="Background" Value="{DynamicResource AccentBrush}"/>
+        <Setter Property="Background" Value="{DynamicResource AccentGradientBrush}"/>
         <Setter Property="Foreground" Value="{DynamicResource AccentInkBrush}"/>
         <Setter Property="BorderBrush" Value="Transparent"/>
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="Button">
-                    <Border x:Name="bd" Background="{TemplateBinding Background}" CornerRadius="8" Padding="{TemplateBinding Padding}">
-                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" TextElement.Foreground="{TemplateBinding Foreground}"/>
-                    </Border>
+                    <Grid>
+                        <Border x:Name="focusRing" Margin="-5" CornerRadius="15" BorderThickness="2"
+                                BorderBrush="{DynamicResource AccentTextBrush}" Opacity="0" IsHitTestVisible="False"/>
+                        <Border x:Name="glow" Background="{DynamicResource AccentGlowBrush}" CornerRadius="10"
+                                Opacity="0.8" IsHitTestVisible="False">
+                            <Border.Effect>
+                                <BlurEffect Radius="16" RenderingBias="Performance"/>
+                            </Border.Effect>
+                        </Border>
+                        <Border x:Name="bd" Background="{DynamicResource AccentGradientBrush}" CornerRadius="10">
+                            <Grid>
+                                <Border x:Name="wash" Background="White" Opacity="0" IsHitTestVisible="False"/>
+                                <Border Height="1" Margin="1,1,1,0" VerticalAlignment="Top"
+                                        Background="{DynamicResource GlossBrush}" IsHitTestVisible="False"/>
+                                <ContentPresenter Margin="{TemplateBinding Padding}" HorizontalAlignment="Center"
+                                                  VerticalAlignment="Center" TextElement.Foreground="{TemplateBinding Foreground}"/>
+                            </Grid>
+                        </Border>
+                    </Grid>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="bd" Property="Background" Value="{DynamicResource AccentHoverBrush}"/>
+                            <Setter TargetName="wash" Property="Opacity" Value="0.09"/>
+                            <Setter TargetName="glow" Property="Opacity" Value="1"/>
                         </Trigger>
                         <Trigger Property="IsPressed" Value="True">
-                            <Setter TargetName="bd" Property="Background" Value="{DynamicResource AccentPressedBrush}"/>
+                            <Setter TargetName="bd" Property="Opacity" Value="0.92"/>
+                            <Setter TargetName="glow" Property="Opacity" Value="0.35"/>
+                            <Setter TargetName="wash" Property="Opacity" Value="0.03"/>
+                        </Trigger>
+                        <Trigger Property="IsKeyboardFocused" Value="True">
+                            <Setter TargetName="focusRing" Property="Opacity" Value="1"/>
                         </Trigger>
                         <Trigger Property="IsEnabled" Value="False">
                             <Setter TargetName="bd" Property="Opacity" Value="0.45"/>
+                            <Setter TargetName="glow" Property="Opacity" Value="0"/>
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
@@ -120,18 +177,22 @@
                 <ControlTemplate TargetType="CheckBox">
                     <StackPanel Orientation="Horizontal" Background="Transparent">
                         <Grid Width="42" Height="24" VerticalAlignment="Center">
+                            <Border x:Name="halo" Margin="-3" CornerRadius="15" Background="{DynamicResource AccentHaloBrush}" Opacity="0"/>
                             <Border x:Name="track" CornerRadius="12" Background="{DynamicResource TrackBrush}"/>
                             <Ellipse x:Name="knob" Width="16" Height="16" Fill="White" HorizontalAlignment="Left" Margin="4,0,0,0">
                                 <Ellipse.Effect>
                                     <DropShadowEffect BlurRadius="4" ShadowDepth="1" Opacity="0.35" Color="Black"/>
                                 </Ellipse.Effect>
                             </Ellipse>
+                            <Border x:Name="focusRing" Margin="-4" CornerRadius="16" BorderThickness="2"
+                                    BorderBrush="{DynamicResource AccentTextBrush}" Opacity="0" IsHitTestVisible="False"/>
                         </Grid>
                         <ContentPresenter Margin="12,0,0,0" VerticalAlignment="Center" RecognizesAccessKey="True"/>
                     </StackPanel>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsChecked" Value="True">
-                            <Setter TargetName="track" Property="Background" Value="{DynamicResource AccentBrush}"/>
+                            <Setter TargetName="track" Property="Background" Value="{DynamicResource AccentGradientBrush}"/>
+                            <Setter TargetName="halo" Property="Opacity" Value="1"/>
                             <Trigger.EnterActions>
                                 <BeginStoryboard>
                                     <Storyboard>
@@ -154,6 +215,9 @@
                         <Trigger Property="IsMouseOver" Value="True">
                             <Setter TargetName="track" Property="Opacity" Value="0.88"/>
                         </Trigger>
+                        <Trigger Property="IsKeyboardFocused" Value="True">
+                            <Setter TargetName="focusRing" Property="Opacity" Value="1"/>
+                        </Trigger>
                         <Trigger Property="IsEnabled" Value="False">
                             <Setter Property="Opacity" Value="0.5"/>
                         </Trigger>
@@ -170,11 +234,14 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="Thumb">
-                    <Ellipse x:Name="e" Fill="White" Stroke="{DynamicResource AccentBrush}" StrokeThickness="3">
-                        <Ellipse.Effect>
-                            <DropShadowEffect BlurRadius="6" ShadowDepth="1" Opacity="0.35" Color="Black"/>
-                        </Ellipse.Effect>
-                    </Ellipse>
+                    <Grid Background="Transparent">
+                        <Ellipse Width="26" Height="26" Fill="{DynamicResource AccentHaloBrush}"/>
+                        <Ellipse x:Name="e" Width="20" Height="20" Fill="White" Stroke="{DynamicResource AccentBrush}" StrokeThickness="3">
+                            <Ellipse.Effect>
+                                <DropShadowEffect BlurRadius="6" ShadowDepth="1" Opacity="0.35" Color="Black"/>
+                            </Ellipse.Effect>
+                        </Ellipse>
+                    </Grid>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
                             <Setter TargetName="e" Property="StrokeThickness" Value="5"/>
@@ -200,6 +267,18 @@
         </Setter>
     </Style>
 
+    <Style x:Key="SliderFill" TargetType="RepeatButton">
+        <Setter Property="Focusable" Value="False"/>
+        <Setter Property="IsTabStop" Value="False"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="RepeatButton">
+                    <Border Height="5" CornerRadius="2.5" VerticalAlignment="Center" Background="{DynamicResource AccentFillBrush}"/>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
     <Style TargetType="Slider">
         <Setter Property="MinHeight" Value="24"/>
         <Setter Property="Focusable" Value="True"/>
@@ -208,10 +287,12 @@
             <Setter.Value>
                 <ControlTemplate TargetType="Slider">
                     <Grid VerticalAlignment="Center" Height="24">
+                        <Border x:Name="focusRing" Height="20" CornerRadius="10" BorderThickness="2"
+                                BorderBrush="{DynamicResource AccentTextBrush}" Opacity="0" IsHitTestVisible="False"/>
                         <Border Height="5" CornerRadius="2.5" Background="{DynamicResource TrackBrush}" VerticalAlignment="Center"/>
                         <Track x:Name="PART_Track">
                             <Track.DecreaseRepeatButton>
-                                <RepeatButton Command="Slider.DecreaseLarge" Style="{StaticResource SliderRepeat}"/>
+                                <RepeatButton Command="Slider.DecreaseLarge" Style="{StaticResource SliderFill}"/>
                             </Track.DecreaseRepeatButton>
                             <Track.IncreaseRepeatButton>
                                 <RepeatButton Command="Slider.IncreaseLarge" Style="{StaticResource SliderRepeat}"/>
@@ -221,6 +302,11 @@
                             </Track.Thumb>
                         </Track>
                     </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsKeyboardFocused" Value="True">
+                            <Setter TargetName="focusRing" Property="Opacity" Value="1"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
@@ -242,13 +328,18 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="TextBox">
-                    <Border x:Name="bd" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
-                            BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="8">
-                        <ScrollViewer x:Name="PART_ContentHost" Margin="{TemplateBinding Padding}" VerticalAlignment="Center"/>
-                    </Border>
+                    <Grid>
+                        <Border x:Name="focusRing" Margin="-3" CornerRadius="13" BorderThickness="2"
+                                BorderBrush="{DynamicResource AccentTextBrush}" Opacity="0" IsHitTestVisible="False"/>
+                        <Border x:Name="bd" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="10">
+                            <ScrollViewer x:Name="PART_ContentHost" Margin="{TemplateBinding Padding}" VerticalAlignment="Center"/>
+                        </Border>
+                    </Grid>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsKeyboardFocused" Value="True">
                             <Setter TargetName="bd" Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+                            <Setter TargetName="focusRing" Property="Opacity" Value="1"/>
                         </Trigger>
                         <Trigger Property="IsEnabled" Value="False">
                             <Setter TargetName="bd" Property="Opacity" Value="0.5"/>
@@ -267,7 +358,7 @@
             <Setter.Value>
                 <ControlTemplate TargetType="ToggleButton">
                     <Border x:Name="bd" Background="{DynamicResource ControlBrush}" BorderBrush="{DynamicResource ControlBorderBrush}"
-                            BorderThickness="1" CornerRadius="8">
+                            BorderThickness="1" CornerRadius="10">
                         <TextBlock Text="&#xE70D;" FontFamily="{StaticResource IconFont}" FontSize="10" HorizontalAlignment="Right"
                                    VerticalAlignment="Center" Margin="0,0,12,0" Foreground="{DynamicResource TextDimBrush}"/>
                     </Border>
@@ -317,6 +408,8 @@
             <Setter.Value>
                 <ControlTemplate TargetType="ComboBox">
                     <Grid>
+                        <Border x:Name="focusRing" Margin="-3" CornerRadius="13" BorderThickness="2"
+                                BorderBrush="{DynamicResource AccentTextBrush}" Opacity="0" IsHitTestVisible="False"/>
                         <ToggleButton Style="{StaticResource ComboToggle}"
                                       IsChecked="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}"/>
                         <ContentPresenter Margin="12,0,32,0" VerticalAlignment="Center" IsHitTestVisible="False"
@@ -329,7 +422,7 @@
                                AllowsTransparency="True" Focusable="False" PopupAnimation="Fade" VerticalOffset="4">
                             <Border MinWidth="{TemplateBinding ActualWidth}" MaxHeight="280" Margin="0,0,14,14" Padding="3"
                                     Background="{DynamicResource CardBrush}" BorderBrush="{DynamicResource CardBorderBrush}"
-                                    BorderThickness="1" CornerRadius="10">
+                                    BorderThickness="1" CornerRadius="12">
                                 <Border.Effect>
                                     <DropShadowEffect BlurRadius="14" ShadowDepth="3" Opacity="0.35" Color="Black"/>
                                 </Border.Effect>
@@ -339,6 +432,11 @@
                             </Border>
                         </Popup>
                     </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsKeyboardFocusWithin" Value="True">
+                            <Setter TargetName="focusRing" Property="Opacity" Value="1"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
@@ -648,12 +746,14 @@
                         <Border Background="{DynamicResource TrackBrush}" CornerRadius="4"/>
                         <Border x:Name="PART_Track">
                             <Border x:Name="PART_Indicator" HorizontalAlignment="Left" CornerRadius="4"
-                                    Background="{TemplateBinding Foreground}"/>
+                                    Background="{DynamicResource AccentGradientBrush}">
+                                <Border Height="1" Margin="1,1,1,0" VerticalAlignment="Top"
+                                        Background="{DynamicResource GlossBrush}" IsHitTestVisible="False"/>
+                            </Border>
                         </Border>
                     </Grid>
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
-        <Setter Property="Foreground" Value="{DynamicResource AccentBrush}"/>
     </Style>
 </ResourceDictionary>
