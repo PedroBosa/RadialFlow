@@ -105,6 +105,90 @@ public static class ConversionService
         }).ConfigureAwait(false);
     }
 
+    /// <summary>
+    /// Converte os arquivos em sequência, um de cada vez. Uma falha (formato, ferramenta, arquivo preso)
+    /// é registrada e a fila continua; cancelamento interrompe tudo. O progresso de cada arquivo é
+    /// escalonado para a barra única (0–100% do lote).
+    /// </summary>
+    internal static async Task<ConversionBatchResult> ConvertBatchAsync(
+        IReadOnlyList<ConversionJob> jobs,
+        string targetFormat,
+        IProgress<ProgressReport>? progress,
+        CancellationToken cancellationToken = default)
+    {
+        var items = new List<ConversionBatchItem>(jobs.Count);
+        int total = jobs.Count;
+        if (total == 0)
+        {
+            progress?.Report(new ProgressReport(100.0, "Nenhum arquivo para converter."));
+            return new ConversionBatchResult(items);
+        }
+
+        double span = 100.0 / total;
+
+        for (int i = 0; i < total; i++)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            ConversionJob job = jobs[i];
+            string name = Path.GetFileName(job.Source);
+            IProgress<ProgressReport>? itemProgress = progress is null
+                ? null
+                : new BatchProgress(progress, span * i, span, i + 1, total);
+
+            try
+            {
+                await ConvertAsync(job.Source, targetFormat, job.Destination, itemProgress, cancellationToken)
+                    .ConfigureAwait(false);
+                items.Add(new ConversionBatchItem(job.Source, job.Destination, true, null));
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                items.Add(new ConversionBatchItem(job.Source, job.Destination, false, ex.Message));
+                progress?.Report(new ProgressReport(span * (i + 1), $"({i + 1}/{total}) Falha em {name}. Continuando..."));
+            }
+        }
+
+        int succeeded = items.Count(item => item.Success);
+        int failed = total - succeeded;
+        string summary = failed == 0
+            ? $"Conversão concluída: {succeeded} arquivo(s)."
+            : $"{succeeded} de {total} arquivos convertidos; {failed} com erro.";
+        progress?.Report(new ProgressReport(100.0, summary));
+
+        return new ConversionBatchResult(items);
+    }
+
+    /// <summary>Mapeia 0–100% de um arquivo para a faixa dele na barra do lote e identifica a posição.</summary>
+    private sealed class BatchProgress : IProgress<ProgressReport>
+    {
+        private readonly IProgress<ProgressReport> _inner;
+        private readonly double _start;
+        private readonly double _span;
+        private readonly int _index;
+        private readonly int _total;
+
+        public BatchProgress(IProgress<ProgressReport> inner, double start, double span, int index, int total)
+        {
+            _inner = inner;
+            _start = start;
+            _span = span;
+            _index = index;
+            _total = total;
+        }
+
+        public void Report(ProgressReport value)
+        {
+            double local = Math.Clamp(value.Percentage, 0.0, 100.0);
+            double overall = _start + local * _span / 100.0;
+            _inner.Report(new ProgressReport(overall, $"({_index}/{_total}) {value.StatusText}"));
+        }
+    }
+
     private static string RequireTool(string? path, string toolName) =>
         path ?? throw new FileNotFoundException(ToolResolver.DescribeMissing(toolName));
 

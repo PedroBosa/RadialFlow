@@ -6,6 +6,7 @@
 //                    -> monta as fatias (também fora da UI) -> mostra a roda
 //   DragMoved     -> destaca a fatia (coalescido)
 //   DragCompleted -> fecha a roda e executa a fatia sob o cursor
+//   SliceActivated (teclado) -> a roda já se fechou; executa a fatia escolhida
 //
 // THREADS: os eventos do hook chegam na thread do HOOK (dedicada). Os handlers
 // só enfileiram no Dispatcher e voltam. Os campos tocados pelas duas threads
@@ -73,6 +74,8 @@ public sealed class RadialController : IDisposable
         _started = true;
 
         _wheel.Prewarm();
+        _wheel.EnableKeyboardNavigation();
+        _wheel.SliceActivated += OnSliceActivated;
 
         _hook.DragStarted += OnDragStarted;
         _hook.DragMoved += OnDragMoved;
@@ -120,9 +123,26 @@ public sealed class RadialController : IDisposable
         _generation++;                               // cancela detecção em andamento
         Interlocked.Exchange(ref _movePending, 0);
 
+        ExecuteSlice(_wheel.Dismiss(x, y));
+    }
+
+    /// <summary>Enter ou número pressionado com a roda aberta: a roda já escondeu; só falta executar.</summary>
+    private void OnSliceActivated(RadialSlice slice)
+    {
+        if (_disposed) return;
+
+        _generation++;
+        Interlocked.Exchange(ref _movePending, 0);
+
+        ExecuteSlice(slice);
+    }
+
+    /// <summary>Exceção de uma ação não pode derrubar o app (subiria para o Dispatcher): é registrada aqui.</summary>
+    private static void ExecuteSlice(RadialSlice? slice)
+    {
         try
         {
-            _wheel.Dismiss(x, y)?.Execute?.Invoke();
+            slice?.Execute?.Invoke();
         }
         catch (Exception ex)
         {
@@ -209,6 +229,7 @@ public sealed class RadialController : IDisposable
         _hook.DragStarted -= OnDragStarted;
         _hook.DragMoved -= OnDragMoved;
         _hook.DragCompleted -= OnDragCompleted;
+        _wheel.SliceActivated -= OnSliceActivated;
 
         _wheel.Close();
     }

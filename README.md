@@ -31,6 +31,11 @@ Algumas opções, como **Converter**, têm uma setinha ⌄. Deixe o cursor parad
 completando na borda e, quando fecha, aparecem mais opções (os formatos de conversão, por exemplo). Para voltar,
 deixe o cursor parado no centro da roda: um círculo se completa em volta do botão e a roda volta ao menu anterior.
 
+Com a roda aberta, o teclado também funciona: **1–8** escolhem a opção pela posição na roda (1 no topo, seguindo
+no sentido horário; o submenu abre na hora e uma ação é executada), as **setas** circulam pelas opções, **Enter**
+abre o submenu ou executa a opção destacada e **Esc** volta ao menu anterior ou fecha a roda. A seleção usa o mesmo
+destaque do mouse, que retoma o controle assim que se move. Os atalhos valem só enquanto a roda está na tela.
+
 ## Instalar
 
 1. Baixe o `RadialFlow-1.2.0-Setup.exe` na página **Releases** deste repositório.
@@ -143,8 +148,9 @@ mesmo estando em pastas protegidas: abrir um deles seria abrir um shell.
 ## Converter arquivos
 
 Abra a roda sobre um arquivo e segure em **Converter**: aparecem só os formatos que funcionam para aquele arquivo
-neste computador. Se nenhum funcionar, a opção Converter não aparece. O arquivo novo fica na mesma pasta, e nada é
-sobrescrito: se já existir um com o mesmo nome, o novo vira `nome (1).ext`.
+neste computador. Se nenhum funcionar, a opção Converter não aparece. Quando há mais de 8 formatos, a última opção
+vira **Mais…** e abre a página seguinte: todas continuam acessíveis, na mesma ordem. O arquivo novo fica na mesma
+pasta, e nada é sobrescrito: se já existir um com o mesmo nome, o novo vira `nome (1).ext`.
 
 | Arquivo | Vira | O que precisa |
 |---|---|---|

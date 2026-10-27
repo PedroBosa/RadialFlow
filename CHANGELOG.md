@@ -20,6 +20,13 @@ Cada versão, da mais nova para a mais antiga. O número da versão está em `Ra
 
 ### Melhorias
 
+- **Mais de 8 opções agora ficam acessíveis.** Quando uma lista não cabe na roda — por exemplo, uma imagem que aceita
+  os 9 formatos de conversão —, a última fatia vira **Mais…** e abre a página seguinte, em vez de descartar as opções
+  extras. A ordem original é preservada, e as páginas funcionam com mouse (segurar) e teclado (Enter ou o número).
+- **A roda agora aceita teclado.** Com ela aberta, **1–8** escolhem a opção pela posição na roda (1 no topo,
+  seguindo no sentido horário), as **setas** circulam, **Enter** abre o submenu ou executa e **Esc** volta ao menu
+  anterior ou fecha. A escolha usa o mesmo destaque do mouse, que retoma o controle assim que se move; os atalhos
+  existem apenas enquanto a roda está visível.
 - **Salvar configurações agora confirma a gravação no disco antes de fechar.** Se o disco recusar, a janela continua
   aberta com o motivo e nada é aplicado — antes, ela fechava e as alterações podiam se perder no próximo início.
 - **Fechar as Configurações com alterações não salvas avisa em qualquer aba**, listando as seções alteradas. Antes,

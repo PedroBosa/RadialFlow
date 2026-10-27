@@ -10,6 +10,10 @@
 // DwellMilliseconds abre o submenu; o traço azul na borda da fatia mostra o
 // tempo restante. Voltar ao centro pelo mesmo tempo retorna ao menu anterior;
 // ali, um círculo no mesmo estilo contorna o miolo enquanto o tempo corre.
+//
+// TECLADO: com a roda aberta, 1–8 escolhem, setas circulam, Enter abre/executa
+// e Esc volta ou fecha (atalhos só enquanto visível; ver
+// RadialMenuWindow.Keyboard.cs).
 // ============================================================================
 
 using System;
@@ -31,7 +35,7 @@ public partial class RadialMenuWindow : Window
     public const int MaxDwellMilliseconds = 2000;
 
     private IReadOnlyList<RadialSlice> _currentSlices = Array.Empty<RadialSlice>();
-    private readonly Stack<(IReadOnlyList<RadialSlice> Slices, string ParentTitle)> _navHistory = new();
+    private readonly Stack<(IReadOnlyList<RadialSlice> Slices, int ParentIndex, string ParentTitle)> _navHistory = new();
 
     private IntPtr _hwnd;
     private double _scale = 1.0;
@@ -93,6 +97,8 @@ public partial class RadialMenuWindow : Window
         // nem quando clicada. O hook do mouse não é afetado (ele vê os eventos antes de qualquer janela).
         int ex = GetWindowLong(_hwnd, GWL_EXSTYLE);
         SetWindowLong(_hwnd, GWL_EXSTYLE, (ex | WS_EX_NOACTIVATE | WS_EX_TOOLWINDOW) & ~WS_EX_TRANSPARENT);
+
+        AttachHotkeyHandler();   // recebe WM_HOTKEY sem precisar de foco
     }
 
     public void Prewarm()
@@ -124,9 +130,8 @@ public partial class RadialMenuWindow : Window
         if (slices.Count < RadialGeometry.MinSlices) return;
 
         _navHistory.Clear();
-        _currentSlices = slices.Count > RadialGeometry.MaxSlices
-            ? new List<RadialSlice>(slices).GetRange(0, RadialGeometry.MaxSlices)
-            : slices;
+        ResetKeyboardState();
+        _currentSlices = RadialSlicePaging.Paginate(slices);
 
         _originX = originX;
         _originY = originY;
@@ -144,6 +149,7 @@ public partial class RadialMenuWindow : Window
         SetWindowPos(_hwnd, HWND_TOPMOST, originX - px / 2, originY - px / 2, px, px, SWP_NOACTIVATE);
 
         Show();
+        RegisterHotkeys();   // só enquanto a roda está na tela
         PlayAppearAnimation();
     }
 
@@ -153,6 +159,18 @@ public partial class RadialMenuWindow : Window
 
         _cursorX = screenX;
         _cursorY = screenY;
+
+        if (_keyboardMode)
+        {
+            // Tremores do mouse não tiram a seleção feita pelo teclado; um movimento de verdade devolve o controle.
+            double dx = screenX - _keyboardAnchorX;
+            double dy = screenY - _keyboardAnchorY;
+            double tolerance = 4 * _scale;
+            if (dx * dx + dy * dy <= tolerance * tolerance) return;
+
+            ResetKeyboardState();
+        }
+
         SetHover(HitTestScreen(screenX, screenY));
     }
 
@@ -167,16 +185,33 @@ public partial class RadialMenuWindow : Window
         SetHover(HitTestScreen(_cursorX, _cursorY));
     }
 
+    /// <summary>
+    /// Fecha a roda e devolve a fatia escolhida: a do teclado, se ele estiver no comando; senão, a que está
+    /// sob o cursor no momento do soltar.
+    /// </summary>
     public RadialSlice? Dismiss(int screenX, int screenY)
     {
         if (!IsVisible) return null;
 
+        int index = _keyboardMode ? _keyboardIndex : HitTestScreen(screenX, screenY);
+        RadialSlice? result = index >= 0 && index < _currentSlices.Count ? _currentSlices[index] : null;
+
+        HideWheel();
+        return result;
+    }
+
+    /// <summary>Fecha a roda sem executar nada (Esc no menu principal).</summary>
+    internal void Cancel()
+    {
+        if (IsVisible) HideWheel();
+    }
+
+    private void HideWheel()
+    {
         _dwellTimer.Stop();
         _backDwellTimer.Stop();
         HideAllDwellArcs();
-
-        int index = HitTestScreen(screenX, screenY);
-        RadialSlice? result = index >= 0 && index < _currentSlices.Count ? _currentSlices[index] : null;
+        UnregisterHotkeys();
 
         Root.BeginAnimation(OpacityProperty, null);
         RootScale.BeginAnimation(ScaleTransform.ScaleXProperty, null);
@@ -186,8 +221,8 @@ public partial class RadialMenuWindow : Window
 
         Hide();
         _hover = -1;
+        ResetKeyboardState();
         _navHistory.Clear();
-        return result;
     }
 
     // ------------------------------------------------------------------
@@ -210,7 +245,7 @@ public partial class RadialMenuWindow : Window
     // Hover e espera (dwell)
     // ------------------------------------------------------------------
 
-    private void SetHover(int index)
+    private void SetHover(int index, bool fromKeyboard = false)
     {
         if (index == _hover) return;
 
@@ -227,13 +262,16 @@ public partial class RadialMenuWindow : Window
         {
             AnimateSegment(_segments[index], on: true);
             RadialSlice slice = _currentSlices[index];
-            ShowHub(slice.Glyph);   // o miolo acompanha a fatia sob o cursor
+            ShowHub(slice.Glyph);   // o miolo acompanha a fatia escolhida
             bool hasSub = slice.SubSlices is { Count: >= 2 };
-            ShowHint(hasSub
-                ? (string.IsNullOrEmpty(slice.Description) ? "Segure para ver as opções" : $"{slice.Description} · segure para ver as opções")
-                : slice.Description);
+            ShowHint(fromKeyboard
+                ? KeyboardHint(slice, hasSub)
+                : hasSub
+                    ? (string.IsNullOrEmpty(slice.Description) ? "Segure para ver as opções" : $"{slice.Description} · segure para ver as opções")
+                    : slice.Description);
 
-            if (hasSub)
+            // Pelo teclado o submenu abre no Enter: nada de espera nem de traço de tempo.
+            if (hasSub && !fromKeyboard)
             {
                 _dwellTargetIndex = index;
                 StartDwellProgress(_segments[index], DwellDuration);
@@ -262,7 +300,7 @@ public partial class RadialMenuWindow : Window
 
         if (_hover >= 0 && _hover == _dwellTargetIndex && _hover < _currentSlices.Count &&
             _currentSlices[_hover].SubSlices is { Count: >= 2 })
-            EnterSubmenu(_currentSlices[_hover]);
+            EnterSubmenu(_currentSlices[_hover], _hover);
     }
 
     private void OnBackDwellTimerTick(object? sender, EventArgs e)
@@ -272,25 +310,32 @@ public partial class RadialMenuWindow : Window
         if (_hover == -1 && _navHistory.Count > 0) ReturnToParentMenu();
     }
 
-    private void EnterSubmenu(RadialSlice parentSlice)
+    private void EnterSubmenu(RadialSlice parentSlice, int parentIndex, bool fromKeyboard = false)
     {
-        _navHistory.Push((_currentSlices, parentSlice.Label));
-        _currentSlices = parentSlice.SubSlices!;
+        _navHistory.Push((_currentSlices, parentIndex, parentSlice.Label));
+        _currentSlices = RadialSlicePaging.Paginate(parentSlice.SubSlices);
 
         BuildSegments();
         PlayBlossomTransition();
-        RefreshHover();
+
+        // Pelo teclado, o foco vai para a primeira opção; pelo mouse, permanece sob o cursor.
+        if (fromKeyboard) SelectByKeyboard(0);
+        else RefreshHover();
     }
 
-    private void ReturnToParentMenu()
+    private void ReturnToParentMenu(bool fromKeyboard = false)
     {
         if (_navHistory.Count == 0) return;
 
-        _currentSlices = _navHistory.Pop().Slices;
+        var (slices, parentIndex, _) = _navHistory.Pop();
+        _currentSlices = slices;
 
         BuildSegments();
         PlayBlossomTransition();
-        RefreshHover();
+
+        // Esc devolve o destaque à fatia que abriu o submenu.
+        if (fromKeyboard) SelectByKeyboard(parentIndex);
+        else RefreshHover();
     }
 
     // ------------------------------------------------------------------

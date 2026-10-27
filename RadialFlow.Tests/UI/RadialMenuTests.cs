@@ -275,6 +275,7 @@ public sealed class RadialMenuTests
     private struct NativePoint { public int X; public int Y; }
 
     [DllImport("user32.dll")] private static extern IntPtr WindowFromPoint(NativePoint point);
+    [DllImport("user32.dll")] private static extern IntPtr SendMessage(IntPtr hWnd, int msg, IntPtr wParam, IntPtr lParam);
     [DllImport("user32.dll")] private static extern IntPtr GetAncestor(IntPtr hwnd, uint flags);
     [DllImport("user32.dll")] private static extern int GetWindowLong(IntPtr hwnd, int index);
 
@@ -356,5 +357,339 @@ public sealed class RadialMenuTests
         }
 
         Assert.InRange(RadialMenuWindow.LabelMaxWidth(0), 40, 92);   // entrada inválida não quebra
+    }
+
+    // ------------------------------------------------------------------
+    // Teclado: setas, Enter, Esc e atalhos 1–8
+    // ------------------------------------------------------------------
+
+    [Fact]
+    public void Teclado_SetasCirculamPelasFatias()
+    {
+        RunSta(() =>
+        {
+            RadialMenuWindow wheel = CreateWheel(dwellMilliseconds: 650);
+
+            wheel.HandleKeyboardCommand(RadialMenuWindow.RadialKeyboardCommand.Next);
+            Assert.True(wheel.IsKeyboardSelectionActive);
+            Assert.Equal(0, wheel.KeyboardSelection);
+
+            wheel.HandleKeyboardCommand(RadialMenuWindow.RadialKeyboardCommand.Next);
+            Assert.Equal(1, wheel.KeyboardSelection);
+
+            wheel.HandleKeyboardCommand(RadialMenuWindow.RadialKeyboardCommand.Previous);
+            Assert.Equal(0, wheel.KeyboardSelection);
+
+            wheel.HandleKeyboardCommand(RadialMenuWindow.RadialKeyboardCommand.Previous);
+            Assert.Equal(2, wheel.KeyboardSelection);   // deu a volta
+
+            wheel.Close();
+        });
+    }
+
+    [Fact]
+    public void Teclado_SemSelecao_NextEscolheAPrimeira_EPreviousAUltima()
+    {
+        RunSta(() =>
+        {
+            RadialMenuWindow wheel = CreateWheel(dwellMilliseconds: 650);
+
+            wheel.HandleKeyboardCommand(RadialMenuWindow.RadialKeyboardCommand.Previous);
+            Assert.Equal(2, wheel.KeyboardSelection);
+            wheel.Close();
+
+            RadialMenuWindow again = CreateWheel(dwellMilliseconds: 650);
+            again.HandleKeyboardCommand(RadialMenuWindow.RadialKeyboardCommand.Next);
+            Assert.Equal(0, again.KeyboardSelection);
+            again.Close();
+        });
+    }
+
+    [Fact]
+    public void Teclado_EnterNoSubmenuAbre_EEscVoltaComAFatiaDestacada()
+    {
+        RunSta(() =>
+        {
+            RadialMenuWindow wheel = CreateWheel(dwellMilliseconds: 650);
+
+            wheel.HandleKeyboardCommand(RadialMenuWindow.RadialKeyboardCommand.Next);     // Comprimir
+            Assert.Contains("Enter executa", wheel.HintText.Text);
+            wheel.HandleKeyboardCommand(RadialMenuWindow.RadialKeyboardCommand.Next);     // Converter
+            Assert.Contains("Enter abre", wheel.HintText.Text);
+
+            wheel.HandleKeyboardCommand(RadialMenuWindow.RadialKeyboardCommand.Activate);
+            Assert.True(IsSubmenu(wheel));                        // abriu o submenu
+            Assert.Equal(0, wheel.KeyboardSelection);             // foco na primeira opção
+            Assert.Contains("Descrição de PNG", wheel.HintText.Text);
+
+            wheel.HandleKeyboardCommand(RadialMenuWindow.RadialKeyboardCommand.Back);
+            Assert.False(IsSubmenu(wheel));                       // voltou ao menu principal
+            Assert.Equal(1, wheel.KeyboardSelection);             // destaque de volta em Converter
+            Assert.Contains("Descrição de Converter", wheel.HintText.Text);
+
+            wheel.HandleKeyboardCommand(RadialMenuWindow.RadialKeyboardCommand.Activate);
+            Assert.True(IsSubmenu(wheel));                        // Enter reabre o submenu
+
+            wheel.HandleKeyboardCommand(RadialMenuWindow.RadialKeyboardCommand.Back);
+            wheel.HandleKeyboardCommand(RadialMenuWindow.RadialKeyboardCommand.Back);
+            Assert.False(wheel.IsVisible);                        // no menu principal, Esc fecha
+            wheel.Close();
+        });
+    }
+
+    [Fact]
+    public void Teclado_EnterEmFatiaSemSubmenu_ExecutaEFecha()
+    {
+        RunSta(() =>
+        {
+            RadialMenuWindow wheel = CreateWheel(dwellMilliseconds: 650);
+            RadialSlice? executed = null;
+            wheel.SliceActivated += slice => executed = slice;
+
+            wheel.HandleKeyboardCommand(RadialMenuWindow.RadialKeyboardCommand.Next);     // Comprimir
+            Assert.Null(executed);                                                       // só destacou
+            wheel.HandleKeyboardCommand(RadialMenuWindow.RadialKeyboardCommand.Activate);
+
+            Assert.Equal("Comprimir", executed?.Label);
+            Assert.False(wheel.IsVisible);
+            wheel.Close();
+        });
+    }
+
+    [Fact]
+    public void Teclado_NumerosEscolhemPorPosicao_ESubmenuAbreNaHora()
+    {
+        RunSta(() =>
+        {
+            RadialMenuWindow wheel = CreateWheel(dwellMilliseconds: 650);
+            RadialSlice? executed = null;
+            wheel.SliceActivated += slice => executed = slice;
+
+            wheel.HandleKeyboardCommand(RadialMenuWindow.RadialKeyboardCommand.Select2);   // Converter
+            Assert.True(IsSubmenu(wheel));
+            Assert.Equal(0, wheel.KeyboardSelection);
+
+            wheel.HandleKeyboardCommand(RadialMenuWindow.RadialKeyboardCommand.Select3);   // WEBP
+            Assert.Equal("WEBP", executed?.Label);
+            Assert.False(wheel.IsVisible);
+            wheel.Close();
+        });
+    }
+
+    [Fact]
+    public void Teclado_NumeroForaDoIntervalo_EhIgnorado()
+    {
+        RunSta(() =>
+        {
+            RadialMenuWindow wheel = CreateWheel(dwellMilliseconds: 650);
+            bool executed = false;
+            wheel.SliceActivated += _ => executed = true;
+
+            wheel.HandleKeyboardCommand(RadialMenuWindow.RadialKeyboardCommand.Select5);   // só há 3 fatias
+
+            Assert.True(wheel.IsVisible);
+            Assert.False(wheel.IsKeyboardSelectionActive);
+            Assert.False(executed);
+            wheel.Close();
+        });
+    }
+
+    [Fact]
+    public void Teclado_SoltarOBotaoDireito_RespeitaASelecaoDoTeclado()
+    {
+        RunSta(() =>
+        {
+            RadialMenuWindow wheel = CreateWheel(dwellMilliseconds: 650);
+
+            wheel.HandleKeyboardCommand(RadialMenuWindow.RadialKeyboardCommand.Next);     // Comprimir
+            wheel.HandleKeyboardCommand(RadialMenuWindow.RadialKeyboardCommand.Next);     // Converter
+            RadialSlice? released = wheel.Dismiss(OriginX, OriginY);   // centro: pelo mouse, nada seria executado
+
+            Assert.Equal("Converter", released?.Label);
+            wheel.Close();
+        });
+    }
+
+    [Fact]
+    public void Teclado_EscNoMenuPrincipal_FechaSemExecutar()
+    {
+        RunSta(() =>
+        {
+            RadialMenuWindow wheel = CreateWheel(dwellMilliseconds: 650);
+            bool executed = false;
+            wheel.SliceActivated += _ => executed = true;
+
+            wheel.HandleKeyboardCommand(RadialMenuWindow.RadialKeyboardCommand.Next);
+            wheel.HandleKeyboardCommand(RadialMenuWindow.RadialKeyboardCommand.Back);
+
+            Assert.False(wheel.IsVisible);
+            Assert.False(executed);
+            wheel.Close();
+        });
+    }
+
+    [Fact]
+    public void Teclado_TremorDoMouseMantemASelecao_MovimentoRealDevolveAoMouse()
+    {
+        RunSta(() =>
+        {
+            RadialMenuWindow wheel = CreateWheel(dwellMilliseconds: 650);
+
+            wheel.HandleKeyboardCommand(RadialMenuWindow.RadialKeyboardCommand.Next);     // Comprimir
+            wheel.UpdateCursor(OriginX + 2, OriginY + 1);   // tremor: continua no teclado
+            Assert.True(wheel.IsKeyboardSelectionActive);
+            Assert.Equal(0, wheel.KeyboardSelection);
+
+            HoverConverter(wheel);                          // movimento real: mouse assume
+            Assert.False(wheel.IsKeyboardSelectionActive);
+            Assert.Equal(-1, wheel.KeyboardSelection);
+
+            double angle = (-90 + 120) * Math.PI / 180;
+            RadialSlice? released = wheel.Dismiss(
+                OriginX + (int)(150 * Math.Cos(angle)), OriginY + (int)(150 * Math.Sin(angle)));
+            Assert.Equal("Converter", released?.Label);
+
+            wheel.Close();
+        });
+    }
+
+    [Fact]
+    public void Teclado_SelecionarMesmaFatiaDoMouse_CancelaAEsperaDoSubmenu()
+    {
+        RunSta(() =>
+        {
+            RadialMenuWindow wheel = CreateWheel(dwellMilliseconds: 400);
+
+            HoverConverter(wheel);                          // mouse sobre Converter: espera começou
+            Pump(100);
+            wheel.HandleKeyboardCommand(RadialMenuWindow.RadialKeyboardCommand.Next);     // Comprimir
+            wheel.HandleKeyboardCommand(RadialMenuWindow.RadialKeyboardCommand.Next);     // Converter (mesma do mouse)
+
+            Assert.Contains("Enter abre", wheel.HintText.Text);
+
+            Pump(900);                                      // tempo de sobra para a espera antiga
+            Assert.False(IsSubmenu(wheel));                 // nada abriu sozinho
+            wheel.Close();
+        });
+    }
+
+    [Fact]
+    public void Teclado_EscDepoisDeSubmenuAbertoPeloMouse_DestacaAFatiaDeOrigem()
+    {
+        RunSta(() =>
+        {
+            RadialMenuWindow wheel = CreateWheel(dwellMilliseconds: 400);
+
+            HoverConverter(wheel);
+            Pump(900);
+            Assert.True(IsSubmenu(wheel));
+
+            wheel.HandleKeyboardCommand(RadialMenuWindow.RadialKeyboardCommand.Back);
+
+            Assert.False(IsSubmenu(wheel));
+            Assert.Equal(1, wheel.KeyboardSelection);
+            wheel.Close();
+        });
+    }
+
+    [Fact]
+    public void Teclado_AtalhosMapeiamAsTeclasEsperadas()
+    {
+        Assert.Equal(14, RadialMenuWindow.Hotkeys.Length);   // 4 setas + Enter + Esc + 8 números
+
+        Assert.Equal(0x26u, RadialMenuWindow.Hotkeys[0].VirtualKey);   // ↑
+        Assert.Equal(0x25u, RadialMenuWindow.Hotkeys[1].VirtualKey);   // ←
+        Assert.Equal(0x27u, RadialMenuWindow.Hotkeys[2].VirtualKey);   // →
+        Assert.Equal(0x28u, RadialMenuWindow.Hotkeys[3].VirtualKey);   // ↓
+        Assert.Equal(0x0Du, RadialMenuWindow.Hotkeys[4].VirtualKey);   // Enter
+        Assert.Equal(0x1Bu, RadialMenuWindow.Hotkeys[5].VirtualKey);   // Esc
+        Assert.Equal(0x31u, RadialMenuWindow.Hotkeys[6].VirtualKey);   // 1
+        Assert.Equal(0x38u, RadialMenuWindow.Hotkeys[13].VirtualKey);  // 8
+
+        Assert.True(RadialMenuWindow.TryMapHotkey(1, out var previous));
+        Assert.Equal(RadialMenuWindow.RadialKeyboardCommand.Previous, previous);
+        Assert.True(RadialMenuWindow.TryMapHotkey(5, out var activate));
+        Assert.Equal(RadialMenuWindow.RadialKeyboardCommand.Activate, activate);
+        Assert.True(RadialMenuWindow.TryMapHotkey(7, out var select1));
+        Assert.Equal(RadialMenuWindow.RadialKeyboardCommand.Select1, select1);
+        Assert.True(RadialMenuWindow.TryMapHotkey(14, out var select8));
+        Assert.Equal(RadialMenuWindow.RadialKeyboardCommand.Select8, select8);
+
+        Assert.False(RadialMenuWindow.TryMapHotkey(0, out _));
+        Assert.False(RadialMenuWindow.TryMapHotkey(15, out _));
+    }
+
+    [Fact]
+    public void Teclado_WmHotkeyNoHwndDaRoda_ChegaAoComando()
+    {
+        // Sem RegisterHotKey: a mensagem é enviada direto ao HWND, validando o hook do HwndSource e o mapa de ids.
+        RunSta(() =>
+        {
+            RadialMenuWindow wheel = CreateWheel(dwellMilliseconds: 650);
+            IntPtr hwnd = new WindowInteropHelper(wheel).Handle;
+
+            SendMessage(hwnd, 0x0312 /* WM_HOTKEY */, new IntPtr(1), IntPtr.Zero);   // id 1 = Previous
+
+            Assert.True(wheel.IsKeyboardSelectionActive);
+            Assert.Equal(2, wheel.KeyboardSelection);   // sem seleção, Previous escolhe a última
+            wheel.Close();
+        });
+    }
+
+    // ------------------------------------------------------------------
+    // Paginação: mais de 8 opções
+    // ------------------------------------------------------------------
+
+    [Fact]
+    public void Paginacao_MenuPrincipalCom12Opcoes_AlcancaAUltima()
+    {
+        RunSta(() =>
+        {
+            var leaves = new List<RadialSlice>();
+            for (int i = 1; i <= 12; i++) leaves.Add(Slice($"F{i}"));
+
+            var wheel = new RadialMenuWindow { DwellMilliseconds = 650 };
+            wheel.Prewarm();
+            wheel.Present(OriginX, OriginY, leaves);
+            Pump(300);
+
+            RadialSlice? executed = null;
+            wheel.SliceActivated += slice => executed = slice;
+
+            wheel.HandleKeyboardCommand(RadialMenuWindow.RadialKeyboardCommand.Select8);   // "Mais…"
+            Assert.True(IsSubmenu(wheel));
+            wheel.HandleKeyboardCommand(RadialMenuWindow.RadialKeyboardCommand.Select5);   // F12, na 2ª página
+
+            Assert.Equal("F12", executed?.Label);
+            Assert.False(wheel.IsVisible);
+            wheel.Close();
+        });
+    }
+
+    [Fact]
+    public void Paginacao_SubmenuCom12Opcoes_AlcancaAUltima()
+    {
+        RunSta(() =>
+        {
+            var formats = new List<RadialSlice>();
+            for (int i = 1; i <= 12; i++) formats.Add(Slice($"F{i}"));
+
+            var wheel = new RadialMenuWindow { DwellMilliseconds = 650 };
+            wheel.Prewarm();
+            wheel.Present(OriginX, OriginY, [Slice("Converter", formats), Slice("Renomear")]);
+            Pump(300);
+
+            RadialSlice? executed = null;
+            wheel.SliceActivated += slice => executed = slice;
+
+            wheel.HandleKeyboardCommand(RadialMenuWindow.RadialKeyboardCommand.Select1);   // abre o submenu de 12
+            Assert.True(IsSubmenu(wheel));
+            wheel.HandleKeyboardCommand(RadialMenuWindow.RadialKeyboardCommand.Select8);   // "Mais…"
+            wheel.HandleKeyboardCommand(RadialMenuWindow.RadialKeyboardCommand.Select5);   // F12, na 2ª página
+
+            Assert.Equal("F12", executed?.Label);
+            Assert.False(wheel.IsVisible);
+            wheel.Close();
+        });
     }
 }

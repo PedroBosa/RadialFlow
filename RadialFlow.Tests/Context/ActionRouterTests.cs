@@ -321,6 +321,48 @@ public sealed class ActionRouterTests : IDisposable
         Assert.False(Logic.TryBuildRenameTarget(Path.GetPathRoot(Environment.SystemDirectory)!, "b", out _, out _));
     }
 
+    [Fact]
+    public void CanRenameTogether_ArquivosDaMesmaPasta_SaoAceitos()
+    {
+        string first = _temp.CreateFile("a.txt");
+        string second = _temp.CreateFile("b.txt");
+
+        Assert.True(Logic.CanRenameTogether([first, second], out string? reason));
+        Assert.Null(reason);
+    }
+
+    [Fact]
+    public void CanRenameTogether_PastaNaSelecao_EhRecusada()
+    {
+        string file = _temp.CreateFile("a.txt");
+        string folder = _temp.CreateDirectory("Pasta");
+
+        Assert.False(Logic.CanRenameTogether([file, folder], out string? reason));
+        Assert.Contains("apenas arquivos", reason);
+    }
+
+    [Fact]
+    public void CanRenameTogether_ArquivosDePastasDiferentes_SaoRecusados()
+    {
+        string first = _temp.CreateFile("A", "a.txt");
+        string second = _temp.CreateFile("B", "b.txt");
+
+        Assert.False(Logic.CanRenameTogether([first, second], out string? reason));
+        Assert.Contains("mesma pasta", reason);
+    }
+
+    [Fact]
+    public void CanRenameTogether_UmItemOuCaminhoInseguro_EhRecusado()
+    {
+        string file = _temp.CreateFile("a.txt");
+
+        Assert.False(Logic.CanRenameTogether([file], out string? reason));
+        Assert.False(string.IsNullOrWhiteSpace(reason));
+
+        Assert.False(Logic.CanRenameTogether([file, @"..\fora.txt"], out reason));
+        Assert.Contains("inválido", reason);
+    }
+
     // ------------------------------------------------------------------
     // Compactar / extrair
     // ------------------------------------------------------------------
@@ -407,58 +449,6 @@ public sealed class ActionRouterTests : IDisposable
 
         Assert.False(Logic.TryPlanArchive([Path.GetPathRoot(Environment.SystemDirectory)!], out _, out _));
         Assert.False(Logic.TryPlanArchive([], out _, out _));
-    }
-
-    // ------------------------------------------------------------------
-    // Conversão direta (sub-fatia)
-    // ------------------------------------------------------------------
-
-    [Theory]
-    [InlineData("webp", "webp")]
-    [InlineData(".PNG", "png")]
-    [InlineData("  Mp3 ", "mp3")]
-    [InlineData("m4a", "m4a")]
-    [InlineData("", "")]
-    [InlineData(null, "")]
-    [InlineData("../exe", "")]
-    [InlineData(@"png\..\..\x", "")]
-    [InlineData("p n g", "")]
-    [InlineData("png;calc", "")]
-    [InlineData("formatolongo", "")]
-    public void NormalizeFormat_AceitaSoExtensaoSimples(string? format, string expected)
-    {
-        Assert.Equal(expected, Logic.NormalizeFormat(format));
-    }
-
-    [Fact]
-    public void TryBuildConversionDestination_MesmaPastaNovaExtensaoSemSobrescrever()
-    {
-        string source = _temp.CreateFile("foto.png");
-
-        Assert.True(Logic.TryBuildConversionDestination(source, ".WEBP", out string first));
-        Assert.Equal(_temp.Combine("foto.webp"), first);
-
-        _temp.CreateFile("foto.webp");
-        Assert.True(Logic.TryBuildConversionDestination(source, "webp", out string second));
-        Assert.Equal(_temp.Combine("foto (1).webp"), second);
-    }
-
-    [Theory]
-    [InlineData("../../exe")]
-    [InlineData("")]
-    [InlineData("png:ads")]
-    public void TryBuildConversionDestination_FormatoInvalido_EhRecusado(string format)
-    {
-        string source = _temp.CreateFile("foto.png");
-
-        Assert.False(Logic.TryBuildConversionDestination(source, format, out string destination));
-        Assert.Equal("", destination);
-    }
-
-    [Fact]
-    public void TryBuildConversionDestination_OrigemInsegura_EhRecusada()
-    {
-        Assert.False(Logic.TryBuildConversionDestination(@"..\foto.png", "jpg", out _));
     }
 
     // ------------------------------------------------------------------
@@ -571,9 +561,9 @@ public sealed class ActionRouterTests : IDisposable
             Assert.True(Logic.TryValidate(run.Action, run.Context, out _, out string? reason), reason);
         });
 
-        // Sub-fatias de conversão também precisam gerar um destino válido.
+        // Sub-fatias de conversão precisam ser aceitas pelo planejador real do lote.
         Assert.All(actions.Conversions, c =>
-            Assert.True(Logic.TryBuildConversionDestination(c.Source, c.Format, out _)));
+            Assert.True(ConversionBatch.TryPlan(c.Sources, c.Format, null, out _, out string? error), error));
     }
 
     [Fact]

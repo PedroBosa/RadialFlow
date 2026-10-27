@@ -221,6 +221,60 @@ public static partial class ActionRouter
         }
 
         /// <summary>
+        /// A renomeação em lote usa o F2 do Explorer: exige 2+ ARQUIVOS na MESMA pasta.
+        /// Pastas e seleções espalhadas continuam uma por vez (o diálogo WPF renomeia um item).
+        /// </summary>
+        internal static bool CanRenameTogether(IReadOnlyList<string>? paths, out string? reason)
+        {
+            reason = null;
+
+            if (paths is null || paths.Count < 2)
+            {
+                reason = "Selecione dois ou mais arquivos.";
+                return false;
+            }
+
+            if (paths.Count > MaxPaths)
+            {
+                reason = $"Seleção grande demais ({paths.Count} itens).";
+                return false;
+            }
+
+            string? folder = null;
+            foreach (string path in paths)
+            {
+                if (!TrustedPath.TryGetSafeFullPath(path, out string full))
+                {
+                    reason = $"Caminho inválido ou inseguro: '{path}'.";
+                    return false;
+                }
+
+                full = Path.TrimEndingDirectorySeparator(full);
+                if (!File.Exists(full))
+                {
+                    reason = "A renomeação em lote aceita apenas arquivos (pastas, uma por vez).";
+                    return false;
+                }
+
+                string? parent = Path.GetDirectoryName(full);
+                if (parent is null)
+                {
+                    reason = "Não é possível renomear a raiz de uma unidade.";
+                    return false;
+                }
+
+                if (folder is null) folder = parent;
+                else if (!string.Equals(folder, parent, StringComparison.OrdinalIgnoreCase))
+                {
+                    reason = "Os arquivos precisam estar todos na mesma pasta.";
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        /// <summary>
         /// Um único .zip (arquivo) é extraído para "nome", "nome (1)"...; qualquer outra seleção vira
         /// "nome.zip" (um item) ou "nome_compactado.zip" (vários), sempre com nome livre.
         /// </summary>
@@ -268,36 +322,6 @@ public static partial class ActionRouter
 
             plan = new ArchivePlan(ArchiveMode.Compress, safe, zip);
             return true;
-        }
-
-        /// <summary>Formato de destino: só letras/dígitos ASCII, até 10 caracteres; vazio se inválido.</summary>
-        internal static string NormalizeFormat(string? format)
-        {
-            string ext = (format ?? "").Trim().TrimStart('.').ToLowerInvariant();
-            if (ext.Length is 0 or > 10) return "";
-
-            foreach (char c in ext)
-                if (!char.IsAsciiLetterOrDigit(c)) return "";
-
-            return ext;
-        }
-
-        /// <summary>"foto.png" → "foto.webp" na mesma pasta; "foto (1).webp" se já existir.</summary>
-        internal static bool TryBuildConversionDestination(string sourceFile, string? targetFormat, out string destination)
-        {
-            destination = "";
-
-            if (!TrustedPath.TryGetSafeFullPath(sourceFile, out string source)) return false;
-            string? dir = Path.GetDirectoryName(source);
-            if (dir is null) return false;
-
-            string ext = NormalizeFormat(targetFormat);
-            if (ext.Length == 0) return false;
-
-            string baseName = Path.GetFileNameWithoutExtension(source);
-            if (baseName.Length == 0) baseName = Path.GetFileName(source);
-
-            return FileNaming.TryGetUniquePath(Path.Combine(dir, $"{baseName}.{ext}"), out destination);
         }
 
         /// <summary>Decide o que fazer com um item ao movê-lo para <paramref name="destinationFolder"/> (ambos canônicos).</summary>

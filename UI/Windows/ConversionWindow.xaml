@@ -1,7 +1,7 @@
 <Window x:Class="RadialFlow.UI.ConversionWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="RadialFlow — Converter arquivo"
+        Title="RadialFlow — Converter arquivo(s)"
         Width="520" SizeToContent="Height"
         WindowStartupLocation="CenterScreen"
         ResizeMode="NoResize"
@@ -38,7 +38,9 @@
         <Border Style="{StaticResource Card}" Margin="24,20,24,0">
             <StackPanel>
                 <TextBlock Text="Formato de destino" Style="{StaticResource CardTitle}" Margin="0,0,0,8"/>
-                <ComboBox x:Name="CmbTargetFormat" DisplayMemberPath="DisplayName" SelectedValuePath="TargetFormat" Margin="0,0,0,18"/>
+                <ComboBox x:Name="CmbTargetFormat" DisplayMemberPath="DisplayName" SelectedValuePath="TargetFormat" Margin="0,0,0,10"/>
+                <TextBlock x:Name="TxtBatchNote" Visibility="Collapsed" TextWrapping="Wrap" FontSize="12"
+                           Foreground="{DynamicResource TextDimBrush}" Margin="0,0,0,10"/>
 
                 <TextBlock Text="Salvar na pasta" Style="{StaticResource CardTitle}" Margin="0,0,0,8"/>
                 <Grid>

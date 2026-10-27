@@ -1002,7 +1002,7 @@ public partial class SettingsWindow
         public static readonly PreviewSliceActions Instance = new();
 
         public void Run(RadialAction action, ContextInfo context) { }
-        public void ConvertTo(string sourceFile, string targetFormat) { }
+        public void ConvertTo(IReadOnlyList<string> sourceFiles, string targetFormat) { }
         public void LaunchFavorite(FavoriteAppEntry app) { }
         public void RunCustom(CustomMenuItem item, ContextInfo context) { }
     }

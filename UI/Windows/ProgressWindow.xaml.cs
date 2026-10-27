@@ -44,7 +44,7 @@ public partial class ProgressWindow : Window, IProgress<ProgressReport>
 
     // Somente UI.
     private bool _completed;
-    private bool _failed;
+    private bool _finalized;   // MarkFailed/MarkCompleted: relatórios atrasados não sobrescrevem o resultado
 
     // Capturado uma vez: continua utilizável pelo trabalhador depois que a janela fecha e a fonte é descartada.
     private readonly CancellationToken _token;
@@ -106,7 +106,7 @@ public partial class ProgressWindow : Window, IProgress<ProgressReport>
     {
         _ = _ui.InvokeAsync(() =>
         {
-            _failed = true;
+            _finalized = true;
             _completed = true;
             PrgBar.SetResourceReference(System.Windows.Controls.Control.ForegroundProperty, "DangerBrush");
             TxtPercent.SetResourceReference(System.Windows.Controls.TextBlock.ForegroundProperty, "DangerBrush");
@@ -120,6 +120,36 @@ public partial class ProgressWindow : Window, IProgress<ProgressReport>
         });
     }
 
+    /// <summary>
+    /// Resultado final de um lote: concluído (check) ou concluído com falhas parciais (atenção).
+    /// Pode ser chamado de qualquer thread; um relatório de progresso atrasado não sobrescreve a mensagem.
+    /// </summary>
+    public void MarkCompleted(string message, bool warning = false)
+    {
+        _ = _ui.InvokeAsync(() =>
+        {
+            _finalized = true;
+            _completed = true;
+            PrgBar.Value = 100;
+            TxtStatus.Text = message;
+            PrgBar.SetResourceReference(System.Windows.Controls.Control.ForegroundProperty,
+                warning ? "WarningBrush" : "AccentBrush");
+            TxtPercent.Text = warning ? "Atenção" : "100%";
+            TxtPercent.SetResourceReference(System.Windows.Controls.TextBlock.ForegroundProperty,
+                warning ? "WarningBrush" : "AccentTextBrush");
+            IconGlyph.Text = warning ? "\uE7BA" : "\uE73E";
+            IconDisc.SetResourceReference(System.Windows.Shapes.Shape.FillProperty,
+                warning ? "WarningBrush" : "AccentBrush");
+            IconGlyph.SetResourceReference(System.Windows.Controls.TextBlock.ForegroundProperty,
+                warning ? "WarningInkBrush" : "AccentInkBrush");
+            BtnCancel.Content = "Fechar";
+            BtnCancel.IsEnabled = true;
+
+            if (!string.IsNullOrEmpty(_outputFileOrFolder))
+                BtnOpenFolder.Visibility = Visibility.Visible;
+        });
+    }
+
     private void FlushReport()
     {
         ProgressReport report;
@@ -129,7 +159,7 @@ public partial class ProgressWindow : Window, IProgress<ProgressReport>
             _flushScheduled = false;
         }
 
-        if (_failed) return;   // um relatório atrasado não sobrescreve a mensagem de erro
+        if (_finalized) return;   // um relatório atrasado não sobrescreve o resultado final
 
         PrgBar.Value = report.Percentage;
         TxtPercent.Text = $"{report.Percentage:0}%";

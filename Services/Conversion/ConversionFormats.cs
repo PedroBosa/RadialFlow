@@ -99,7 +99,7 @@ internal static class ConversionFormats
     private static readonly HashSet<string> PresentationExts = Set(".pptx", ".ppt", ".odp");
 
     // ------------------------------------------------------------------
-    // Destinos, na ordem em que aparecem (a roda mostra até 8)
+    // Destinos, na ordem em que aparecem (acima de 8, a roda pagina com "Mais…")
     // ------------------------------------------------------------------
 
     private static readonly string[] ImageTargets = ["png", "jpg", "pdf", "ico", "webp", "heic", "gif", "bmp", "tiff"];

@@ -13,6 +13,7 @@
 
 using System;
 using System.Buffers;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using RadialFlow.Security;
@@ -44,14 +45,23 @@ public static class FileNaming
     /// <summary>Versão sem exceção de <see cref="GetUniquePath"/>.</summary>
     /// <param name="path">Caminho absoluto desejado.</param>
     /// <param name="uniquePath">Caminho livre (canônico) quando o retorno é true.</param>
-    public static bool TryGetUniquePath(string? path, out string uniquePath)
+    public static bool TryGetUniquePath(string? path, out string uniquePath) =>
+        TryGetUniquePath(path, null, out uniquePath);
+
+    /// <summary>
+    /// Igual a <see cref="TryGetUniquePath(string?, out string)"/>, mas também evita os caminhos já
+    /// planejados em <paramref name="reserved"/> e acrescenta o escolhido ao conjunto. Necessário para
+    /// planejar vários destinos de uma vez: dois arquivos com o mesmo nome ainda não existem no disco.
+    /// </summary>
+    internal static bool TryGetUniquePath(string? path, ISet<string>? reserved, out string uniquePath)
     {
         uniquePath = "";
         if (!TrustedPath.TryGetSafeFullPath(path, out string full)) return false;
 
         full = Path.TrimEndingDirectorySeparator(full);
-        if (!Exists(full))
+        if (IsFree(full, reserved))
         {
+            reserved?.Add(full);
             uniquePath = full;
             return true;
         }
@@ -73,16 +83,21 @@ public static class FileNaming
         for (int i = 1; i <= MaxNumberedAttempts; i++)
         {
             string candidate = Path.Combine(dir, FormatNumberedName(name, ext, i));
-            if (!Exists(candidate))
+            if (IsFree(candidate, reserved))
             {
+                reserved?.Add(candidate);
                 uniquePath = candidate;
                 return true;
             }
         }
 
         uniquePath = Path.Combine(dir, $"{name} ({Guid.NewGuid():N}){ext}");
+        reserved?.Add(uniquePath);
         return true;
     }
+
+    private static bool IsFree(string path, ISet<string>? reserved) =>
+        !Exists(path) && (reserved is null || !reserved.Contains(path));
 
     /// <summary>Formato do nome numerado: <c>nome (3).ext</c>.</summary>
     internal static string FormatNumberedName(string name, string extension, int index) =>

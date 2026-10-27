@@ -110,7 +110,20 @@ public sealed class ConversionFormatsTests
     }
 
     [Fact]
-    public void ARodaComportaTodas_ListaNuncaPassaDe8()
+    public void ImagemForaDosDestinos_OfereceOsNoveFormatos()
+    {
+        // A origem não está na lista de destinos, então nada é ignorado: 9 opções.
+        // É a roda (RadialSlicePaging) que pagina acima de 8, não o catálogo que descarta.
+        foreach (string ext in new[] { ".jxr", ".avif", ".cr2", ".svg" })
+        {
+            Assert.Equal(
+                new[] { "png", "jpg", "pdf", "ico", "webp", "heic", "gif", "bmp", "tiff" },
+                Offered(ext, Everything));
+        }
+    }
+
+    [Fact]
+    public void Catalogo_OrdemEstavel_SemDuplicatas()
     {
         string[] samples = [".png", ".jpg", ".webp", ".heic", ".mp4", ".mkv", ".mp3", ".wav", ".docx", ".doc", ".odt", ".rtf",
                             ".txt", ".html", ".md", ".epub", ".xlsx", ".csv", ".pptx", ".odp"];
@@ -120,6 +133,7 @@ public sealed class ConversionFormatsTests
             Assert.InRange(options.Count, 1, 8);
             Assert.All(options, o => Assert.False(string.IsNullOrWhiteSpace(o.DisplayName)));
             Assert.Equal(options.Count, options.Select(o => o.TargetFormat).Distinct().Count());
+            Assert.Equal(options.Select(o => o.TargetFormat), Offered(ext, Everything));
         }
     }
 

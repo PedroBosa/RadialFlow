@@ -447,6 +447,27 @@ public sealed class WindowsTests : IDisposable
     }
 
     [Fact]
+    public void Progresso_LoteComFalhas_MostraAtencaoENaoEhSobrescrito()
+    {
+        RunSta(() =>
+        {
+            var window = new ProgressWindow("Convertendo 3 arquivos…", @"C:\Temp\foto.webp") { Left = -20000, Top = 100 };
+            window.Show();
+            Pump(150);
+
+            window.MarkCompleted("2 de 3 arquivos convertidos; 1 com erro.", warning: true);
+            window.Report(new ProgressReport(40, "relatório atrasado"));
+            Pump(250);
+
+            Assert.Equal("Atenção", Find<TextBlock>(window, "TxtPercent").Text);
+            Assert.Equal("2 de 3 arquivos convertidos; 1 com erro.", Find<TextBlock>(window, "TxtStatus").Text);
+            Assert.Equal(Visibility.Visible, Find<Button>(window, "BtnOpenFolder").Visibility);
+            Assert.Equal("Fechar", Find<Button>(window, "BtnCancel").Content);
+            window.Close();
+        });
+    }
+
+    [Fact]
     public void Conversao_ComboMostraONomeDoFormato_NaoOTipo()
     {
         RunSta(() =>
@@ -455,7 +476,7 @@ public sealed class WindowsTests : IDisposable
             System.IO.File.WriteAllBytes(file, []);
             try
             {
-                var window = new ConversionWindow(file) { Left = -20000, Top = 100, WindowStartupLocation = WindowStartupLocation.Manual };
+                var window = new ConversionWindow(new[] { file }) { Left = -20000, Top = 100, WindowStartupLocation = WindowStartupLocation.Manual };
                 window.Show();
                 Pump(300);
 
@@ -471,6 +492,44 @@ public sealed class WindowsTests : IDisposable
             finally
             {
                 System.IO.File.Delete(file);
+            }
+        });
+    }
+
+    [Fact]
+    public void Conversao_SelecaoMista_AvisaOArquivoQueSeraIgnorado()
+    {
+        RunSta(() =>
+        {
+            string jpg = System.IO.Path.Combine(System.IO.Path.GetTempPath(), $"rf-{Guid.NewGuid():N}.jpg");
+            string png = System.IO.Path.Combine(System.IO.Path.GetTempPath(), $"rf-{Guid.NewGuid():N}.png");
+            System.IO.File.WriteAllBytes(jpg, []);
+            System.IO.File.WriteAllBytes(png, []);
+            try
+            {
+                var window = new ConversionWindow(new[] { jpg, png })
+                {
+                    Left = -20000,
+                    Top = 100,
+                    WindowStartupLocation = WindowStartupLocation.Manual
+                };
+                window.Show();
+                Pump(300);
+
+                ComboBox combo = Find<ComboBox>(window, "CmbTargetFormat");
+                var option = combo.Items.OfType<ConversionOption>().Single(o => o.TargetFormat == "jpg");
+                combo.SelectedItem = option;
+                Pump(150);
+
+                TextBlock note = Find<TextBlock>(window, "TxtBatchNote");
+                Assert.Equal(Visibility.Visible, note.Visibility);
+                Assert.Contains("1 arquivo já está em JPG", note.Text);
+                window.Close();
+            }
+            finally
+            {
+                System.IO.File.Delete(jpg);
+                System.IO.File.Delete(png);
             }
         });
     }

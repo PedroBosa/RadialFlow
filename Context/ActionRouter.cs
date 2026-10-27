@@ -293,39 +293,57 @@ public static partial class ActionRouter
     }
 
     /// <summary>
-    /// Renomeia o primeiro arquivo/pasta dos Paths.
-    /// Tenta via Shell (seleciona item no Explorer + F2). Se falhar, abre
-    /// um diálogo WPF simples com File.Move.
+    /// Renomeia o item selecionado. Com um único item, o fallback é o diálogo WPF; com vários,
+    /// usa o F2 do Explorer (renomeação nativa em lote) e NUNCA renomeia só o primeiro quando
+    /// a seleção não pode ser preparada: avisa e não toca em nada.
     /// </summary>
     private static async Task RenameAsync(ContextInfo ctx)
     {
         if (ctx.Paths.Count == 0) return;
-        string path = ctx.Paths[0];
 
-        if (!File.Exists(path) && !Directory.Exists(path))
+        if (ctx.Paths.Count == 1)
         {
-            AppLog.Warning("Action", $"Rename: não encontrado: {path}");
+            string path = ctx.Paths[0];
+            if (!File.Exists(path) && !Directory.Exists(path))
+            {
+                AppLog.Warning("Action", $"Rename: não encontrado: {path}");
+                return;
+            }
+
+            // Tenta via Shell: seleciona o item e injeta F2.
+            if (await TryRenameViaShellAsync(ctx.RootWindow, ctx.Paths)) return;
+
+            // Fallback: diálogo WPF simples.
+            _ui.Invoke(() => RenameViaDialog(path));
             return;
         }
 
-        // Tenta via Shell: seleciona o item e injeta F2.
-        if (await TryRenameViaShellAsync(ctx.RootWindow, path))
+        if (!Logic.CanRenameTogether(ctx.Paths, out string? reason))
+        {
+            AppLog.Debug("Action", $"Rename em lote recusado: {reason}");
+            _ui.Invoke(() => Dialogs.Message(null, "Renomear",
+                reason ?? "Não é possível renomear esta seleção de uma vez.", DialogIcon.Warning));
             return;
+        }
 
-        // Fallback: diálogo WPF simples.
-        _ui.Invoke(() => RenameViaDialog(path));
+        if (await TryRenameViaShellAsync(ctx.RootWindow, ctx.Paths)) return;
+
+        AppLog.Warning("Action", "Rename em lote: o Explorer não aceitou a seleção.");
+        _ui.Invoke(() => Dialogs.Message(null, "Renomear",
+            "Não foi possível preparar a renomeação na janela do Explorer.\n" +
+            "Selecione os arquivos no Explorer e pressione F2. Nada foi renomeado.",
+            DialogIcon.Warning));
     }
 
     /// <summary>
-    /// Seleciona o item no Explorer via Shell.Application e injeta F2.
+    /// Seleciona os itens no Explorer via Shell.Application e injeta F2. Se algum item não for
+    /// encontrado, não seleciona nada (uma seleção incompleta renomearia só parte do lote).
     /// Retorna true se conseguiu; false se falhou.
     /// </summary>
-    private static async Task<bool> TryRenameViaShellAsync(IntPtr hwnd, string path)
+    private static async Task<bool> TryRenameViaShellAsync(IntPtr hwnd, IReadOnlyList<string> paths)
     {
         try
         {
-            string fileName = Path.GetFileName(path);
-
             bool selected = await Task.Run(() =>
             {
                 var shellType = Type.GetTypeFromProgID("Shell.Application");
@@ -344,26 +362,21 @@ public static partial class ActionRouter
                         if (Convert.ToInt64(w.HWND) != hwnd.ToInt64()) continue;
 
                         dynamic folder = w.Document.Folder;
-                        dynamic? item = folder.ParseName(fileName);
-
-                        // Extensão oculta: ParseName pode falhar com o nome exibido.
-                        if (item is null)
+                        var items = new List<object?>(paths.Count);
+                        foreach (string path in paths)
                         {
-                            string bare = Path.GetFileNameWithoutExtension(fileName);
-                            dynamic items = folder.Items();
-                            int n = items.Count;
-                            for (int k = 0; k < n; k++)
-                            {
-                                dynamic fi = items.Item(k);
-                                if (fi is not null &&
-                                    string.Equals((string)fi.Name, bare, StringComparison.OrdinalIgnoreCase))
-                                { item = fi; break; }
-                            }
+                            object? item = FindShellItem(folder, Path.GetFileName(path));
+                            if (item is null) return false;
+                            items.Add(item);
                         }
-                        if (item is null) continue;
 
-                        // SVSI_SELECT | SVSI_DESELECTOTHERS | SVSI_ENSUREVISIBLE | SVSI_FOCUSED
-                        w.Document.SelectItem(item, 0x1D);
+                        for (int k = 0; k < items.Count; k++)
+                        {
+                            // O primeiro limpa a seleção anterior; os demais SOMAM (sem SVSI_DESELECTOTHERS).
+                            // SVSI_SELECT | SVSI_ENSUREVISIBLE (+ SVSI_DESELECTOTHERS | SVSI_FOCUSED no primeiro).
+                            w.Document.SelectItem(items[k], k == 0 ? 0x1D : 0x09);
+                        }
+
                         return true;
                     }
                     catch { /* aba/janela inválida */ }
@@ -386,7 +399,7 @@ public static partial class ActionRouter
             }
             SimulateKeys(VK_F2);
 
-            AppLog.Debug("Action", "Rename via Shell+F2.");
+            AppLog.Debug("Action", $"Rename via Shell+F2 ({paths.Count} item(ns)).");
             return true;
         }
         catch (Exception ex)
@@ -394,6 +407,25 @@ public static partial class ActionRouter
             AppLog.Warning("Action", $"Rename Shell falhou: {ex.Message}");
             return false;
         }
+    }
+
+    private static object? FindShellItem(dynamic folder, string fileName)
+    {
+        dynamic? item = folder.ParseName(fileName);
+        if (item is not null) return item;
+
+        // Extensão oculta: ParseName pode falhar com o nome exibido.
+        string bare = Path.GetFileNameWithoutExtension(fileName);
+        dynamic items = folder.Items();
+        int count = items.Count;
+        for (int i = 0; i < count; i++)
+        {
+            dynamic fi = items.Item(i);
+            if (fi is not null && string.Equals((string)fi.Name, bare, StringComparison.OrdinalIgnoreCase))
+                return fi;
+        }
+
+        return null;
     }
 
     /// <summary>
@@ -626,74 +658,117 @@ public static partial class ActionRouter
     }
 
     /// <summary>
-    /// Abre a janela de seleção de formatos para conversão e inicia a tarefa com progresso.
+    /// Abre a janela de seleção de formatos para a seleção inteira e inicia a conversão com progresso.
     /// </summary>
     private static Task ConvertAsync(ContextInfo ctx)
     {
         if (ctx.Paths.Count == 0) return Task.CompletedTask;
-        string sourceFile = ctx.Paths[0];
 
-        var choice = _ui.Invoke<(string? Format, string? Destination)>(() =>
+        ConversionBatchPlan? plan = _ui.Invoke(() =>
         {
-            var convDialog = new ConversionWindow(sourceFile);
-            return convDialog.ShowDialog() == true
-                ? (convDialog.SelectedTargetFormat, convDialog.DestinationFilePath)
-                : (null, null);
+            var convDialog = new ConversionWindow(ctx.Paths);
+            return convDialog.ShowDialog() == true ? convDialog.Plan : null;
         });
 
-        if (choice is not { Format: { } format, Destination: { } destination }) return Task.CompletedTask;
+        if (plan is null) return Task.CompletedTask;
 
-        RunWithProgress($"Convertendo {Path.GetFileName(sourceFile)}...", destination,
-            (progress, ct) => ConversionService.ConvertAsync(sourceFile, format, destination, progress, ct),
-            "Conversão cancelada pelo usuário.", "Falha na conversão");
-
+        RunConversionPlan(plan);
         return Task.CompletedTask;
     }
 
     /// <summary>
-    /// Converte diretamente um arquivo para o formato solicitado (acionado pela sub-fatia radial).
+    /// Converte diretamente a seleção para o formato solicitado (acionado pela sub-fatia radial).
     /// Não abre diálogos modais: executa imediatamente e mostra a barra de progresso.
     /// Chamado na thread de UI (DragCompleted): todo o trabalho (disco incluso) vai para o pool.
     /// </summary>
-    public static void RunDirectConversion(string sourceFile, string targetFormat)
+    public static void RunDirectConversion(IReadOnlyList<string> sourceFiles, string targetFormat)
     {
         _ = Task.Run(() =>
         {
             try
             {
-                if (!TrustedPath.TryGetSafeFullPath(sourceFile, out string source) || !File.Exists(source))
+                if (!ConversionBatch.TryPlan(sourceFiles, targetFormat, destinationFolder: null,
+                        out ConversionBatchPlan? plan, out string? error) || plan is null)
                 {
-                    AppLog.Warning("Action", $"Conversão recusada: origem inválida '{sourceFile}'.");
+                    AppLog.Warning("Action", $"Conversão recusada: {error}");
                     return;
                 }
 
-                // Nunca sobrescreve: se "foto.jpg" já existe, grava "foto (1).jpg".
-                if (!Logic.TryBuildConversionDestination(source, targetFormat, out string destFile))
-                {
-                    AppLog.Warning("Action", $"Conversão recusada: formato/destino inválido ('{targetFormat}').");
-                    return;
-                }
-
-                string ext = Logic.NormalizeFormat(targetFormat);
-                RunWithProgress($"Convertendo para .{ext.ToUpperInvariant()}...", destFile,
-                    (progress, ct) => ConversionService.ConvertAsync(source, ext, destFile, progress, ct),
-                    "Conversão cancelada pelo usuário.", "Falha na conversão");
+                RunConversionPlan(plan);
             }
             catch (Exception ex)
             {
-                AppLog.Error("Action", $"Falha ao iniciar a conversão", ex);
+                AppLog.Error("Action", "Falha ao iniciar a conversão", ex);
             }
         });
     }
 
+    /// <summary>Executa um plano já validado numa única janela de progresso, com o resumo no final.</summary>
+    private static void RunConversionPlan(ConversionBatchPlan plan)
+    {
+        if (plan.Jobs.Count == 0) return;
+
+        string title = plan.Jobs.Count == 1
+            ? $"Convertendo {Path.GetFileName(plan.Jobs[0].Source)}..."
+            : $"Convertendo {plan.Jobs.Count} arquivos...";
+
+        ConversionBatchResult? result = null;
+        RunWithProgress(title, plan.Jobs[0].Destination,
+            async (progress, ct) =>
+            {
+                result = await ConversionService.ConvertBatchAsync(plan.Jobs, plan.TargetFormat, progress, ct)
+                    .ConfigureAwait(false);
+            },
+            "Conversão cancelada pelo usuário.", "Falha na conversão",
+            completion: () => DescribeBatchResult(result, plan));
+    }
+
+    private static CompletionMessage DescribeBatchResult(ConversionBatchResult? result, ConversionBatchPlan plan)
+    {
+        string target = plan.TargetFormat.ToUpperInvariant();
+        string skipped = plan.Skipped.Count switch
+        {
+            0 => "",
+            1 => " 1 arquivo já estava no formato.",
+            var count => $" {count} arquivos já estavam no formato.",
+        };
+
+        if (result is null)
+            return new CompletionMessage($"Conversão concluída para .{target}.", false);
+
+        foreach (var item in result.Items)
+        {
+            if (!item.Success)
+                AppLog.Warning("Action", $"Conversão falhou ({Path.GetFileName(item.Source)}): {item.Error}");
+        }
+
+        if (result.Failed == 0)
+        {
+            string text = result.Succeeded == 1
+                ? $"Arquivo convertido para .{target}."
+                : $"{result.Succeeded} arquivos convertidos para .{target}.";
+            return new CompletionMessage(text + skipped, false);
+        }
+
+        string summary = result.Succeeded == 0
+            ? $"Nenhum arquivo foi convertido para .{target} ({result.Failed} com erro)."
+            : $"{result.Succeeded} de {plan.Jobs.Count} arquivos convertidos para .{target}; {result.Failed} com erro.";
+        return new CompletionMessage(summary + skipped, true);
+    }
+
+    /// <summary>Mensagem final exibida pela janela de progresso; <c>Warning</c> usa as cores de atenção.</summary>
+    private readonly record struct CompletionMessage(string Text, bool Warning);
+
     /// <summary>
     /// Abre a <see cref="ProgressWindow"/> na thread de UI e executa <paramref name="work"/> no pool.
     /// Cancelamento e falhas viram mensagem na janela; nenhuma exceção escapa da tarefa.
+    /// <paramref name="completion"/> roda depois do trabalho bem-sucedido (ex.: resumo de um lote).
     /// Chamar fora da thread de UI.
     /// </summary>
     private static void RunWithProgress(string title, string output,
         Func<IProgress<ProgressReport>, System.Threading.CancellationToken, Task> work,
-        string cancelledText, string failurePrefix)
+        string cancelledText, string failurePrefix,
+        Func<CompletionMessage>? completion = null)
     {
         ProgressWindow progressWin = _ui.Invoke(() =>
         {
@@ -707,6 +782,11 @@ public static partial class ActionRouter
             try
             {
                 await work(progressWin, progressWin.CancellationToken).ConfigureAwait(false);
+                if (completion is not null)
+                {
+                    CompletionMessage message = completion();
+                    progressWin.MarkCompleted(message.Text, message.Warning);
+                }
             }
             catch (OperationCanceledException)
             {

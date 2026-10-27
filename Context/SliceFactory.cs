@@ -28,7 +28,7 @@ namespace RadialFlow.Context;
 internal interface ISliceActions
 {
     void Run(RadialAction action, ContextInfo context);
-    void ConvertTo(string sourceFile, string targetFormat);
+    void ConvertTo(IReadOnlyList<string> sourceFiles, string targetFormat);
     void LaunchFavorite(FavoriteAppEntry app);
     void RunCustom(CustomMenuItem item, ContextInfo context);
 }
@@ -37,7 +37,7 @@ internal interface ISliceActions
 internal sealed class ActionRouterSliceActions : ISliceActions
 {
     public void Run(RadialAction action, ContextInfo context) => ActionRouter.Run(action, context);
-    public void ConvertTo(string sourceFile, string targetFormat) => ActionRouter.RunDirectConversion(sourceFile, targetFormat);
+    public void ConvertTo(IReadOnlyList<string> sourceFiles, string targetFormat) => ActionRouter.RunDirectConversion(sourceFiles, targetFormat);
     public void LaunchFavorite(FavoriteAppEntry app) => ActionRouter.LaunchAppDirect(app);
     public void RunCustom(CustomMenuItem item, ContextInfo context) => ActionRouter.RunCustom(item, context);
 }
@@ -90,25 +90,36 @@ public static class SliceFactory
     {
         var actions = deps.Actions;
         List<RadialSlice>? convertSubSlices = null;
+        IReadOnlyList<string> paths = c.Paths;
 
-        if (c.Paths.Count > 0 && deps.FileExists(c.Paths[0]))
+        bool allFiles = paths.Count > 0;
+        foreach (string path in paths)
         {
-            string sourceFile = c.Paths[0];
-            var options = deps.GetConversionOptions(sourceFile);
+            if (!deps.FileExists(path))
+            {
+                allFiles = false;
+                break;
+            }
+        }
+
+        if (allFiles)
+        {
+            var options = ConversionBatch.GetCommonOptions(paths, deps.GetConversionOptions);
             if (options.Count > 0)
             {
-                convertSubSlices = new List<RadialSlice>();
+                var formatSlices = new List<RadialSlice>(options.Count);
                 foreach (var opt in options)
                 {
-                    if (convertSubSlices.Count == RadialGeometry.MaxSlices) break;   // a roda comporta no máximo 8
-
                     string target = opt.TargetFormat;
-                    convertSubSlices.Add(new RadialSlice(
+                    formatSlices.Add(new RadialSlice(
                         Label: target.ToUpperInvariant(),
                         Glyph: GetFormatGlyph(target),
-                        Execute: () => actions.ConvertTo(sourceFile, target),
+                        Execute: () => actions.ConvertTo(paths, target),
                         Description: opt.DisplayName));
                 }
+
+                // Mais de 8 formatos viram páginas ligadas por "Mais…": nenhuma opção é descartada.
+                convertSubSlices = RadialSlicePaging.Paginate(formatSlices);
             }
         }
 
@@ -117,7 +128,7 @@ public static class SliceFactory
             new RadialSlice("Comprimir",      "\uF012", () => actions.Run(RadialAction.Compress, c), null, "Compactar em .zip (ou extrair, se já for .zip)", nameof(RadialAction.Compress)),
         };
 
-        // Converter só aparece quando existe ao menos uma conversão que funciona para ESTE arquivo
+        // Converter só aparece quando existe ao menos uma conversão que funciona para TODOS os itens
         // (pasta, formato desconhecido ou ferramenta ausente: a fatia some em vez de levar a um beco sem saída).
         if (convertSubSlices is { Count: > 0 })
             slices.Add(new RadialSlice("Converter", "\uE8AB", () => actions.Run(RadialAction.Convert, c), convertSubSlices, "Converter para outro formato", nameof(RadialAction.Convert)));
@@ -125,7 +136,8 @@ public static class SliceFactory
         slices.Add(new RadialSlice("Copiar caminho", "\uE71B", () => actions.Run(RadialAction.CopyPath, c), null, "Copiar o caminho completo", nameof(RadialAction.CopyPath)));
         slices.Add(new RadialSlice("Mover para",     "\uE838", () => actions.Run(RadialAction.MoveTo, c), null, "Mover para outra pasta", nameof(RadialAction.MoveTo)));
         slices.Add(new RadialSlice("Enviar para",    "\uE724", () => actions.Run(RadialAction.SendTo, c), null, "Copiar o arquivo para colar em outro app", nameof(RadialAction.SendTo)));
-        slices.Add(new RadialSlice("Renomear",       "\uE8AC", () => actions.Run(RadialAction.Rename, c), null, "Renomear", nameof(RadialAction.Rename)));
+        slices.Add(new RadialSlice("Renomear",       "\uE8AC", () => actions.Run(RadialAction.Rename, c), null,
+            paths.Count > 1 ? "Renomear seleção" : "Renomear", nameof(RadialAction.Rename)));
         return slices.ToArray();
     }
 

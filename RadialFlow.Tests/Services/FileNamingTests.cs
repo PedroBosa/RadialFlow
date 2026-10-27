@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using RadialFlow.Services;
 using RadialFlow.Tests.TestSupport;
@@ -87,6 +88,22 @@ public sealed class FileNamingTests : IDisposable
 
         Assert.False(File.Exists(unique));
         Assert.False(Directory.Exists(unique));
+    }
+
+    [Fact]
+    public void TryGetUniquePath_ReservaNomesJaPlanejados()
+    {
+        var reserved = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        string desired = _temp.Combine("foto.webp");
+
+        Assert.True(FileNaming.TryGetUniquePath(desired, reserved, out string first));
+        Assert.Equal(desired, first);
+
+        Assert.True(FileNaming.TryGetUniquePath(desired, reserved, out string second));
+        Assert.Equal(_temp.Combine("foto (1).webp"), second);
+
+        Assert.True(FileNaming.TryGetUniquePath(desired, reserved, out string third));
+        Assert.Equal(_temp.Combine("foto (2).webp"), third);
     }
 
     [Fact]

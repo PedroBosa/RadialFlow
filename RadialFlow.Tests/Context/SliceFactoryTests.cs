@@ -22,12 +22,13 @@ public sealed class SliceFactoryTests
         IReadOnlyList<ConversionOption>? options = null,
         IReadOnlyList<FavoriteAppEntry>? favorites = null,
         Func<string, bool>? fileExists = null,
-        IReadOnlyList<CustomMenuProfile>? profiles = null) =>
+        IReadOnlyList<CustomMenuProfile>? profiles = null,
+        Func<string, IReadOnlyList<ConversionOption>>? optionsFor = null) =>
         new(_actions,
             path =>
             {
                 _optionRequests.Add(path);
-                return options ?? Array.Empty<ConversionOption>();
+                return optionsFor?.Invoke(path) ?? options ?? Array.Empty<ConversionOption>();
             },
             () => favorites,
             fileExists ?? (_ => true),
@@ -153,17 +154,76 @@ public sealed class SliceFactoryTests
 
         convert.SubSlices![1].Execute!();
 
-        Assert.Equal((SourceFile, "webp"), Assert.Single(_actions.Conversions));
+        var conversion = Assert.Single(_actions.Conversions);
+        Assert.Equal(new[] { SourceFile }, conversion.Sources);
+        Assert.Equal("webp", conversion.Format);
         Assert.Empty(_actions.Runs);   // a sub-fatia converte direto, sem passar pelo diálogo
     }
 
     [Fact]
-    public void Build_UsaApenasOPrimeiroCaminhoParaAsOpcoes()
+    public void Build_ConsultaAsOpcoesDeTodosOsArquivosSelecionados()
     {
-        SliceFactory.Build(Context(RadialContextKind.FileOrFolder, SourceFile, @"C:\Users\Public\outro.png"),
+        string second = @"C:\Users\Public\outro.jpg";   // extensão diferente: as opções vêm de cada formato
+
+        SliceFactory.Build(Context(RadialContextKind.FileOrFolder, SourceFile, second), Deps([Option("jpg")]));
+
+        Assert.Equal(new[] { SourceFile, second }, _optionRequests);
+    }
+
+    [Fact]
+    public void Build_VariosArquivos_UsaSomenteOsFormatosAceitosPorTodos()
+    {
+        string video = @"C:\Users\Public\video.mp4";
+        var slices = SliceFactory.Build(Context(RadialContextKind.FileOrFolder, SourceFile, video),
+            Deps(optionsFor: path => path.EndsWith(".png", StringComparison.OrdinalIgnoreCase)
+                ? [Option("jpg"), Option("gif")]
+                : [Option("mp4"), Option("gif")]));
+
+        var convert = Assert.Single(slices, s => s.Label == "Converter");
+        Assert.Equal(new[] { "GIF" }, convert.SubSlices!.Select(s => s.Label));
+
+        convert.SubSlices![0].Execute!();
+
+        var conversion = Assert.Single(_actions.Conversions);
+        Assert.Equal(new[] { SourceFile, video }, conversion.Sources);
+        Assert.Equal("gif", conversion.Format);
+    }
+
+    [Fact]
+    public void Build_ArquivoJaNoFormatoDeDestino_NaoImpedeOFormatoComum()
+    {
+        string photo = @"C:\Users\Public\foto.jpg";
+        var slices = SliceFactory.Build(Context(RadialContextKind.FileOrFolder, photo, SourceFile),
+            Deps(optionsFor: path => path.EndsWith(".png", StringComparison.OrdinalIgnoreCase)
+                ? [Option("jpg"), Option("webp")]
+                : [Option("png")]));
+
+        var convert = Assert.Single(slices, s => s.Label == "Converter");
+
+        // O JPG já está no formato e será ignorado; o PNG ainda pode virar JPG. WEBP não serve para o JPG.
+        Assert.Equal(new[] { "PNG", "JPG" }, convert.SubSlices!.Select(s => s.Label));
+    }
+
+    [Fact]
+    public void Build_SelecaoComPasta_EscondeConverterSemConsultarOpcoes()
+    {
+        string folder = @"C:\Users\Public\Fotos";
+        var slices = SliceFactory.Build(Context(RadialContextKind.FileOrFolder, SourceFile, folder),
+            Deps([Option("jpg")],
+                fileExists: path => !string.Equals(path, folder, StringComparison.OrdinalIgnoreCase)));
+
+        Assert.DoesNotContain(slices, s => s.Label == "Converter");
+        Assert.Empty(_optionRequests);
+    }
+
+    [Fact]
+    public void Build_VariosItens_DescricaoDeRenomearIndicaSelecao()
+    {
+        var slices = SliceFactory.Build(
+            Context(RadialContextKind.FileOrFolder, SourceFile, @"C:\Users\Public\outro.png"),
             Deps([Option("jpg")]));
 
-        Assert.Equal(new[] { SourceFile }, _optionRequests);
+        Assert.Equal("Renomear seleção", slices.Single(s => s.Label == "Renomear").Description);
     }
 
     [Fact]
@@ -196,15 +256,39 @@ public sealed class SliceFactoryTests
     }
 
     [Fact]
-    public void Build_MaisOpcoesQueARodaComporta_LimitaAoMaximo()
+    public void Build_MaisOpcoesQueARodaComporta_PaginaComMaisSemDescartar()
     {
         var options = Enumerable.Range(1, RadialGeometry.MaxSlices + 4).Select(i => Option($"f{i}")).ToArray();
 
         var convert = SliceFactory.Build(Context(RadialContextKind.FileOrFolder, SourceFile), Deps(options))
             .Single(s => s.Label == "Converter");
 
-        Assert.Equal(RadialGeometry.MaxSlices, convert.SubSlices!.Count);
-        Assert.Equal("F1", convert.SubSlices[0].Label);
+        // Primeira página: 7 formatos + "Mais…"; nenhum formato some.
+        var page = convert.SubSlices!;
+        Assert.Equal(
+            new[] { "F1", "F2", "F3", "F4", "F5", "F6", "F7", RadialSlicePaging.MoreLabel },
+            page.Select(s => s.Label));
+        Assert.Equal(RadialSlicePaging.MoreGlyph, page[7].Glyph);
+        Assert.Equal("Mais 5 opções", page[7].Description);
+        Assert.Null(page[7].Execute);
+
+        Assert.Equal(
+            new[] { "F8", "F9", "F10", "F11", "F12" },
+            page[7].SubSlices!.Select(s => s.Label));
+    }
+
+    [Fact]
+    public void Build_SegundaPagina_ExecutaOFormatoCerto()
+    {
+        var options = Enumerable.Range(1, 12).Select(i => Option($"f{i}")).ToArray();
+        var convert = SliceFactory.Build(Context(RadialContextKind.FileOrFolder, SourceFile), Deps(options))
+            .Single(s => s.Label == "Converter");
+
+        convert.SubSlices![7].SubSlices![4].Execute!();   // F12, já na segunda página
+
+        var conversion = Assert.Single(_actions.Conversions);
+        Assert.Equal(new[] { SourceFile }, conversion.Sources);
+        Assert.Equal("f12", conversion.Format);
     }
 
     // ------------------------------------------------------------------
