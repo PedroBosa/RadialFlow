@@ -56,6 +56,7 @@ public partial class ProgressWindow : Window, IProgress<ProgressReport>
         UiTheme.Install(this);   // estilos e cores: antes do XAML, que usa DynamicResource
         InitializeComponent();
         GlassSurface.Attach(this, GlassImageHost, GlassTint);
+        Motion.AttachEntrance(this, Root, Motion.Enabled);
         Icon = AppIconRenderer.WindowIcon;
         _token = _cts.Token;
         _ui = Dispatcher;

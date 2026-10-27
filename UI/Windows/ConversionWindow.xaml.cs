@@ -29,6 +29,7 @@ public partial class ConversionWindow : Window
         UiTheme.StyleTitleBar(this);
         InitializeComponent();
         GlassSurface.Attach(this, GlassImageHost, GlassTint);
+        Motion.AttachEntrance(this, Root, Motion.Enabled);
         Icon = AppIconRenderer.WindowIcon;
         _sourcePaths = sourcePaths;
 

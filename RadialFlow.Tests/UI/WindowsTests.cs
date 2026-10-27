@@ -628,6 +628,68 @@ public sealed class WindowsTests : IDisposable
     }
 
     [Fact]
+    public void Movimento_DuracaoCurta_Padronizada()
+    {
+        Assert.Equal(TimeSpan.FromMilliseconds(110), Motion.Fast);
+    }
+
+    [Fact]
+    public void Entrada_SemAnimacao_PainelJaFicaNoLugar()
+    {
+        RunSta(() =>
+        {
+            var window = OffscreenWindow(out Grid root);
+            Motion.AttachEntrance(window, root, animate: false);
+            Assert.Equal(1, root.Opacity);
+            Assert.Null(root.RenderTransform as ScaleTransform);
+
+            window.Show();
+            Pump(200);
+            Assert.Equal(1, root.Opacity);
+            Assert.Null(root.RenderTransform as ScaleTransform);
+            window.Close();
+        });
+    }
+
+    [Fact]
+    public void Entrada_ComAnimacao_VaiDe98PorCentoAoCheio()
+    {
+        RunSta(() =>
+        {
+            var window = OffscreenWindow(out Grid root);
+            Motion.AttachEntrance(window, root, animate: true);
+
+            Assert.Equal(0, root.Opacity);
+            var scale = Assert.IsType<ScaleTransform>(root.RenderTransform);
+            Assert.Equal(0.98, scale.ScaleX, 3);
+            Assert.Equal(0.98, scale.ScaleY, 3);
+
+            window.Show();
+            Pump(350);
+
+            Assert.Equal(1, root.Opacity);
+            Assert.Equal(1, scale.ScaleX, 3);
+            Assert.Equal(1, scale.ScaleY, 3);
+            window.Close();
+        });
+    }
+
+    private static Window OffscreenWindow(out Grid root)
+    {
+        root = new Grid();
+        var window = new Window
+        {
+            Width = 200,
+            Height = 120,
+            Left = -20000,
+            Top = 100,
+            WindowStartupLocation = WindowStartupLocation.Manual,
+            Content = root
+        };
+        return window;
+    }
+
+    [Fact]
     public void Conversao_ComboMostraONomeDoFormato_NaoOTipo()
     {
         RunSta(() =>

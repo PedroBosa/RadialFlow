@@ -12,7 +12,7 @@
         UseLayoutRounding="True">
 
     <!-- Estilos e cores: Theme/Controls.xaml + UiTheme (instalados no construtor). A margem de 20 abriga a sombra. -->
-    <Grid Margin="20" Background="Transparent" MouseLeftButtonDown="Card_MouseLeftButtonDown">
+    <Grid x:Name="Root" Margin="20" Background="Transparent" MouseLeftButtonDown="Card_MouseLeftButtonDown">
         <Border x:Name="Frame" CornerRadius="16">
             <Border.Effect>
                 <DropShadowEffect BlurRadius="26" ShadowDepth="5" Opacity="0.45" Color="Black"/>

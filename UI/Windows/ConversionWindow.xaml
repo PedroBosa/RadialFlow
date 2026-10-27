@@ -13,7 +13,7 @@
 
     <!-- Estilos e cores: Theme/Controls.xaml + UiTheme (instalados no construtor).
          O cliente usa o vidro congelado; sem captura, o véu fica opaco (SurfaceBrush). -->
-    <Grid>
+    <Grid x:Name="Root">
         <Border x:Name="GlassImageHost" IsHitTestVisible="False"
                 RenderOptions.BitmapScalingMode="HighQuality"/>
         <Border x:Name="GlassTint" Background="{DynamicResource SurfaceBrush}" IsHitTestVisible="False"/>

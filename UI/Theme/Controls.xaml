@@ -94,6 +94,7 @@
     </Style>
 
     <!-- ================= Botões ================= -->
+    <!-- Movimento curto dos estados (0.11 s) = Motion.Fast; a chave liga/desliga usa o mesmo tempo. -->
     <Style TargetType="Button">
         <Setter Property="Background" Value="{DynamicResource ControlBrush}"/>
         <Setter Property="Foreground" Value="{DynamicResource TextBrush}"/>
@@ -111,24 +112,71 @@
                     <Grid>
                         <Border x:Name="focusRing" Margin="-4" CornerRadius="14" BorderThickness="2"
                                 BorderBrush="{DynamicResource AccentTextBrush}" Opacity="0" IsHitTestVisible="False"/>
-                        <Border x:Name="bd" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
-                                BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="10" Padding="{TemplateBinding Padding}">
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" TextElement.Foreground="{TemplateBinding Foreground}"/>
-                        </Border>
+                        <Grid x:Name="press" RenderTransformOrigin="0.5,0.5">
+                            <Grid.RenderTransform>
+                                <ScaleTransform x:Name="pressScale" ScaleX="1" ScaleY="1"/>
+                            </Grid.RenderTransform>
+                            <Border x:Name="bd" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
+                                    BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="10"/>
+                            <Border x:Name="hoverFill" Margin="1" CornerRadius="9" Background="{DynamicResource ControlHoverBrush}"
+                                    Opacity="0" IsHitTestVisible="False"/>
+                            <Border x:Name="hoverLine" CornerRadius="10" BorderThickness="{TemplateBinding BorderThickness}"
+                                    BorderBrush="{DynamicResource AccentLineBrush}" Opacity="0" IsHitTestVisible="False"/>
+                            <ContentPresenter Margin="{TemplateBinding Padding}" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                              TextElement.Foreground="{TemplateBinding Foreground}"/>
+                        </Grid>
                     </Grid>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="bd" Property="Background" Value="{DynamicResource ControlHoverBrush}"/>
-                            <Setter TargetName="bd" Property="BorderBrush" Value="{DynamicResource AccentLineBrush}"/>
+                            <Trigger.EnterActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="hoverFill" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.11"/>
+                                        <DoubleAnimation Storyboard.TargetName="hoverLine" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.11"/>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="hoverFill" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.11"/>
+                                        <DoubleAnimation Storyboard.TargetName="hoverLine" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.11"/>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.ExitActions>
                         </Trigger>
                         <Trigger Property="IsPressed" Value="True">
-                            <Setter TargetName="bd" Property="Opacity" Value="0.82"/>
+                            <Setter TargetName="press" Property="Opacity" Value="0.82"/>
+                            <Trigger.EnterActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="pressScale" Storyboard.TargetProperty="ScaleX" To="0.98" Duration="0:0:0.11">
+                                            <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut"/></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="pressScale" Storyboard.TargetProperty="ScaleY" To="0.98" Duration="0:0:0.11">
+                                            <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut"/></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="pressScale" Storyboard.TargetProperty="ScaleX" To="1" Duration="0:0:0.11">
+                                            <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut"/></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="pressScale" Storyboard.TargetProperty="ScaleY" To="1" Duration="0:0:0.11">
+                                            <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut"/></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.ExitActions>
                         </Trigger>
                         <Trigger Property="IsKeyboardFocused" Value="True">
                             <Setter TargetName="focusRing" Property="Opacity" Value="1"/>
                         </Trigger>
                         <Trigger Property="IsEnabled" Value="False">
-                            <Setter TargetName="bd" Property="Opacity" Value="0.45"/>
+                            <Setter TargetName="press" Property="Opacity" Value="0.45"/>
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
@@ -146,21 +194,26 @@
                     <Grid>
                         <Border x:Name="focusRing" Margin="-5" CornerRadius="15" BorderThickness="2"
                                 BorderBrush="{DynamicResource AccentTextBrush}" Opacity="0" IsHitTestVisible="False"/>
-                        <Border x:Name="glow" Background="{DynamicResource AccentGlowBrush}" CornerRadius="10"
-                                Opacity="0.8" IsHitTestVisible="False">
-                            <Border.Effect>
-                                <BlurEffect Radius="16" RenderingBias="Performance"/>
-                            </Border.Effect>
-                        </Border>
-                        <Border x:Name="bd" Background="{DynamicResource AccentGradientBrush}" CornerRadius="10">
-                            <Grid>
-                                <Border x:Name="wash" Background="White" Opacity="0" IsHitTestVisible="False"/>
-                                <Border Height="1" Margin="1,1,1,0" VerticalAlignment="Top"
-                                        Background="{DynamicResource GlossBrush}" IsHitTestVisible="False"/>
-                                <ContentPresenter Margin="{TemplateBinding Padding}" HorizontalAlignment="Center"
-                                                  VerticalAlignment="Center" TextElement.Foreground="{TemplateBinding Foreground}"/>
-                            </Grid>
-                        </Border>
+                        <Grid x:Name="press" RenderTransformOrigin="0.5,0.5">
+                            <Grid.RenderTransform>
+                                <ScaleTransform x:Name="pressScale" ScaleX="1" ScaleY="1"/>
+                            </Grid.RenderTransform>
+                            <Border x:Name="glow" Background="{DynamicResource AccentGlowBrush}" CornerRadius="10"
+                                    Opacity="0.8" IsHitTestVisible="False">
+                                <Border.Effect>
+                                    <BlurEffect Radius="16" RenderingBias="Performance"/>
+                                </Border.Effect>
+                            </Border>
+                            <Border x:Name="bd" Background="{DynamicResource AccentGradientBrush}" CornerRadius="10">
+                                <Grid>
+                                    <Border x:Name="wash" Background="White" Opacity="0" IsHitTestVisible="False"/>
+                                    <Border Height="1" Margin="1,1,1,0" VerticalAlignment="Top"
+                                            Background="{DynamicResource GlossBrush}" IsHitTestVisible="False"/>
+                                    <ContentPresenter Margin="{TemplateBinding Padding}" HorizontalAlignment="Center"
+                                                      VerticalAlignment="Center" TextElement.Foreground="{TemplateBinding Foreground}"/>
+                                </Grid>
+                            </Border>
+                        </Grid>
                     </Grid>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
@@ -171,6 +224,30 @@
                             <Setter TargetName="bd" Property="Opacity" Value="0.92"/>
                             <Setter TargetName="glow" Property="Opacity" Value="0.35"/>
                             <Setter TargetName="wash" Property="Opacity" Value="0.03"/>
+                            <Trigger.EnterActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="pressScale" Storyboard.TargetProperty="ScaleX" To="0.98" Duration="0:0:0.11">
+                                            <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut"/></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="pressScale" Storyboard.TargetProperty="ScaleY" To="0.98" Duration="0:0:0.11">
+                                            <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut"/></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="pressScale" Storyboard.TargetProperty="ScaleX" To="1" Duration="0:0:0.11">
+                                            <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut"/></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="pressScale" Storyboard.TargetProperty="ScaleY" To="1" Duration="0:0:0.11">
+                                            <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut"/></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.ExitActions>
                         </Trigger>
                         <Trigger Property="IsKeyboardFocused" Value="True">
                             <Setter TargetName="focusRing" Property="Opacity" Value="1"/>
@@ -198,7 +275,10 @@
                     <StackPanel Orientation="Horizontal" Background="Transparent">
                         <Grid Width="42" Height="24" VerticalAlignment="Center">
                             <Border x:Name="halo" Margin="-3" CornerRadius="15" Background="{DynamicResource AccentHaloBrush}" Opacity="0"/>
-                            <Border x:Name="track" CornerRadius="12" Background="{DynamicResource TrackBrush}"/>
+                            <Grid x:Name="trackHost">
+                                <Border x:Name="track" CornerRadius="12" Background="{DynamicResource TrackBrush}"/>
+                                <Border x:Name="onTrack" CornerRadius="12" Background="{DynamicResource AccentGradientBrush}" Opacity="0"/>
+                            </Grid>
                             <Ellipse x:Name="knob" Width="16" Height="16" Fill="White" HorizontalAlignment="Left" Margin="4,0,0,0">
                                 <Ellipse.Effect>
                                     <DropShadowEffect BlurRadius="4" ShadowDepth="1" Opacity="0.35" Color="Black"/>
@@ -211,13 +291,15 @@
                     </StackPanel>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsChecked" Value="True">
-                            <Setter TargetName="track" Property="Background" Value="{DynamicResource AccentGradientBrush}"/>
+                            <Setter TargetName="onTrack" Property="Opacity" Value="1"/>
                             <Setter TargetName="halo" Property="Opacity" Value="1"/>
                             <Trigger.EnterActions>
                                 <BeginStoryboard>
                                     <Storyboard>
-                                        <ThicknessAnimation Storyboard.TargetName="knob" Storyboard.TargetProperty="Margin" To="22,0,0,0" Duration="0:0:0.14">
-                                            <ThicknessAnimation.EasingFunction><QuadraticEase EasingMode="EaseOut"/></ThicknessAnimation.EasingFunction>
+                                        <DoubleAnimation Storyboard.TargetName="onTrack" Storyboard.TargetProperty="Opacity" From="0" To="1" Duration="0:0:0.11"/>
+                                        <DoubleAnimation Storyboard.TargetName="halo" Storyboard.TargetProperty="Opacity" From="0" To="1" Duration="0:0:0.11"/>
+                                        <ThicknessAnimation Storyboard.TargetName="knob" Storyboard.TargetProperty="Margin" To="22,0,0,0" Duration="0:0:0.11">
+                                            <ThicknessAnimation.EasingFunction><CubicEase EasingMode="EaseOut"/></ThicknessAnimation.EasingFunction>
                                         </ThicknessAnimation>
                                     </Storyboard>
                                 </BeginStoryboard>
@@ -225,15 +307,17 @@
                             <Trigger.ExitActions>
                                 <BeginStoryboard>
                                     <Storyboard>
-                                        <ThicknessAnimation Storyboard.TargetName="knob" Storyboard.TargetProperty="Margin" To="4,0,0,0" Duration="0:0:0.14">
-                                            <ThicknessAnimation.EasingFunction><QuadraticEase EasingMode="EaseOut"/></ThicknessAnimation.EasingFunction>
+                                        <DoubleAnimation Storyboard.TargetName="onTrack" Storyboard.TargetProperty="Opacity" From="1" To="0" Duration="0:0:0.11"/>
+                                        <DoubleAnimation Storyboard.TargetName="halo" Storyboard.TargetProperty="Opacity" From="1" To="0" Duration="0:0:0.11"/>
+                                        <ThicknessAnimation Storyboard.TargetName="knob" Storyboard.TargetProperty="Margin" To="4,0,0,0" Duration="0:0:0.11">
+                                            <ThicknessAnimation.EasingFunction><CubicEase EasingMode="EaseOut"/></ThicknessAnimation.EasingFunction>
                                         </ThicknessAnimation>
                                     </Storyboard>
                                 </BeginStoryboard>
                             </Trigger.ExitActions>
                         </Trigger>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="track" Property="Opacity" Value="0.88"/>
+                            <Setter TargetName="trackHost" Property="Opacity" Value="0.88"/>
                         </Trigger>
                         <Trigger Property="IsKeyboardFocused" Value="True">
                             <Setter TargetName="focusRing" Property="Opacity" Value="1"/>

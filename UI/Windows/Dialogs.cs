@@ -249,6 +249,7 @@ internal static class Dialogs
         window.Content = root;
 
         GlassSurface.Attach(window, imageHost, tintHost);
+        Motion.AttachEntrance(window, root, Motion.Enabled);
         return window;
     }
 }
