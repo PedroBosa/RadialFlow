@@ -49,10 +49,8 @@ public partial class SettingsWindow : Window
         FillWheelPresets(current.WheelPreset);
         FillLanguages(current.Language);
 
-        AboutVersion.Text = $"Versão {AppInfo.Version} · Menu radial contextual para Windows";
+        AboutVersion.Text = Loc.Format("About.VersionFormat", AppInfo.Version);
         LogPath.Text = AppLog.FilePath;
-        AutomationProperties.SetName(ChkStartWithWindows, "Iniciar com o Windows");
-        AutomationProperties.SetName(ChkBlockFullscreen, "Pausar em tela cheia exclusiva");
 
         // Rascunhos: listas próprias, sem compartilhar os objetos de Current.
         _blacklistItems = new ObservableCollection<ForegroundBlacklist.BlacklistEntry>(
@@ -143,8 +141,12 @@ public partial class SettingsWindow : Window
 
     private void UpdateListToolbar()
     {
-        BlacklistCount.Text = _blacklistItems.Count == 1 ? "1 programa" : $"{_blacklistItems.Count} programas";
-        FavoritesCount.Text = _favoriteItems.Count == 1 ? "1 atalho" : $"{_favoriteItems.Count} atalhos";
+        BlacklistCount.Text = _blacklistItems.Count == 1
+            ? Loc.Get("Common.ProgramsCountOne")
+            : Loc.Format("Common.ProgramsCountMany", _blacklistItems.Count);
+        FavoritesCount.Text = _favoriteItems.Count == 1
+            ? Loc.Get("Common.ShortcutsCountOne")
+            : Loc.Format("Common.ShortcutsCountMany", _favoriteItems.Count);
         PnlNoBlacklist.Visibility = _blacklistItems.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
         PnlNoFavorites.Visibility = _favoriteItems.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
         BtnRemoveBlacklist.IsEnabled = ListBlacklist.SelectedItem is ForegroundBlacklist.BlacklistEntry;
@@ -175,7 +177,7 @@ public partial class SettingsWindow : Window
         {
             // Outro programa está usando a área de transferência neste instante.
             AppLog.Warning("Settings", "Não foi possível copiar o caminho do log.", ex);
-            Dialogs.Message(this, "Área de transferência", "A área de transferência está em uso por outro programa. Tente de novo.", DialogIcon.Warning);
+            Dialogs.Message(this, Loc.Get("Settings.ClipboardTitle"), Loc.Get("Settings.ClipboardBusy"), DialogIcon.Warning);
         }
     }
 
@@ -205,7 +207,7 @@ public partial class SettingsWindow : Window
                 IsChecked = key == _accentKey
             };
             chip.Checked += OnAccentChecked;
-            AutomationProperties.SetName(chip, $"Cor de destaque: {label}");
+            AutomationProperties.SetName(chip, Loc.Format("Settings.Appearance.AccentAutomation", label));
             AccentChips.Children.Add(chip);
         }
 
@@ -272,15 +274,15 @@ public partial class SettingsWindow : Window
 
     private void BtnAddBlacklist_Click(object sender, RoutedEventArgs e)
     {
-        var entry = Dialogs.PromptPair(this, "Adicionar à blacklist",
-            "Nome do processo (ex.: blender, acad, maya)", "",
-            "Descrição (opcional)", "",
+        var entry = Dialogs.PromptPair(this, Loc.Get("Settings.Blacklist.AddTitle"),
+            Loc.Get("Settings.Blacklist.ProcessPrompt"), "",
+            Loc.Get("Common.DescriptionOptional"), "",
             validate: (process, _) =>
             {
                 string name = NormalizeProcessName(process);
-                if (name.Length == 0) return "Informe o nome do processo.";
-                if (name.IndexOfAny(['\\', '/', ':', '*', '?', '"', '<', '>', '|']) >= 0) return "Use só o nome do processo, sem pasta nem caracteres especiais.";
-                if (_blacklistItems.Any(i => string.Equals(i.ProcessName, name, StringComparison.OrdinalIgnoreCase))) return $"'{name}' já está na lista.";
+                if (name.Length == 0) return Loc.Get("Settings.Blacklist.ProcessRequired");
+                if (name.IndexOfAny(['\\', '/', ':', '*', '?', '"', '<', '>', '|']) >= 0) return Loc.Get("Settings.Blacklist.ProcessInvalid");
+                if (_blacklistItems.Any(i => string.Equals(i.ProcessName, name, StringComparison.OrdinalIgnoreCase))) return Loc.Format("Settings.Blacklist.AlreadyListed", name);
                 return null;
             });
 
@@ -307,7 +309,8 @@ public partial class SettingsWindow : Window
 
     private void BtnResetBlacklist_Click(object sender, RoutedEventArgs e)
     {
-        if (Dialogs.Confirm(this, "Restaurar blacklist", "Restaurar a lista padrão de programas ignorados? A lista atual será substituída.", "Restaurar", "Cancelar"))
+        if (Dialogs.Confirm(this, Loc.Get("Settings.Blacklist.ResetTitle"), Loc.Get("Settings.Blacklist.ResetPrompt"),
+                Loc.Get("Common.Restore"), Loc.Get("Common.Cancel")))
         {
             _blacklistItems.Clear();
             foreach (var item in ForegroundBlacklist.DefaultEntries)
@@ -319,8 +322,8 @@ public partial class SettingsWindow : Window
     {
         var openDialog = new Microsoft.Win32.OpenFileDialog
         {
-            Title = "Selecionar Executável do Aplicativo",
-            Filter = "Executáveis (*.exe)|*.exe|Todos os arquivos (*.*)|*.*"
+            Title = Loc.Get("Settings.Favorites.PickExecutable"),
+            Filter = Loc.Get("Settings.Favorites.ExecutableFilter")
         };
 
         if (openDialog.ShowDialog(this) == true)
@@ -342,7 +345,8 @@ public partial class SettingsWindow : Window
 
     private void BtnResetFavorites_Click(object sender, RoutedEventArgs e)
     {
-        if (Dialogs.Confirm(this, "Restaurar apps favoritos", "Restaurar a lista padrão de apps favoritos? A lista atual será substituída.", "Restaurar", "Cancelar"))
+        if (Dialogs.Confirm(this, Loc.Get("Settings.Favorites.ResetTitle"), Loc.Get("Settings.Favorites.ResetPrompt"),
+                Loc.Get("Common.Restore"), Loc.Get("Common.Cancel")))
         {
             _favoriteItems.Clear();
             var def = AppSettings.CreateDefault();
@@ -356,7 +360,7 @@ public partial class SettingsWindow : Window
         string? menuError = ValidateMenus();
         if (menuError is not null)
         {
-            Dialogs.Message(this, "Menus personalizados", menuError, DialogIcon.Warning);
+            Dialogs.Message(this, Loc.Get("Menus.PageTitle"), menuError, DialogIcon.Warning);
             return;
         }
 
@@ -384,8 +388,8 @@ public partial class SettingsWindow : Window
 
         if (!SettingsService.TrySave(settings, out string? error))
         {
-            Dialogs.Message(this, "Não foi possível salvar",
-                error ?? "Não foi possível salvar as configurações.", DialogIcon.Error);
+            Dialogs.Message(this, Loc.Get("Settings.SaveFailedTitle"),
+                error ?? Loc.Get("Settings.SaveFailed"), DialogIcon.Error);
             return;
         }
 

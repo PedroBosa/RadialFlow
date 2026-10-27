@@ -15,6 +15,7 @@ using System.Windows.Controls;
 using Microsoft.Win32;
 using RadialFlow.Config;
 using RadialFlow.Context;
+using RadialFlow.Infrastructure;
 
 namespace RadialFlow.UI;
 
@@ -38,8 +39,8 @@ public partial class SubmenuEditorWindow : Window
         InitializeComponent();
         Icon = AppIconRenderer.WindowIcon;
 
-        _submenuLabel = string.IsNullOrWhiteSpace(submenuLabel) ? "este item" : submenuLabel.Trim();
-        TxtSubtitle.Text = $"“{_submenuLabel}” abre um segundo anel com estas opções.";
+        _submenuLabel = string.IsNullOrWhiteSpace(submenuLabel) ? Loc.Get("Submenu.ThisItem") : submenuLabel.Trim();
+        TxtSubtitle.Text = Loc.Format("Submenu.SubtitleFormat", _submenuLabel);
 
         foreach (CustomMenuItem option in options ?? Array.Empty<CustomMenuItem>())
             if (option is not null) _options.Add(Clone(option));
@@ -146,14 +147,14 @@ public partial class SubmenuEditorWindow : Window
     {
         if (_options.Count >= CustomMenuNormalizer.MaxOptions)
         {
-            Dialogs.Message(this, "Opções do submenu",
-                $"Cada submenu pode ter no máximo {CustomMenuNormalizer.MaxOptions} opções.", DialogIcon.Warning);
+            Dialogs.Message(this, Loc.Get("Submenu.Title"),
+                Loc.Format("Submenu.MaxOptions", CustomMenuNormalizer.MaxOptions), DialogIcon.Warning);
             return;
         }
 
         var option = new CustomMenuItem
         {
-            Label = UniqueName(_options.Select(o => o.Label), "Nova opção"),
+            Label = UniqueName(_options.Select(o => o.Label), Loc.Get("Submenu.NewOption")),
             Kind = CustomMenuItemKind.Action,
             Action = RadialAction.Convert,
         };
@@ -287,7 +288,7 @@ public partial class SubmenuEditorWindow : Window
 
     private void UpdateState()
     {
-        TxtOptionCount.Text = $"{_options.Count} de {CustomMenuNormalizer.MaxOptions} opções";
+        TxtOptionCount.Text = Loc.Format("Menus.SubmenuCountFormat", _options.Count, CustomMenuNormalizer.MaxOptions);
         PnlNoOptions.Visibility = _options.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
 
         bool hasSelection = _selected is not null;
@@ -306,8 +307,8 @@ public partial class SubmenuEditorWindow : Window
         else
         {
             TxtOptionsWarning.Text = active == 0
-                ? "Nenhuma opção ativa: ative pelo menos 2 para o segundo anel aparecer."
-                : "Falta 1 opção ativa: o segundo anel só abre com 2 ou mais.";
+                ? Loc.Get("Submenu.WarnNoneActive")
+                : Loc.Get("Submenu.WarnOneActive");
             TxtOptionsWarning.Visibility = Visibility.Visible;
         }
     }
@@ -321,8 +322,8 @@ public partial class SubmenuEditorWindow : Window
         var active = _options.Where(o => o.Enabled).ToList();
         if (active.Count < CustomMenuNormalizer.MinOptions)
         {
-            Dialogs.Message(this, "Opções do submenu",
-                $"Ative pelo menos {CustomMenuNormalizer.MinOptions} opções: o segundo anel só abre com duas ou mais.",
+            Dialogs.Message(this, Loc.Get("Submenu.Title"),
+                Loc.Format("Submenu.MinActive", CustomMenuNormalizer.MinOptions),
                 DialogIcon.Warning);
             return;
         }
@@ -343,7 +344,7 @@ public partial class SubmenuEditorWindow : Window
                 _loading = false;
             }
 
-            Dialogs.Message(this, "Opções do submenu", error, DialogIcon.Warning);
+            Dialogs.Message(this, Loc.Get("Submenu.Title"), error, DialogIcon.Warning);
             return;
         }
 
@@ -366,8 +367,8 @@ public partial class SubmenuEditorWindow : Window
     {
         var dialog = new OpenFileDialog
         {
-            Title = "Selecionar executável",
-            Filter = "Executáveis (*.exe)|*.exe",
+            Title = Loc.Get("Menus.PickExecutable"),
+            Filter = Loc.Get("Menus.ExecutableFilter"),
             CheckFileExists = true,
         };
         if (dialog.ShowDialog(this) == true) TxtOptionLaunch.Text = dialog.FileName;
@@ -377,8 +378,8 @@ public partial class SubmenuEditorWindow : Window
     {
         var dialog = new OpenFileDialog
         {
-            Title = "Selecionar arquivo",
-            Filter = "Todos os arquivos (*.*)|*.*",
+            Title = Loc.Get("Menus.PickFile"),
+            Filter = Loc.Get("Menus.AllFilesFilter"),
             CheckFileExists = true,
         };
         if (dialog.ShowDialog(this) == true) TxtOptionPath.Text = dialog.FileName;
@@ -386,7 +387,7 @@ public partial class SubmenuEditorWindow : Window
 
     private void BtnBrowseOptionFolder_Click(object sender, RoutedEventArgs e)
     {
-        var dialog = new OpenFolderDialog { Title = "Selecionar pasta", Multiselect = false };
+        var dialog = new OpenFolderDialog { Title = Loc.Get("Menus.PickFolder"), Multiselect = false };
         if (dialog.ShowDialog(this) == true) TxtOptionPath.Text = dialog.FolderName;
     }
 
@@ -429,7 +430,7 @@ public partial class SubmenuEditorWindow : Window
         GlyphChoice? choice = _glyphChoices.FirstOrDefault(g => g.Glyph == value);
         if (choice is null)
         {
-            choice = new GlyphChoice(value, "Personalizado");
+            choice = new GlyphChoice(value, Loc.Get("Menus.CustomGlyph"));
             _glyphChoices.Add(choice);
         }
 

@@ -1,57 +1,65 @@
 // ============================================================================
 // RadialFlow - Escolhas compartilhadas do editor de menus
 // ----------------------------------------------------------------------------
-// Usadas pelo editor de itens e pelo diálogo de opções do submenu.
+// Usadas pelo editor de itens e pelo diálogo de opções do submenu. Os rótulos
+// são resolvidos a cada acesso, no idioma atual.
 // ============================================================================
 
 using System.Linq;
 using RadialFlow.Config;
 using RadialFlow.Context;
+using RadialFlow.Infrastructure;
 
 namespace RadialFlow.UI;
 
 internal static class CustomMenuChoices
 {
-    internal static readonly (RadialAction Action, string Label)[] Actions =
+    private static readonly RadialAction[] ActionValues =
     [
-        (RadialAction.Convert, "Converter"),
-        (RadialAction.Compress, "Comprimir"),
-        (RadialAction.CopyPath, "Copiar caminho"),
-        (RadialAction.MoveTo, "Mover para"),
-        (RadialAction.SendTo, "Enviar para"),
-        (RadialAction.Rename, "Renomear"),
-        (RadialAction.FavoriteApps, "Apps favoritos"),
-        (RadialAction.SystemControls, "Ajustes rápidos"),
-        (RadialAction.ClipboardHistory, "Área de transferência"),
-        (RadialAction.LockScreen, "Bloquear"),
-        (RadialAction.SnapLeft, "Snap à esquerda"),
-        (RadialAction.SnapRight, "Snap à direita"),
-        (RadialAction.Maximize, "Maximizar"),
-        (RadialAction.Minimize, "Minimizar"),
-        (RadialAction.Close, "Fechar"),
-        (RadialAction.AlwaysOnTop, "Sempre no topo"),
-        (RadialAction.Transparency, "Transparência"),
-        (RadialAction.Paste, "Colar"),
-        (RadialAction.Translate, "Traduzir"),
-        (RadialAction.Clear, "Limpar"),
-        (RadialAction.SearchWeb, "Pesquisar na web"),
-        (RadialAction.Format, "Formatar (negrito)"),
+        RadialAction.Convert,
+        RadialAction.Compress,
+        RadialAction.CopyPath,
+        RadialAction.MoveTo,
+        RadialAction.SendTo,
+        RadialAction.Rename,
+        RadialAction.FavoriteApps,
+        RadialAction.SystemControls,
+        RadialAction.ClipboardHistory,
+        RadialAction.LockScreen,
+        RadialAction.SnapLeft,
+        RadialAction.SnapRight,
+        RadialAction.Maximize,
+        RadialAction.Minimize,
+        RadialAction.Close,
+        RadialAction.AlwaysOnTop,
+        RadialAction.Transparency,
+        RadialAction.Paste,
+        RadialAction.Translate,
+        RadialAction.Clear,
+        RadialAction.SearchWeb,
+        RadialAction.Format,
     ];
 
-    internal static readonly (CustomMenuItemKind Kind, string Label)[] Kinds =
+    internal static (RadialAction Action, string Label)[] Actions =>
+        ActionValues.Select(a => (a, Loc.Get($"Choices.Action.{a}"))).ToArray();
+
+    private static readonly CustomMenuItemKind[] KindValues =
     [
-        (CustomMenuItemKind.Action, "Ação do RadialFlow"),
-        (CustomMenuItemKind.Launch, "Abrir executável"),
-        (CustomMenuItemKind.OpenUrl, "Abrir site (URL)"),
-        (CustomMenuItemKind.OpenPath, "Abrir arquivo ou pasta"),
-        (CustomMenuItemKind.Hotkey, "Enviar atalho"),
-        (CustomMenuItemKind.Text, "Colar texto"),
-        (CustomMenuItemKind.Submenu, "Submenu (segundo anel)"),
-        (CustomMenuItemKind.Routine, "Rotina de ações"),
+        CustomMenuItemKind.Action,
+        CustomMenuItemKind.Launch,
+        CustomMenuItemKind.OpenUrl,
+        CustomMenuItemKind.OpenPath,
+        CustomMenuItemKind.Hotkey,
+        CustomMenuItemKind.Text,
+        CustomMenuItemKind.Submenu,
+        CustomMenuItemKind.Routine,
     ];
+
+    internal static (CustomMenuItemKind Kind, string Label)[] Kinds =>
+        KindValues.Select(k => (k, Loc.Get($"Choices.Kind.{k}"))).ToArray();
 
     /// <summary>Ações oferecidas no editor de rotinas: as mesmas que a execução aceita.</summary>
-    internal static readonly (RadialAction Action, string Label)[] RoutineActions =
+    internal static (RadialAction Action, string Label)[] RoutineActions =>
         Actions.Where(a => CustomRoutineLogic.IsAllowedAction(a.Action)).ToArray();
 
     internal static string ActionLabel(RadialAction action)
@@ -66,54 +74,57 @@ internal static class CustomMenuChoices
     /// Ícones locais da Segoe Fluent Icons (com fallback Segoe MDL2 Assets). Nada é baixado nem instalado:
     /// o conjunto é fixo e curado para os menus.
     /// </summary>
-    internal static readonly (string Glyph, string Label)[] Glyphs =
+    private static readonly (string Glyph, string Key)[] GlyphEntries =
     [
-        ("\uE734", "Aplicativos"),
-        ("\uE70F", "Editar"),
-        ("\uE8A5", "Documento"),
-        ("\uEB9F", "Imagem"),
-        ("\uE714", "Vídeo"),
-        ("\uE8D6", "Áudio"),
-        ("\uF012", "Arquivo zip"),
-        ("\uE8AB", "Converter"),
-        ("\uE8AC", "Renomear"),
-        ("\uE838", "Mover"),
-        ("\uE724", "Enviar"),
-        ("\uE71B", "Copiar"),
-        ("\uE8B7", "Pasta"),
-        ("\uE774", "Traduzir"),
-        ("\uE721", "Pesquisar"),
-        ("\uE77F", "Colar"),
-        ("\uE72E", "Bloquear"),
-        ("\uE713", "Ajustes"),
-        ("\uE8BB", "Fechar"),
-        ("\uE922", "Maximizar"),
-        ("\uE921", "Minimizar"),
-        ("\uE718", "Fixar"),
-        ("\uE706", "Transparência"),
-        ("\uE8DD", "Negrito"),
-        ("\uE894", "Limpar"),
-        ("\uE8EF", "Calculadora"),
-        ("\uE756", "Terminal"),
-        ("\uE80F", "Início"),
-        ("\uE8F4", "Nova pasta"),
-        ("\uE7C3", "Página"),
-        ("\uE8E5", "Abrir arquivo"),
-        ("\uE74E", "Salvar"),
-        ("\uE749", "Imprimir"),
-        ("\uE74D", "Excluir"),
-        ("\uE8C6", "Recortar"),
-        ("\uE72C", "Atualizar"),
-        ("\uE896", "Baixar"),
-        ("\uE768", "Reproduzir"),
-        ("\uE769", "Pausar"),
-        ("\uE71A", "Parar"),
-        ("\uE7BA", "Aviso"),
-        ("\uE946", "Informações"),
-        ("\uE930", "Concluído"),
-        ("\uE785", "Desbloquear"),
-        ("\uE8B3", "Selecionar tudo"),
-        ("\uE787", "Calendário"),
-        ("\uE890", "Visualizar"),
+        ("\uE734", "Glyph.Apps"),
+        ("\uE70F", "Glyph.Edit"),
+        ("\uE8A5", "Glyph.Document"),
+        ("\uEB9F", "Glyph.Image"),
+        ("\uE714", "Glyph.Video"),
+        ("\uE8D6", "Glyph.Audio"),
+        ("\uF012", "Glyph.ZipFile"),
+        ("\uE8AB", "Glyph.Convert"),
+        ("\uE8AC", "Glyph.Rename"),
+        ("\uE838", "Glyph.Move"),
+        ("\uE724", "Glyph.Send"),
+        ("\uE71B", "Glyph.Copy"),
+        ("\uE8B7", "Glyph.Folder"),
+        ("\uE774", "Glyph.Translate"),
+        ("\uE721", "Glyph.Search"),
+        ("\uE77F", "Glyph.Paste"),
+        ("\uE72E", "Glyph.Lock"),
+        ("\uE713", "Glyph.Settings"),
+        ("\uE8BB", "Glyph.Close"),
+        ("\uE922", "Glyph.Maximize"),
+        ("\uE921", "Glyph.Minimize"),
+        ("\uE718", "Glyph.Pin"),
+        ("\uE706", "Glyph.Transparency"),
+        ("\uE8DD", "Glyph.Bold"),
+        ("\uE894", "Glyph.Clear"),
+        ("\uE8EF", "Glyph.Calculator"),
+        ("\uE756", "Glyph.Terminal"),
+        ("\uE80F", "Glyph.Home"),
+        ("\uE8F4", "Glyph.NewFolder"),
+        ("\uE7C3", "Glyph.Page"),
+        ("\uE8E5", "Glyph.OpenFile"),
+        ("\uE74E", "Glyph.Save"),
+        ("\uE749", "Glyph.Print"),
+        ("\uE74D", "Glyph.Delete"),
+        ("\uE8C6", "Glyph.Cut"),
+        ("\uE72C", "Glyph.Refresh"),
+        ("\uE896", "Glyph.Download"),
+        ("\uE768", "Glyph.Play"),
+        ("\uE769", "Glyph.Pause"),
+        ("\uE71A", "Glyph.Stop"),
+        ("\uE7BA", "Glyph.Warning"),
+        ("\uE946", "Glyph.Info"),
+        ("\uE930", "Glyph.Done"),
+        ("\uE785", "Glyph.Unlock"),
+        ("\uE8B3", "Glyph.SelectAll"),
+        ("\uE787", "Glyph.Calendar"),
+        ("\uE890", "Glyph.Preview"),
     ];
+
+    internal static (string Glyph, string Label)[] Glyphs =>
+        GlyphEntries.Select(e => (e.Glyph, Loc.Get(e.Key))).ToArray();
 }

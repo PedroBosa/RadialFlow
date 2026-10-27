@@ -13,6 +13,7 @@
 
     <!-- Estilos e cores: Theme/Controls.xaml + UiTheme (instalados no construtor, antes do InitializeComponent). -->
     <Window.Resources>
+        <loc:LocFormatConverter x:Key="LocFormat"/>
         <!-- Ícones vetoriais da navegação lateral (traço de 1,6 px, pontas arredondadas). -->
         <GeometryGroup x:Key="IconGeneral">
             <LineGeometry StartPoint="4,7" EndPoint="6.8,7"/>
@@ -214,7 +215,7 @@
                                   HorizontalScrollBarVisibility="Disabled" PanningMode="VerticalOnly">
                         <StackPanel Margin="32,4,20,20">
 
-                            <TextBlock Text="INICIALIZAÇÃO" Style="{StaticResource SectionLabel}" Margin="3,0,0,7"/>
+                            <TextBlock Text="{loc:Loc Settings.General.StartupSection}" Style="{StaticResource SectionLabel}" Margin="3,0,0,7"/>
                             <Border Style="{StaticResource Card}">
                                 <StackPanel>
                                     <Grid>
@@ -223,14 +224,14 @@
                                             <ColumnDefinition Width="Auto"/>
                                         </Grid.ColumnDefinitions>
                                         <StackPanel Margin="0,0,18,0">
-                                            <TextBlock Text="Iniciar com o Windows" Style="{StaticResource CardTitle}"/>
-                                            <TextBlock Text="O RadialFlow abre sozinho quando você entra no Windows."
+                                            <TextBlock Text="{loc:Loc Settings.General.StartWithWindows}" Style="{StaticResource CardTitle}"/>
+                                            <TextBlock Text="{loc:Loc Settings.General.StartWithWindowsHint}"
                                                        Style="{StaticResource CardHint}"/>
                                         </StackPanel>
                                         <CheckBox x:Name="ChkStartWithWindows" Grid.Column="1" Margin="0"
                                                   VerticalAlignment="Center" Checked="DirtyState_Changed"
                                                   Unchecked="DirtyState_Changed"
-                                                  AutomationProperties.Name="Iniciar com o Windows"/>
+                                                  AutomationProperties.Name="{loc:Loc Settings.General.StartWithWindows}"/>
                                     </Grid>
 
                                     <Border Style="{StaticResource Divider}"/>
@@ -241,19 +242,19 @@
                                             <ColumnDefinition Width="Auto"/>
                                         </Grid.ColumnDefinitions>
                                         <StackPanel Margin="0,0,18,0">
-                                            <TextBlock Text="Pausar em tela cheia exclusiva" Style="{StaticResource CardTitle}"/>
-                                            <TextBlock Text="Em jogos e vídeos em tela cheia, o botão direito volta a funcionar normalmente."
+                                            <TextBlock Text="{loc:Loc Settings.General.BlockFullscreen}" Style="{StaticResource CardTitle}"/>
+                                            <TextBlock Text="{loc:Loc Settings.General.BlockFullscreenHint}"
                                                        Style="{StaticResource CardHint}"/>
                                         </StackPanel>
                                         <CheckBox x:Name="ChkBlockFullscreen" Grid.Column="1" Margin="0"
                                                   VerticalAlignment="Center" Checked="DirtyState_Changed"
                                                   Unchecked="DirtyState_Changed"
-                                                  AutomationProperties.Name="Pausar em tela cheia exclusiva"/>
+                                                  AutomationProperties.Name="{loc:Loc Settings.General.BlockFullscreen}"/>
                                     </Grid>
                                 </StackPanel>
                             </Border>
 
-                            <TextBlock Text="GESTO" Style="{StaticResource SectionLabel}"/>
+                            <TextBlock Text="{loc:Loc Settings.General.GestureSection}" Style="{StaticResource SectionLabel}"/>
                             <Border Style="{StaticResource Card}">
                                 <StackPanel>
                                     <Grid>
@@ -262,8 +263,8 @@
                                             <ColumnDefinition Width="Auto"/>
                                         </Grid.ColumnDefinitions>
                                         <StackPanel Margin="0,0,18,0">
-                                            <TextBlock Text="Sensibilidade" Style="{StaticResource CardTitle}"/>
-                                            <TextBlock Text="Quanto é preciso arrastar com o botão direito para a roda abrir. Valores menores abrem a roda com menos movimento."
+                                            <TextBlock Text="{loc:Loc Settings.General.Sensitivity}" Style="{StaticResource CardTitle}"/>
+                                            <TextBlock Text="{loc:Loc Settings.General.SensitivityHint}"
                                                        Style="{StaticResource CardHint}"/>
                                         </StackPanel>
                                         <Border Grid.Column="1" Style="{StaticResource ValueBadge}" VerticalAlignment="Top">
@@ -272,7 +273,7 @@
                                         </Border>
                                     </Grid>
                                     <Slider x:Name="SliderDeadzone" Minimum="8" Maximum="40" SmallChange="1" LargeChange="5"
-                                            AutomationProperties.Name="Sensibilidade do gesto, em pixels"
+                                            AutomationProperties.Name="{loc:Loc Settings.General.SensitivityAutomation}"
                                             IsSnapToTickEnabled="True" TickFrequency="1" Margin="0,12,0,0"
                                             ValueChanged="DirtyState_Changed"/>
                                     <Grid Margin="1,0,1,0">
@@ -288,8 +289,8 @@
                                             <ColumnDefinition Width="Auto"/>
                                         </Grid.ColumnDefinitions>
                                         <StackPanel Margin="0,0,18,0">
-                                            <TextBlock Text="Tempo para abrir opções" Style="{StaticResource CardTitle}"/>
-                                            <TextBlock Text="Quanto tempo o cursor precisa ficar sobre uma fatia com mais opções (como Converter) para elas aparecerem. Um traço na borda da fatia mostra quando vai abrir."
+                                            <TextBlock Text="{loc:Loc Settings.General.Dwell}" Style="{StaticResource CardTitle}"/>
+                                            <TextBlock Text="{loc:Loc Settings.General.DwellHint}"
                                                        Style="{StaticResource CardHint}"/>
                                         </StackPanel>
                                         <Border Grid.Column="1" Style="{StaticResource ValueBadge}" VerticalAlignment="Top">
@@ -298,7 +299,7 @@
                                         </Border>
                                     </Grid>
                                     <Slider x:Name="SliderDwell" Minimum="200" Maximum="2000" SmallChange="50" LargeChange="250"
-                                            AutomationProperties.Name="Tempo para abrir opções, em milissegundos"
+                                            AutomationProperties.Name="{loc:Loc Settings.General.DwellAutomation}"
                                             IsSnapToTickEnabled="True" TickFrequency="50" Margin="0,12,0,0"
                                             ValueChanged="DirtyState_Changed"/>
                                     <Grid Margin="1,0,1,0">
@@ -331,12 +332,12 @@
 
                             <Border Style="{StaticResource Card}">
                                 <StackPanel>
-                                    <TextBlock Text="Cor de destaque" Style="{StaticResource CardTitle}"/>
+                                    <TextBlock Text="{loc:Loc Settings.Appearance.Accent}" Style="{StaticResource CardTitle}"/>
                                     <TextBlock Style="{StaticResource CardHint}"
-                                               Text="Cor da fatia sob o cursor e dos botões. O claro ou escuro segue o tema do Windows."/>
+                                               Text="{loc:Loc Settings.Appearance.AccentHint}"/>
                                     <StackPanel x:Name="AccentChips" Orientation="Horizontal" Margin="0,14,0,0"/>
                                     <StackPanel Orientation="Horizontal" Margin="0,11,0,0">
-                                        <TextBlock Text="Selecionada:" FontSize="12" Foreground="{DynamicResource TextDimBrush}"
+                                        <TextBlock Text="{loc:Loc Settings.Appearance.Selected}" FontSize="12" Foreground="{DynamicResource TextDimBrush}"
                                                    VerticalAlignment="Center"/>
                                         <TextBlock x:Name="AccentName" FontSize="12" FontWeight="SemiBold" Margin="4,0,0,0"
                                                    Foreground="{DynamicResource TextBrush}" VerticalAlignment="Center"/>
@@ -346,12 +347,12 @@
 
                             <Border Style="{StaticResource Card}">
                                 <StackPanel>
-                                    <TextBlock Text="Estilo da roda" Style="{StaticResource CardTitle}"/>
+                                    <TextBlock Text="{loc:Loc Settings.Appearance.WheelStyle}" Style="{StaticResource CardTitle}"/>
                                     <TextBlock Style="{StaticResource CardHint}"
-                                               Text="Tamanho e contraste da roda. A cor de destaque continua valendo em todos os estilos."/>
+                                               Text="{loc:Loc Settings.Appearance.WheelStyleHint}"/>
                                     <ComboBox x:Name="CmbWheelPreset" Width="260" HorizontalAlignment="Left" Margin="0,10,0,0"
                                               DisplayMemberPath="Label" SelectionChanged="WheelPreset_Changed"
-                                              AutomationProperties.Name="Estilo da roda"/>
+                                              AutomationProperties.Name="{loc:Loc Settings.Appearance.WheelStyle}"/>
                                     <TextBlock x:Name="WheelPresetHint" Style="{StaticResource FieldHint}"/>
                                 </StackPanel>
                             </Border>
@@ -384,8 +385,8 @@
                     </Grid.RowDefinitions>
 
                     <StackPanel Margin="32,24,32,14">
-                        <TextBlock Text="Programas ignorados" Style="{StaticResource PageTitle}"/>
-                        <TextBlock Text="Nestes programas a roda não abre e o botão direito funciona como sempre. Útil em programas 3D e jogos, que usam o botão direito para mexer a câmera."
+                        <TextBlock Text="{loc:Loc Settings.Blacklist.Title}" Style="{StaticResource PageTitle}"/>
+                        <TextBlock Text="{loc:Loc Settings.Blacklist.Subtitle}"
                                    Style="{StaticResource PageSubtitle}"/>
                     </StackPanel>
 
@@ -403,17 +404,17 @@
                             <TextBlock x:Name="BlacklistCount" FontSize="12" Foreground="{DynamicResource TextDimBrush}"
                                        VerticalAlignment="Center"/>
                             <StackPanel Grid.Column="1" Orientation="Horizontal">
-                                <Button x:Name="BtnResetBlacklist" Content="Restaurar padrões" Click="BtnResetBlacklist_Click"/>
-                                <Button x:Name="BtnRemoveBlacklist" Content="Remover" IsEnabled="False" Margin="8,0,0,0"
+                                <Button x:Name="BtnResetBlacklist" Content="{loc:Loc Common.ResetDefaults}" Click="BtnResetBlacklist_Click"/>
+                                <Button x:Name="BtnRemoveBlacklist" Content="{loc:Loc Common.Remove}" IsEnabled="False" Margin="8,0,0,0"
                                         Click="BtnRemoveBlacklist_Click"/>
-                                <Button x:Name="BtnAddBlacklist" Content="Adicionar…" Style="{StaticResource PrimaryButton}"
+                                <Button x:Name="BtnAddBlacklist" Content="{loc:Loc Settings.Blacklist.Add}" Style="{StaticResource PrimaryButton}"
                                         Margin="8,0,0,0" Click="BtnAddBlacklist_Click"/>
                             </StackPanel>
                         </Grid>
 
                         <Grid Grid.Row="1">
                             <ListBox x:Name="ListBlacklist" Background="{DynamicResource CardBrush}" Padding="6"
-                                     AutomationProperties.Name="Programas ignorados">
+                                     AutomationProperties.Name="{loc:Loc Settings.Blacklist.Title}">
                                 <ListBox.ItemTemplate>
                                     <DataTemplate>
                                         <Grid>
@@ -436,9 +437,9 @@
                                 <TextBlock Text="&#xE72E;" FontFamily="{StaticResource IconFont}" FontSize="26"
                                            Foreground="{DynamicResource TextDimBrush}" HorizontalAlignment="Center"
                                            Opacity="0.8"/>
-                                <TextBlock Text="Nenhum programa ignorado" FontSize="13.5" FontWeight="SemiBold"
+                                <TextBlock Text="{loc:Loc Settings.Blacklist.EmptyTitle}" FontSize="13.5" FontWeight="SemiBold"
                                            HorizontalAlignment="Center" Margin="0,8,0,0"/>
-                                <TextBlock Text="A roda abre normalmente em todos os programas."
+                                <TextBlock Text="{loc:Loc Settings.Blacklist.EmptyHint}"
                                            Style="{StaticResource CardHint}" TextAlignment="Center"
                                            MaxWidth="300" Margin="0,3,0,0"/>
                             </StackPanel>
@@ -456,8 +457,8 @@
                     </Grid.RowDefinitions>
 
                     <StackPanel Margin="32,24,32,14">
-                        <TextBlock Text="Apps favoritos" Style="{StaticResource PageTitle}"/>
-                        <TextBlock Text="Atalhos da fatia “Apps favoritos”. Aparecem quando você abre a roda sobre a área de trabalho ou um espaço vazio de uma pasta."
+                        <TextBlock Text="{loc:Loc Settings.Favorites.PageTitle}" Style="{StaticResource PageTitle}"/>
+                        <TextBlock Text="{loc:Loc Settings.Favorites.Subtitle}"
                                    Style="{StaticResource PageSubtitle}"/>
                     </StackPanel>
 
@@ -475,17 +476,17 @@
                             <TextBlock x:Name="FavoritesCount" FontSize="12" Foreground="{DynamicResource TextDimBrush}"
                                        VerticalAlignment="Center"/>
                             <StackPanel Grid.Column="1" Orientation="Horizontal">
-                                <Button x:Name="BtnResetFavorites" Content="Restaurar padrões" Click="BtnResetFavorites_Click"/>
-                                <Button x:Name="BtnRemoveFavorite" Content="Remover" IsEnabled="False" Margin="8,0,0,0"
+                                <Button x:Name="BtnResetFavorites" Content="{loc:Loc Common.ResetDefaults}" Click="BtnResetFavorites_Click"/>
+                                <Button x:Name="BtnRemoveFavorite" Content="{loc:Loc Common.Remove}" IsEnabled="False" Margin="8,0,0,0"
                                         Click="BtnRemoveFavorite_Click"/>
-                                <Button x:Name="BtnAddFavorite" Content="Adicionar app…" Style="{StaticResource PrimaryButton}"
+                                <Button x:Name="BtnAddFavorite" Content="{loc:Loc Settings.Favorites.Add}" Style="{StaticResource PrimaryButton}"
                                         Margin="8,0,0,0" Click="BtnAddFavorite_Click"/>
                             </StackPanel>
                         </Grid>
 
                         <Grid Grid.Row="1">
                             <ListBox x:Name="ListFavorites" Background="{DynamicResource CardBrush}" Padding="6"
-                                     AutomationProperties.Name="Apps favoritos">
+                                     AutomationProperties.Name="{loc:Loc Settings.Favorites.PageTitle}">
                                 <ListBox.ItemTemplate>
                                     <DataTemplate>
                                         <Grid>
@@ -528,9 +529,9 @@
                                 <TextBlock Text="&#xE734;" FontFamily="{StaticResource IconFont}" FontSize="26"
                                            Foreground="{DynamicResource TextDimBrush}" HorizontalAlignment="Center"
                                            Opacity="0.8"/>
-                                <TextBlock Text="Nenhum app favorito" FontSize="13.5" FontWeight="SemiBold"
+                                <TextBlock Text="{loc:Loc Settings.Favorites.EmptyTitle}" FontSize="13.5" FontWeight="SemiBold"
                                            HorizontalAlignment="Center" Margin="0,8,0,0"/>
-                                <TextBlock Text="Adicione atalhos para abrir seus programas pela roda."
+                                <TextBlock Text="{loc:Loc Settings.Favorites.EmptyHint}"
                                            Style="{StaticResource CardHint}" TextAlignment="Center"
                                            MaxWidth="300" Margin="0,3,0,0"/>
                             </StackPanel>
@@ -548,8 +549,8 @@
                     </Grid.RowDefinitions>
 
                     <StackPanel Margin="32,24,32,14">
-                        <TextBlock Text="Menus personalizados" Style="{StaticResource PageTitle}"/>
-                        <TextBlock Text="Crie menus que aparecem só nos aplicativos e contextos que você escolher. Cada item vira uma fatia da roda."
+                        <TextBlock Text="{loc:Loc Menus.PageTitle}" Style="{StaticResource PageTitle}"/>
+                        <TextBlock Text="{loc:Loc Menus.PageSubtitle}"
                                    Style="{StaticResource PageSubtitle}"/>
                     </StackPanel>
 
@@ -568,36 +569,36 @@
                                             <ColumnDefinition Width="*"/>
                                             <ColumnDefinition Width="Auto"/>
                                         </Grid.ColumnDefinitions>
-                                        <TextBlock Text="Seus menus" Style="{StaticResource CardTitle}"/>
+                                        <TextBlock Text="{loc:Loc Menus.ProfilesTitle}" Style="{StaticResource CardTitle}"/>
                                         <Border Grid.Column="1" Background="{DynamicResource ControlBrush}" CornerRadius="8"
                                                 Padding="7,1" VerticalAlignment="Center">
                                             <TextBlock x:Name="MenuProfileCount" Text="0" FontSize="11" FontWeight="SemiBold"
                                                        Foreground="{DynamicResource TextDimBrush}"
-                                                       AutomationProperties.Name="Total de menus"/>
+                                                       AutomationProperties.Name="{loc:Loc Menus.ProfilesCountAutomation}"/>
                                         </Border>
                                     </Grid>
-                                    <TextBlock Text="Aparecem só onde as condições casarem." Style="{StaticResource CardHint}"
+                                    <TextBlock Text="{loc:Loc Menus.ProfilesHint}" Style="{StaticResource CardHint}"
                                                FontSize="11" Margin="0,3,0,0"/>
                                 </StackPanel>
 
                                 <StackPanel DockPanel.Dock="Bottom" Margin="0,10,0,0">
-                                    <Button x:Name="BtnNewMenuProfile" Content="Novo menu" Style="{StaticResource PrimaryButton}"
+                                    <Button x:Name="BtnNewMenuProfile" Content="{loc:Loc Menus.NewMenu}" Style="{StaticResource PrimaryButton}"
                                             Click="BtnAddMenuProfile_Click" Margin="0,0,0,6"
-                                            AutomationProperties.Name="Adicionar menu personalizado"/>
+                                            AutomationProperties.Name="{loc:Loc Menus.NewMenuAutomation}"/>
                                     <Grid Margin="0,0,0,6">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="*"/>
                                             <ColumnDefinition Width="6"/>
                                             <ColumnDefinition Width="*"/>
                                         </Grid.ColumnDefinitions>
-                                        <Button x:Name="BtnImportMenus" Content="Importar…" Padding="8,6"
+                                        <Button x:Name="BtnImportMenus" Content="{loc:Loc Menus.Import}" Padding="8,6"
                                                 Click="BtnImportMenus_Click"
-                                                ToolTip="Adiciona menus de um arquivo .json ao rascunho."
-                                                AutomationProperties.Name="Importar menus de um arquivo"/>
-                                        <Button x:Name="BtnExportMenus" Grid.Column="2" Content="Exportar…" Padding="8,6"
+                                                ToolTip="{loc:Loc Menus.ImportToolTip}"
+                                                AutomationProperties.Name="{loc:Loc Menus.ImportAutomation}"/>
+                                        <Button x:Name="BtnExportMenus" Grid.Column="2" Content="{loc:Loc Menus.Export}" Padding="8,6"
                                                 Click="BtnExportMenus_Click"
-                                                ToolTip="Salva todos os menus em um arquivo .json."
-                                                AutomationProperties.Name="Exportar todos os menus para um arquivo"/>
+                                                ToolTip="{loc:Loc Menus.ExportToolTip}"
+                                                AutomationProperties.Name="{loc:Loc Menus.ExportAutomation}"/>
                                     </Grid>
                                     <Grid x:Name="PnlProfileActions">
                                         <Grid.ColumnDefinitions>
@@ -605,12 +606,12 @@
                                             <ColumnDefinition Width="6"/>
                                             <ColumnDefinition Width="*"/>
                                         </Grid.ColumnDefinitions>
-                                        <Button x:Name="BtnDuplicateMenuProfile" Content="Duplicar" Padding="8,6"
+                                        <Button x:Name="BtnDuplicateMenuProfile" Content="{loc:Loc Menus.Duplicate}" Padding="8,6"
                                                 Click="BtnDuplicateMenuProfile_Click"
-                                                AutomationProperties.Name="Duplicar menu selecionado"/>
-                                        <Button x:Name="BtnRemoveMenuProfile" Grid.Column="2" Content="Remover" Padding="8,6"
+                                                AutomationProperties.Name="{loc:Loc Menus.DuplicateAutomation}"/>
+                                        <Button x:Name="BtnRemoveMenuProfile" Grid.Column="2" Content="{loc:Loc Common.Remove}" Padding="8,6"
                                                 Click="BtnRemoveMenuProfile_Click"
-                                                AutomationProperties.Name="Remover menu selecionado"/>
+                                                AutomationProperties.Name="{loc:Loc Menus.RemoveAutomation}"/>
                                     </Grid>
                                 </StackPanel>
 
@@ -629,20 +630,20 @@
                                                         <Border x:Name="profileOff" Grid.Column="1" Background="{DynamicResource TrackBrush}"
                                                                 CornerRadius="6" Padding="6,1" Margin="6,0,0,0" Visibility="Collapsed"
                                                                 VerticalAlignment="Center">
-                                                            <TextBlock Text="DESATIVADO" FontSize="9" FontWeight="SemiBold"
+                                                            <TextBlock Text="{loc:Loc Menus.DisabledBadge}" FontSize="9" FontWeight="SemiBold"
                                                                        Foreground="{DynamicResource TextDimBrush}"/>
                                                         </Border>
                                                     </Grid>
-                                                    <TextBlock x:Name="profileScope" Text="{Binding ProcessName, StringFormat='Processo: {0}'}"
+                                                    <TextBlock x:Name="profileScope" Text="{Binding ProcessName, Converter={StaticResource LocFormat}, ConverterParameter=Menus.ProcessFormat}"
                                                                Style="{StaticResource CardHint}" FontSize="10.5" Margin="0,1,0,0"
                                                                TextTrimming="CharacterEllipsis"/>
                                                 </StackPanel>
                                                 <DataTemplate.Triggers>
                                                     <DataTrigger Binding="{Binding ProcessName}" Value="">
-                                                        <Setter TargetName="profileScope" Property="Text" Value="Qualquer aplicativo"/>
+                                                        <Setter TargetName="profileScope" Property="Text" Value="{loc:Loc Menus.AnyApp}"/>
                                                     </DataTrigger>
                                                     <DataTrigger Binding="{Binding ProcessName}" Value="{x:Null}">
-                                                        <Setter TargetName="profileScope" Property="Text" Value="Qualquer aplicativo"/>
+                                                        <Setter TargetName="profileScope" Property="Text" Value="{loc:Loc Menus.AnyApp}"/>
                                                     </DataTrigger>
                                                     <DataTrigger Binding="{Binding Enabled}" Value="False">
                                                         <Setter TargetName="profileName" Property="Foreground"
@@ -664,8 +665,8 @@
                                 <StackPanel x:Name="PnlProfileEditor">
                                     <Border Style="{StaticResource Card}">
                                         <StackPanel>
-                                            <TextBlock Text="Condições do menu" Style="{StaticResource CardTitle}"/>
-                                            <TextBlock Text="Todos os campos são opcionais. Preenchidos, precisam casar para o menu aparecer."
+                                            <TextBlock Text="{loc:Loc Menus.ConditionsTitle}" Style="{StaticResource CardTitle}"/>
+                                            <TextBlock Text="{loc:Loc Menus.ConditionsHint}"
                                                        Style="{StaticResource CardHint}" Margin="0,3,0,0"/>
 
                                             <Grid Margin="0,10,0,0">
@@ -675,11 +676,11 @@
                                                     <ColumnDefinition Width="Auto"/>
                                                 </Grid.ColumnDefinitions>
                                                 <StackPanel>
-                                                    <TextBlock Text="Nome do menu" Style="{StaticResource FieldLabel}" Margin="0,0,0,5"/>
+                                                    <TextBlock Text="{loc:Loc Menus.NameLabel}" Style="{StaticResource FieldLabel}" Margin="0,0,0,5"/>
                                                     <TextBox x:Name="TxtProfileName" MaxLength="60" TextChanged="ProfileField_Changed"
                                                              LostFocus="TxtProfileName_LostFocus"/>
                                                 </StackPanel>
-                                                <CheckBox x:Name="ChkProfileEnabled" Grid.Column="2" Content="Ativo"
+                                                <CheckBox x:Name="ChkProfileEnabled" Grid.Column="2" Content="{loc:Loc Menus.Active}"
                                                           VerticalAlignment="Bottom" Margin="0,0,0,7"
                                                           Checked="ProfileField_Changed" Unchecked="ProfileField_Changed"/>
                                             </Grid>
@@ -691,14 +692,14 @@
                                                     <ColumnDefinition Width="*"/>
                                                 </Grid.ColumnDefinitions>
                                                 <StackPanel>
-                                                    <TextBlock Text="Processo (sem .exe)" Style="{StaticResource FieldLabel}"/>
+                                                    <TextBlock Text="{loc:Loc Menus.ProcessLabel}" Style="{StaticResource FieldLabel}"/>
                                                     <TextBox x:Name="TxtProfileProcess" MaxLength="120" TextChanged="ProfileField_Changed"/>
-                                                    <TextBlock Text="Vazio = qualquer aplicativo." Style="{StaticResource FieldHint}"/>
+                                                    <TextBlock Text="{loc:Loc Menus.ProcessHint}" Style="{StaticResource FieldHint}"/>
                                                 </StackPanel>
                                                 <StackPanel Grid.Column="2">
-                                                    <TextBlock Text="Título contém" Style="{StaticResource FieldLabel}"/>
+                                                    <TextBlock Text="{loc:Loc Menus.TitleContains}" Style="{StaticResource FieldLabel}"/>
                                                     <TextBox x:Name="TxtProfileTitle" MaxLength="120" TextChanged="ProfileField_Changed"/>
-                                                    <TextBlock Text="Vazio = qualquer título." Style="{StaticResource FieldHint}"/>
+                                                    <TextBlock Text="{loc:Loc Menus.TitleHint}" Style="{StaticResource FieldHint}"/>
                                                 </StackPanel>
                                             </Grid>
 
@@ -709,17 +710,17 @@
                                                     <ColumnDefinition Width="*"/>
                                                     <ColumnDefinition Width="Auto"/>
                                                 </Grid.ColumnDefinitions>
-                                                <TextBlock Text="Prioridade" Style="{StaticResource FieldLabel}" Margin="0,0,0,5"/>
+                                                <TextBlock Text="{loc:Loc Menus.Priority}" Style="{StaticResource FieldLabel}" Margin="0,0,0,5"/>
                                                 <TextBlock x:Name="TxtPriorityValue" Grid.Column="1" Style="{StaticResource ValueText}"
                                                            MinWidth="36" Text="0"/>
                                             </Grid>
-                                            <TextBlock Text="Maior prioridade é considerada primeiro quando a roda não tem espaço para tudo."
+                                            <TextBlock Text="{loc:Loc Menus.PriorityHint}"
                                                        Style="{StaticResource FieldHint}" Margin="0,0,0,4"/>
                                             <Slider x:Name="SliderProfilePriority" Minimum="-100" Maximum="100" TickFrequency="1"
                                                     IsSnapToTickEnabled="True" SmallChange="1" LargeChange="10"
-                                                    ValueChanged="ProfileField_Changed" AutomationProperties.Name="Prioridade do menu"/>
+                                                    ValueChanged="ProfileField_Changed" AutomationProperties.Name="{loc:Loc Menus.PriorityAutomation}"/>
 
-                                            <TextBlock Text="Contextos (nenhum marcado = todos)" Style="{StaticResource FieldLabel}"/>
+                                            <TextBlock Text="{loc:Loc Menus.ContextsLabel}" Style="{StaticResource FieldLabel}"/>
                                             <Border Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource CardBorderBrush}"
                                                     BorderThickness="1" CornerRadius="8" Padding="12,8">
                                                 <UniformGrid x:Name="PnlContexts" Columns="2"/>
@@ -736,15 +737,15 @@
                                                 <ColumnDefinition Width="Auto"/>
                                             </Grid.ColumnDefinitions>
                                             <StackPanel>
-                                                <TextBlock Text="Itens do menu" Style="{StaticResource CardTitle}"/>
-                                                <TextBlock Text="Cada item vira uma fatia da roda. Até 8 itens por menu."
+                                                <TextBlock Text="{loc:Loc Menus.ItemsTitle}" Style="{StaticResource CardTitle}"/>
+                                                <TextBlock Text="{loc:Loc Menus.ItemsHint}"
                                                            Style="{StaticResource CardHint}" Margin="0,3,0,0"/>
                                             </StackPanel>
                                             <Border Grid.Column="1" Background="{DynamicResource ControlBrush}" CornerRadius="8"
                                                     Padding="7,1" VerticalAlignment="Top" Margin="8,0,0,0">
-                                                <TextBlock x:Name="MenuItemCount" Text="0 de 8" FontSize="11" FontWeight="SemiBold"
+                                                <TextBlock x:Name="MenuItemCount" Text="{loc:Loc Menus.ItemsCountZero}" FontSize="11" FontWeight="SemiBold"
                                                            Foreground="{DynamicResource TextDimBrush}"
-                                                           AutomationProperties.Name="Itens neste menu"/>
+                                                           AutomationProperties.Name="{loc:Loc Menus.ItemsCountAutomation}"/>
                                             </Border>
                                         </Grid>
 
@@ -763,10 +764,10 @@
                                                             <ColumnDefinition Width="6"/>
                                                             <ColumnDefinition Width="*"/>
                                                         </Grid.ColumnDefinitions>
-                                                        <Button x:Name="BtnAddMenuItem" Content="Adicionar" Padding="8,6"
-                                                                Click="BtnAddMenuItem_Click" AutomationProperties.Name="Adicionar item ao menu"/>
-                                                        <Button x:Name="BtnRemoveMenuItem" Grid.Column="2" Content="Remover" Padding="8,6"
-                                                                Click="BtnRemoveMenuItem_Click" AutomationProperties.Name="Remover item selecionado"/>
+                                                        <Button x:Name="BtnAddMenuItem" Content="{loc:Loc Common.Add}" Padding="8,6"
+                                                                Click="BtnAddMenuItem_Click" AutomationProperties.Name="{loc:Loc Menus.AddItemAutomation}"/>
+                                                        <Button x:Name="BtnRemoveMenuItem" Grid.Column="2" Content="{loc:Loc Common.Remove}" Padding="8,6"
+                                                                Click="BtnRemoveMenuItem_Click" AutomationProperties.Name="{loc:Loc Menus.RemoveItemAutomation}"/>
                                                     </Grid>
                                                     <Grid Margin="0,6,0,0">
                                                         <Grid.ColumnDefinitions>
@@ -774,10 +775,10 @@
                                                             <ColumnDefinition Width="6"/>
                                                             <ColumnDefinition Width="*"/>
                                                         </Grid.ColumnDefinitions>
-                                                        <Button x:Name="BtnMoveItemUp" Content="Subir" Padding="8,6"
-                                                                Click="BtnMoveItemUp_Click" AutomationProperties.Name="Mover item para cima"/>
-                                                        <Button x:Name="BtnMoveItemDown" Grid.Column="2" Content="Descer" Padding="8,6"
-                                                                Click="BtnMoveItemDown_Click" AutomationProperties.Name="Mover item para baixo"/>
+                                                        <Button x:Name="BtnMoveItemUp" Content="{loc:Loc Common.MoveUp}" Padding="8,6"
+                                                                Click="BtnMoveItemUp_Click" AutomationProperties.Name="{loc:Loc Menus.MoveItemUpAutomation}"/>
+                                                        <Button x:Name="BtnMoveItemDown" Grid.Column="2" Content="{loc:Loc Common.MoveDown}" Padding="8,6"
+                                                                Click="BtnMoveItemDown_Click" AutomationProperties.Name="{loc:Loc Menus.MoveItemDownAutomation}"/>
                                                     </Grid>
                                                 </StackPanel>
 
@@ -799,7 +800,7 @@
                                                                                ToolTip="{Binding Label}"
                                                                                VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
                                                                     <TextBlock x:Name="itemSubmenuBadge" Grid.Column="2"
-                                                                               Text="{Binding Options.Count, StringFormat={}{0} opções}"
+                                                                               Text="{Binding Options.Count, Converter={StaticResource LocFormat}, ConverterParameter=Menus.SubmenuBadgeFormat}"
                                                                                FontSize="10" VerticalAlignment="Center" Margin="6,0,0,0"
                                                                                Foreground="{DynamicResource TextDimBrush}" Visibility="Collapsed"/>
                                                                 </Grid>
@@ -824,9 +825,9 @@
                                                         <TextBlock Text="&#xE710;" FontFamily="{StaticResource IconFont}" FontSize="20"
                                                                    Foreground="{DynamicResource TextDimBrush}" HorizontalAlignment="Center"
                                                                    Opacity="0.8"/>
-                                                        <TextBlock Text="Nenhum item" FontSize="12" FontWeight="SemiBold"
+                                                        <TextBlock Text="{loc:Loc Menus.NoItems}" FontSize="12" FontWeight="SemiBold"
                                                                    HorizontalAlignment="Center" Margin="0,5,0,0"/>
-                                                        <TextBlock Text="Use “Adicionar” para criar o primeiro." Style="{StaticResource CardHint}"
+                                                        <TextBlock Text="{loc:Loc Menus.NoItemsHint}" Style="{StaticResource CardHint}"
                                                                    FontSize="11" TextAlignment="Center" MaxWidth="120" Margin="0,2,0,0"/>
                                                     </StackPanel>
                                                 </Grid>
@@ -834,12 +835,12 @@
 
                                             <Grid Grid.Column="2">
                                                 <StackPanel x:Name="PnlItemEditor">
-                                                    <TextBlock Text="APARÊNCIA" Style="{StaticResource SectionLabel}" Margin="2,0,0,4"/>
+                                                    <TextBlock Text="{loc:Loc Menus.AppearanceSection}" Style="{StaticResource SectionLabel}" Margin="2,0,0,4"/>
                                                     <StackPanel>
-                                                        <TextBlock Text="Rótulo" Style="{StaticResource FieldLabel}" Margin="0,0,0,5"/>
+                                                        <TextBlock Text="{loc:Loc Common.Label}" Style="{StaticResource FieldLabel}" Margin="0,0,0,5"/>
                                                         <TextBox x:Name="TxtItemLabel" MaxLength="24" TextChanged="ItemField_Changed"
                                                                  LostFocus="TxtItemLabel_LostFocus"/>
-                                                        <TextBlock Text="Ícone" Style="{StaticResource FieldLabel}" Margin="0,10,0,5"/>
+                                                        <TextBlock Text="{loc:Loc Common.Icon}" Style="{StaticResource FieldLabel}" Margin="0,10,0,5"/>
                                                         <ComboBox x:Name="CmbItemGlyph" Width="180" HorizontalAlignment="Left"
                                                                   SelectionChanged="ItemField_Changed">
                                                             <ComboBox.ItemTemplate>
@@ -854,15 +855,15 @@
                                                         </ComboBox>
                                                     </StackPanel>
 
-                                                    <TextBlock Text="Descrição (opcional)" Style="{StaticResource FieldLabel}"/>
+                                                    <TextBlock Text="{loc:Loc Common.DescriptionOptional}" Style="{StaticResource FieldLabel}"/>
                                                     <TextBox x:Name="TxtItemDescription" MaxLength="120" TextChanged="ItemField_Changed"/>
-                                                    <CheckBox x:Name="ChkItemEnabled" Content="Item ativo" Margin="0,8,0,0"
+                                                    <CheckBox x:Name="ChkItemEnabled" Content="{loc:Loc Menus.ItemActive}" Margin="0,8,0,0"
                                                               Checked="ItemField_Changed" Unchecked="ItemField_Changed"/>
 
                                                     <Border Style="{StaticResource Divider}" Margin="0,12,0,10"/>
 
-                                                    <TextBlock Text="AÇÃO" Style="{StaticResource SectionLabel}" Margin="2,0,0,4"/>
-                                                    <TextBlock Text="Tipo de item" Style="{StaticResource FieldLabel}" Margin="0,0,0,5"/>
+                                                    <TextBlock Text="{loc:Loc Menus.ActionSection}" Style="{StaticResource SectionLabel}" Margin="2,0,0,4"/>
+                                                    <TextBlock Text="{loc:Loc Menus.ItemKind}" Style="{StaticResource FieldLabel}" Margin="0,0,0,5"/>
                                                     <ComboBox x:Name="CmbItemKind" SelectionChanged="CmbItemKind_SelectionChanged"/>
 
                                                     <Border x:Name="BdItemTarget" Background="{DynamicResource SurfaceBrush}"
@@ -870,50 +871,50 @@
                                                             BorderThickness="1" CornerRadius="10" Padding="12,2,12,10" Margin="0,10,0,0">
                                                         <Grid>
                                                             <StackPanel x:Name="PnlItemAction">
-                                                                <TextBlock Text="Ação do RadialFlow" Style="{StaticResource FieldLabel}"/>
+                                                                <TextBlock Text="{loc:Loc Choices.Kind.Action}" Style="{StaticResource FieldLabel}"/>
                                                                 <ComboBox x:Name="CmbItemAction" SelectionChanged="ItemField_Changed"/>
                                                             </StackPanel>
 
                                                             <StackPanel x:Name="PnlItemLaunch">
-                                                                <TextBlock Text="Executável" Style="{StaticResource FieldLabel}"/>
+                                                                <TextBlock Text="{loc:Loc Menus.Executable}" Style="{StaticResource FieldLabel}"/>
                                                                 <Grid>
                                                                     <Grid.ColumnDefinitions>
                                                                         <ColumnDefinition Width="*"/>
                                                                         <ColumnDefinition Width="Auto"/>
                                                                     </Grid.ColumnDefinitions>
                                                                     <TextBox x:Name="TxtItemLaunch" MaxLength="2048" TextChanged="ItemField_Changed"/>
-                                                                    <Button Grid.Column="1" Content="Procurar…" Margin="8,0,0,0" Padding="10,6"
+                                                                    <Button Grid.Column="1" Content="{loc:Loc Common.Browse}" Margin="8,0,0,0" Padding="10,6"
                                                                             Click="BtnBrowseExecutable_Click"/>
                                                                 </Grid>
-                                                                <TextBlock Text="Só executáveis em pastas protegidas (System32, Program Files). Sem argumentos."
+                                                                <TextBlock Text="{loc:Loc Menus.ExecutableHint}"
                                                                            Style="{StaticResource FieldHint}"/>
                                                             </StackPanel>
 
                                                             <StackPanel x:Name="PnlItemUrl">
-                                                                <TextBlock Text="Endereço (http ou https)" Style="{StaticResource FieldLabel}"/>
+                                                                <TextBlock Text="{loc:Loc Menus.UrlLabel}" Style="{StaticResource FieldLabel}"/>
                                                                 <TextBox x:Name="TxtItemUrl" MaxLength="2048" TextChanged="ItemField_Changed"/>
                                                             </StackPanel>
 
                                                             <StackPanel x:Name="PnlItemPath">
-                                                                <TextBlock Text="Arquivo ou pasta" Style="{StaticResource FieldLabel}"/>
+                                                                <TextBlock Text="{loc:Loc Menus.PathLabel}" Style="{StaticResource FieldLabel}"/>
                                                                 <TextBox x:Name="TxtItemPath" MaxLength="2048" TextChanged="ItemField_Changed"/>
                                                                 <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
-                                                                    <Button Content="Arquivo…" Padding="10,6" Margin="0,0,6,0" Click="BtnBrowseFile_Click"/>
-                                                                    <Button Content="Pasta…" Padding="10,6" Click="BtnBrowseFolder_Click"/>
+                                                                    <Button Content="{loc:Loc Menus.FileButton}" Padding="10,6" Margin="0,0,6,0" Click="BtnBrowseFile_Click"/>
+                                                                    <Button Content="{loc:Loc Menus.FolderButton}" Padding="10,6" Click="BtnBrowseFolder_Click"/>
                                                                 </StackPanel>
-                                                                <TextBlock Text="Executáveis, scripts e atalhos são recusados aqui; para eles use Executável."
+                                                                <TextBlock Text="{loc:Loc Menus.PathHint}"
                                                                            Style="{StaticResource FieldHint}"/>
                                                             </StackPanel>
 
                                                             <StackPanel x:Name="PnlItemHotkey">
-                                                                <TextBlock Text="Atalho (ex.: Ctrl+Shift+P)" Style="{StaticResource FieldLabel}"/>
+                                                                <TextBlock Text="{loc:Loc Menus.HotkeyLabel}" Style="{StaticResource FieldLabel}"/>
                                                                 <TextBox x:Name="TxtItemHotkey" MaxLength="80" TextChanged="ItemField_Changed"/>
-                                                                <TextBlock Text="Modificadores Ctrl/Alt/Shift/Win e uma tecla final. O foco precisa estar na janela de origem."
+                                                                <TextBlock Text="{loc:Loc Menus.HotkeyHint}"
                                                                            Style="{StaticResource FieldHint}"/>
                                                             </StackPanel>
 
                                                             <StackPanel x:Name="PnlItemText">
-                                                                <TextBlock Text="Texto a colar" Style="{StaticResource FieldLabel}"/>
+                                                                <TextBlock Text="{loc:Loc Menus.TextLabel}" Style="{StaticResource FieldLabel}"/>
                                                                 <TextBox x:Name="TxtItemText" MaxLength="4096" Height="86" AcceptsReturn="True"
                                                                          TextWrapping="Wrap" VerticalScrollBarVisibility="Auto"
                                                                          TextChanged="ItemField_Changed"/>
@@ -922,7 +923,7 @@
                                                     </Border>
 
                                                     <StackPanel x:Name="PnlItemSubmenu" Visibility="Collapsed">
-                                                        <TextBlock Text="OPÇÕES DO SUBMENU" Style="{StaticResource SectionLabel}" Margin="2,12,0,4"/>
+                                                        <TextBlock Text="{loc:Loc Menus.SubmenuSection}" Style="{StaticResource SectionLabel}" Margin="2,12,0,4"/>
                                                         <Border Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource CardBorderBrush}"
                                                                 BorderThickness="1" CornerRadius="10" Padding="12,10">
                                                             <StackPanel>
@@ -932,24 +933,24 @@
                                                                         <ColumnDefinition Width="Auto"/>
                                                                     </Grid.ColumnDefinitions>
                                                                     <StackPanel VerticalAlignment="Center">
-                                                                        <TextBlock x:Name="TxtSubmenuCount" Text="0 de 8 opções"
+                                                                        <TextBlock x:Name="TxtSubmenuCount" Text="{loc:Loc Menus.SubmenuCountZero}"
                                                                                    FontSize="12.5" FontWeight="SemiBold"/>
-                                                                        <TextBlock x:Name="TxtSubmenuPreview" Text="Nenhuma opção ainda."
+                                                                        <TextBlock x:Name="TxtSubmenuPreview" Text="{loc:Loc Menus.NoOptionsYet}"
                                                                                    Style="{StaticResource FieldHint}" TextWrapping="Wrap"/>
                                                                     </StackPanel>
-                                                                    <Button x:Name="BtnEditSubmenuOptions" Grid.Column="1" Content="Editar opções…"
+                                                                    <Button x:Name="BtnEditSubmenuOptions" Grid.Column="1" Content="{loc:Loc Menus.EditOptions}"
                                                                             Padding="10,6" Margin="10,0,0,0" VerticalAlignment="Center"
                                                                             Click="BtnEditSubmenuOptions_Click"
-                                                                            AutomationProperties.Name="Editar opções do submenu"/>
+                                                                            AutomationProperties.Name="{loc:Loc Menus.EditOptionsAutomation}"/>
                                                                 </Grid>
-                                                                <TextBlock Text="Use entre 2 e 8 opções ativas. Na roda, segure a fatia para abrir o segundo anel."
+                                                                <TextBlock Text="{loc:Loc Menus.SubmenuHint}"
                                                                            Style="{StaticResource FieldHint}"/>
                                                             </StackPanel>
                                                         </Border>
                                                     </StackPanel>
 
                                                     <StackPanel x:Name="PnlItemRoutine" Visibility="Collapsed">
-                                                        <TextBlock Text="PASSOS DA ROTINA" Style="{StaticResource SectionLabel}" Margin="2,12,0,4"/>
+                                                        <TextBlock Text="{loc:Loc Menus.RoutineSection}" Style="{StaticResource SectionLabel}" Margin="2,12,0,4"/>
                                                         <Border Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource CardBorderBrush}"
                                                                 BorderThickness="1" CornerRadius="10" Padding="12,10">
                                                             <StackPanel>
@@ -959,20 +960,20 @@
                                                                         <ColumnDefinition Width="Auto"/>
                                                                     </Grid.ColumnDefinitions>
                                                                     <StackPanel VerticalAlignment="Center">
-                                                                        <TextBlock x:Name="TxtRoutineCount" Text="0 de 8 passos"
+                                                                        <TextBlock x:Name="TxtRoutineCount" Text="{loc:Loc Menus.RoutineCountZero}"
                                                                                    FontSize="12.5" FontWeight="SemiBold"/>
-                                                                        <TextBlock x:Name="TxtRoutinePreview" Text="Nenhum passo ainda."
+                                                                        <TextBlock x:Name="TxtRoutinePreview" Text="{loc:Loc Menus.NoStepsYet}"
                                                                                    Style="{StaticResource FieldHint}" TextWrapping="Wrap"/>
                                                                     </StackPanel>
-                                                                    <Button x:Name="BtnEditRoutineSteps" Grid.Column="1" Content="Editar passos…"
+                                                                    <Button x:Name="BtnEditRoutineSteps" Grid.Column="1" Content="{loc:Loc Menus.EditSteps}"
                                                                             Padding="10,6" Margin="10,0,0,0" VerticalAlignment="Center"
                                                                             Click="BtnEditRoutineSteps_Click"
-                                                                            AutomationProperties.Name="Editar passos da rotina"/>
+                                                                            AutomationProperties.Name="{loc:Loc Menus.EditStepsAutomation}"/>
                                                                 </Grid>
                                                                 <TextBlock x:Name="TxtRoutineWarning" FontSize="11.5" TextWrapping="Wrap"
                                                                            Margin="0,6,0,0" Foreground="{DynamicResource WarningBrush}"
                                                                            Visibility="Collapsed"/>
-                                                                <TextBlock Text="Ações nativas do RadialFlow, na ordem definida. Sem shell, argumentos ou URLs."
+                                                                <TextBlock Text="{loc:Loc Menus.RoutineHint}"
                                                                            Style="{StaticResource FieldHint}"/>
                                                             </StackPanel>
                                                         </Border>
@@ -986,9 +987,9 @@
                                                         <TextBlock Text="&#xE70F;" FontFamily="{StaticResource IconFont}" FontSize="24"
                                                                    Foreground="{DynamicResource TextDimBrush}" HorizontalAlignment="Center"
                                                                    Opacity="0.8"/>
-                                                        <TextBlock Text="Nenhum item selecionado" FontSize="13" FontWeight="SemiBold"
+                                                        <TextBlock Text="{loc:Loc Menus.NoItemSelected}" FontSize="13" FontWeight="SemiBold"
                                                                    HorizontalAlignment="Center" Margin="0,8,0,0"/>
-                                                        <TextBlock Text="Selecione um item na lista ou clique em “Adicionar”."
+                                                        <TextBlock Text="{loc:Loc Menus.NoItemSelectedHint}"
                                                                    Style="{StaticResource CardHint}" FontSize="11.5" TextAlignment="Center"
                                                                    Margin="0,3,0,0"/>
                                                     </StackPanel>
@@ -1000,7 +1001,7 @@
 
                                 <Border Style="{StaticResource Card}">
                                     <StackPanel>
-                                        <TextBlock Text="Prévia da roda" Style="{StaticResource CardTitle}"/>
+                                        <TextBlock Text="{loc:Loc Menus.PreviewTitle}" Style="{StaticResource CardTitle}"/>
                                         <TextBlock x:Name="PreviewContext" Style="{StaticResource CardHint}"/>
 
                                         <!-- Empilhado: em janela estreita uma coluna de texto ao lado da roda ficaria ilegível. -->
@@ -1015,33 +1016,33 @@
                                         <Border Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource CardBorderBrush}"
                                                 BorderThickness="1" CornerRadius="8" Padding="10,8" Margin="0,12,0,0">
                                             <StackPanel>
-                                                <TextBlock Text="LEGENDA" Style="{StaticResource SectionLabel}" Margin="0,0,0,4"/>
+                                                <TextBlock Text="{loc:Loc Menus.Legend}" Style="{StaticResource SectionLabel}" Margin="0,0,0,4"/>
                                                 <WrapPanel>
                                                     <StackPanel Orientation="Horizontal" Margin="0,0,16,4">
                                                         <Border Width="11" Height="11" CornerRadius="3" VerticalAlignment="Center"
                                                                 Background="{DynamicResource ControlBrush}"
                                                                 BorderBrush="{DynamicResource ControlBorderBrush}" BorderThickness="1"/>
-                                                        <TextBlock Text="automática" FontSize="11" Margin="5,0,0,0"
+                                                        <TextBlock Text="{loc:Loc Menus.LegendAutomatic}" FontSize="11" Margin="5,0,0,0"
                                                                    Foreground="{DynamicResource TextDimBrush}"/>
                                                     </StackPanel>
                                                     <StackPanel Orientation="Horizontal" Margin="0,0,16,4">
                                                         <Border Width="11" Height="11" CornerRadius="3" VerticalAlignment="Center"
                                                                 Background="{DynamicResource AccentSoftBrush}"
                                                                 BorderBrush="{DynamicResource AccentBrush}" BorderThickness="1"/>
-                                                        <TextBlock Text="substitui" FontSize="11" Margin="5,0,0,0"
+                                                        <TextBlock Text="{loc:Loc Menus.LegendReplaces}" FontSize="11" Margin="5,0,0,0"
                                                                    Foreground="{DynamicResource TextDimBrush}"/>
                                                     </StackPanel>
                                                     <StackPanel Orientation="Horizontal" Margin="0,0,16,4">
                                                         <Border Width="11" Height="11" CornerRadius="3" VerticalAlignment="Center"
                                                                 Background="{DynamicResource AccentBrush}"/>
-                                                        <TextBlock Text="extra" FontSize="11" Margin="5,0,0,0"
+                                                        <TextBlock Text="{loc:Loc Menus.LegendExtra}" FontSize="11" Margin="5,0,0,0"
                                                                    Foreground="{DynamicResource TextDimBrush}"/>
                                                     </StackPanel>
                                                     <StackPanel Orientation="Horizontal" Margin="0,0,0,4"
-                                                                ToolTip="A fatia abre um segundo anel ao segurar.">
+                                                                ToolTip="{loc:Loc Menus.SubmenuLegendToolTip}">
                                                         <TextBlock Text="&#xE70D;" FontFamily="{StaticResource IconFont}" FontSize="10"
                                                                    VerticalAlignment="Center" Foreground="{DynamicResource TextDimBrush}"/>
-                                                        <TextBlock Text="abre submenu" FontSize="11" Margin="5,0,0,0"
+                                                        <TextBlock Text="{loc:Loc Menus.LegendSubmenu}" FontSize="11" Margin="5,0,0,0"
                                                                    Foreground="{DynamicResource TextDimBrush}"/>
                                                     </StackPanel>
                                                 </WrapPanel>
@@ -1049,7 +1050,7 @@
                                         </Border>
 
                                         <TextBlock Style="{StaticResource CardHint}" Margin="0,10,0,0" TextWrapping="Wrap"
-                                                   Text="Fatias em destaque vêm deste menu; as demais são automáticas do contexto. Segure uma fatia com ▾ para abrir o segundo anel. Itens além do limite de 8 ficam de fora da roda."/>
+                                                   Text="{loc:Loc Menus.PreviewHint}"/>
                                     </StackPanel>
                                 </Border>
 
@@ -1061,9 +1062,9 @@
                             <StackPanel HorizontalAlignment="Center">
                                 <TextBlock Text="&#xE8FD;" FontFamily="{StaticResource IconFont}" FontSize="30"
                                            Foreground="{DynamicResource AccentTextBrush}" HorizontalAlignment="Center"/>
-                                <TextBlock Text="Nenhum menu selecionado" FontSize="15" FontWeight="SemiBold"
+                                <TextBlock Text="{loc:Loc Menus.NoProfileSelected}" FontSize="15" FontWeight="SemiBold"
                                            HorizontalAlignment="Center" Margin="0,10,0,0"/>
-                                <TextBlock Text="Crie um menu com “Novo menu” ou selecione um na lista à esquerda. Os itens dele aparecem só nos aplicativos e contextos que você escolher."
+                                <TextBlock Text="{loc:Loc Menus.NoProfileSelectedHint}"
                                            Style="{StaticResource CardHint}" TextAlignment="Center" Margin="0,4,0,0"/>
                             </StackPanel>
                         </Border>
@@ -1078,20 +1079,20 @@
                                                Foreground="{DynamicResource AccentTextBrush}"
                                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                 </Border>
-                                <TextBlock Text="Crie seu primeiro menu" FontSize="20" FontWeight="Bold"
+                                <TextBlock Text="{loc:Loc Menus.EmptyTitle}" FontSize="20" FontWeight="Bold"
                                            Foreground="{DynamicResource TextBrush}" HorizontalAlignment="Center" Margin="0,16,0,0"/>
-                                <TextBlock Text="Dê um nome, escolha em quais aplicativos e contextos ele aparece e adicione os itens da roda."
+                                <TextBlock Text="{loc:Loc Menus.EmptyHint}"
                                            Style="{StaticResource CardHint}" FontSize="12.5" MaxWidth="420"
                                            TextAlignment="Center" Margin="0,6,0,0"/>
-                                <Button x:Name="BtnAddMenuProfile" Content="Criar primeiro menu"
+                                <Button x:Name="BtnAddMenuProfile" Content="{loc:Loc Menus.CreateFirst}"
                                         Style="{StaticResource PrimaryButton}" MinWidth="180" Margin="0,20,0,0"
                                         HorizontalAlignment="Center" Click="BtnAddMenuProfile_Click"
-                                        AutomationProperties.Name="Criar o primeiro menu personalizado"/>
-                                <Button x:Name="BtnImportMenusEmpty" Content="Importar de um arquivo…"
+                                        AutomationProperties.Name="{loc:Loc Menus.CreateFirstAutomation}"/>
+                                <Button x:Name="BtnImportMenusEmpty" Content="{loc:Loc Menus.ImportFromFile}"
                                         MinWidth="180" Padding="12,7" Margin="0,8,0,0"
                                         HorizontalAlignment="Center" Click="BtnImportMenus_Click"
-                                        AutomationProperties.Name="Importar menus personalizados de um arquivo"/>
-                                <TextBlock Text="Você pode duplicar, desativar e conferir a prévia antes de salvar."
+                                        AutomationProperties.Name="{loc:Loc Menus.ImportFromFileAutomation}"/>
+                                <TextBlock Text="{loc:Loc Menus.EmptyFooterHint}"
                                            Style="{StaticResource CardHint}" FontSize="11"
                                            TextAlignment="Center" Margin="0,12,0,0"/>
                             </StackPanel>
@@ -1109,35 +1110,35 @@
                     </Grid.RowDefinitions>
 
                     <StackPanel Margin="32,24,32,10">
-                        <TextBlock Text="Conversores" Style="{StaticResource PageTitle}"/>
-                        <TextBlock Text="Formatos extras para vídeo, áudio e documentos. Os programas são gratuitos, vêm do site oficial de cada um e são conferidos antes de instalar."
+                        <TextBlock Text="{loc:Loc Converters.PageTitle}" Style="{StaticResource PageTitle}"/>
+                        <TextBlock Text="{loc:Loc Converters.PageSubtitle}"
                                    Style="{StaticResource PageSubtitle}"/>
                     </StackPanel>
 
                     <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                         <StackPanel Margin="32,4,20,20">
-                            <TextBlock Text="PROGRAMAS DISPONÍVEIS" Style="{StaticResource SectionLabel}" Margin="3,0,0,7"/>
+                            <TextBlock Text="{loc:Loc Converters.AvailableSection}" Style="{StaticResource SectionLabel}" Margin="3,0,0,7"/>
                             <StackPanel x:Name="ConverterList"/>
 
                             <Border Style="{StaticResource Card}">
                                 <StackPanel>
-                                    <TextBlock Text="Instalação" Style="{StaticResource CardTitle}"/>
+                                    <TextBlock Text="{loc:Loc Converters.Installation}" Style="{StaticResource CardTitle}"/>
                                     <TextBlock x:Name="ConverterStatus" Style="{StaticResource CardHint}" Margin="0,3,0,12" TextWrapping="Wrap"/>
                                     <StackPanel Orientation="Horizontal">
-                                        <Button x:Name="BtnInstallConverters" Content="Instalar selecionados" Style="{StaticResource PrimaryButton}"
+                                        <Button x:Name="BtnInstallConverters" Content="{loc:Loc Converters.InstallSelected}" Style="{StaticResource PrimaryButton}"
                                                 Click="BtnInstallConverters_Click" Margin="0,0,8,0"
-                                                AutomationProperties.Name="Instalar os conversores selecionados"/>
-                                        <Button x:Name="BtnRefreshConverters" Content="Verificar de novo" Click="BtnRefreshConverters_Click"
-                                                AutomationProperties.Name="Verificar de novo quais conversores estão instalados"/>
+                                                AutomationProperties.Name="{loc:Loc Converters.InstallSelectedAutomation}"/>
+                                        <Button x:Name="BtnRefreshConverters" Content="{loc:Loc Converters.Refresh}" Click="BtnRefreshConverters_Click"
+                                                AutomationProperties.Name="{loc:Loc Converters.RefreshAutomation}"/>
                                     </StackPanel>
                                 </StackPanel>
                             </Border>
 
                             <Border Style="{StaticResource Card}">
                                 <StackPanel>
-                                    <TextBlock Text="Fotos WebP, HEIC e AVIF" Style="{StaticResource CardTitle}"/>
+                                    <TextBlock Text="{loc:Loc Converters.PhotosTitle}" Style="{StaticResource CardTitle}"/>
                                     <TextBlock Style="{StaticResource CardHint}" Margin="0,3,0,0"
-                                               Text="Essas fotos são lidas pelo próprio Windows, com as extensões gratuitas da Microsoft Store: Extensões de Imagem HEIF, Extensões de Imagem da Web e Extensão de Imagem Bruta (o Windows 11 geralmente já tem)."/>
+                                               Text="{loc:Loc Converters.PhotosHint}"/>
                                     <TextBlock x:Name="WindowsCodecsStatus" Style="{StaticResource CardHint}" Margin="0,8,0,0"/>
                                 </StackPanel>
                             </Border>
@@ -1155,8 +1156,8 @@
                     </Grid.RowDefinitions>
 
                     <StackPanel Margin="32,24,32,10">
-                        <TextBlock Text="Sobre" Style="{StaticResource PageTitle}"/>
-                        <TextBlock Text="Como usar o RadialFlow e informações de diagnóstico."
+                        <TextBlock Text="{loc:Loc Settings.About}" Style="{StaticResource PageTitle}"/>
+                        <TextBlock Text="{loc:Loc About.Subtitle}"
                                    Style="{StaticResource PageSubtitle}"/>
                     </StackPanel>
 
@@ -1182,41 +1183,41 @@
 
                             <Border Style="{StaticResource Card}">
                                 <StackPanel>
-                                    <TextBlock Text="Diagnóstico" Style="{StaticResource CardTitle}"/>
+                                    <TextBlock Text="{loc:Loc About.Diagnostics}" Style="{StaticResource CardTitle}"/>
                                     <TextBlock Style="{StaticResource CardHint}" Margin="0,3,0,10"
-                                               Text="Se algo não funcionar, o registro mostra o que aconteceu. Ele não cresce sem limite: os arquivos antigos são apagados sozinhos."/>
+                                               Text="{loc:Loc About.DiagnosticsHint}"/>
                                     <Border Background="{DynamicResource ControlBrush}" BorderBrush="{DynamicResource ControlBorderBrush}"
                                             BorderThickness="1" CornerRadius="8" Padding="10,8" Margin="0,0,0,12">
                                         <TextBlock x:Name="LogPath" FontFamily="Consolas, Cascadia Mono" FontSize="11.5"
                                                    TextWrapping="Wrap" Foreground="{DynamicResource TextDimBrush}"/>
                                     </Border>
                                     <StackPanel Orientation="Horizontal">
-                                        <Button x:Name="BtnOpenLogs" Content="Abrir pasta de logs" Click="BtnOpenLogs_Click" Margin="0,0,8,0"
-                                                AutomationProperties.Name="Abrir a pasta dos logs no Explorer"/>
-                                        <Button x:Name="BtnCopyLogPath" Content="Copiar caminho" Click="BtnCopyLogPath_Click"
-                                                AutomationProperties.Name="Copiar o caminho do arquivo de log"/>
+                                        <Button x:Name="BtnOpenLogs" Content="{loc:Loc About.OpenLogs}" Click="BtnOpenLogs_Click" Margin="0,0,8,0"
+                                                AutomationProperties.Name="{loc:Loc About.OpenLogsAutomation}"/>
+                                        <Button x:Name="BtnCopyLogPath" Content="{loc:Loc About.CopyPath}" Click="BtnCopyLogPath_Click"
+                                                AutomationProperties.Name="{loc:Loc About.CopyPathAutomation}"/>
                                     </StackPanel>
                                 </StackPanel>
                             </Border>
 
                             <Border Style="{StaticResource Card}">
                                 <StackPanel>
-                                    <TextBlock Text="Como usar" Style="{StaticResource CardTitle}" Margin="0,0,0,8"/>
-                                    <TextBlock Style="{StaticResource CardHint}" Margin="0,0,0,4" Text="•  Segure e arraste com o botão direito para abrir a roda."/>
-                                    <TextBlock Style="{StaticResource CardHint}" Margin="0,0,0,4" Text="•  Solte sobre uma fatia para executá-la."/>
-                                    <TextBlock Style="{StaticResource CardHint}" Margin="0,0,0,4" Text="•  Fatias com seta ⌄ têm submenu: segure o cursor sobre elas."/>
-                                    <TextBlock Style="{StaticResource CardHint}" Margin="0,0,0,4" Text="•  Solte no centro do anel para cancelar."/>
-                                    <TextBlock Style="{StaticResource CardHint}" Margin="0" Text="•  Um clique direito simples, sem arrastar, abre o menu normal do Windows."/>
+                                    <TextBlock Text="{loc:Loc About.HowToUse}" Style="{StaticResource CardTitle}" Margin="0,0,0,8"/>
+                                    <TextBlock Style="{StaticResource CardHint}" Margin="0,0,0,4" Text="{loc:Loc About.HowToUse1}"/>
+                                    <TextBlock Style="{StaticResource CardHint}" Margin="0,0,0,4" Text="{loc:Loc About.HowToUse2}"/>
+                                    <TextBlock Style="{StaticResource CardHint}" Margin="0,0,0,4" Text="{loc:Loc About.HowToUse3}"/>
+                                    <TextBlock Style="{StaticResource CardHint}" Margin="0,0,0,4" Text="{loc:Loc About.HowToUse4}"/>
+                                    <TextBlock Style="{StaticResource CardHint}" Margin="0" Text="{loc:Loc About.HowToUse5}"/>
                                 </StackPanel>
                             </Border>
 
                             <Border Style="{StaticResource Card}">
                                 <StackPanel>
-                                    <TextBlock Text="Fatias por contexto" Style="{StaticResource CardTitle}" Margin="0,0,0,8"/>
-                                    <TextBlock Style="{StaticResource CardHint}" Margin="0,0,0,4" Text="•  Arquivos e pastas: Comprimir, Converter, Copiar caminho, Mover, Enviar e Renomear."/>
-                                    <TextBlock Style="{StaticResource CardHint}" Margin="0,0,0,4" Text="•  Barra de título: Maximizar, Snap, Transparência, Sempre no topo, Minimizar e Fechar."/>
-                                    <TextBlock Style="{StaticResource CardHint}" Margin="0,0,0,4" Text="•  Campos de texto: Colar, Traduzir, Pesquisar, Formatar e Limpar."/>
-                                    <TextBlock Style="{StaticResource CardHint}" Margin="0" Text="•  Área de trabalho: Apps favoritos, Ajustes rápidos, Área de transferência e Bloquear."/>
+                                    <TextBlock Text="{loc:Loc About.ContextSlices}" Style="{StaticResource CardTitle}" Margin="0,0,0,8"/>
+                                    <TextBlock Style="{StaticResource CardHint}" Margin="0,0,0,4" Text="{loc:Loc About.ContextSlices1}"/>
+                                    <TextBlock Style="{StaticResource CardHint}" Margin="0,0,0,4" Text="{loc:Loc About.ContextSlices2}"/>
+                                    <TextBlock Style="{StaticResource CardHint}" Margin="0,0,0,4" Text="{loc:Loc About.ContextSlices3}"/>
+                                    <TextBlock Style="{StaticResource CardHint}" Margin="0" Text="{loc:Loc About.ContextSlices4}"/>
                                 </StackPanel>
                             </Border>
                         </StackPanel>
@@ -1243,13 +1244,13 @@
                              Margin="0,0,8,0" VerticalAlignment="Center" Visibility="Collapsed"/>
                     <TextBlock x:Name="SaveStatus" Grid.Column="1" VerticalAlignment="Center" FontSize="12"
                                Foreground="{DynamicResource TextDimBrush}" TextTrimming="CharacterEllipsis"
-                               Text="Tudo salvo"/>
+                               Text="{loc:Loc Settings.AllSaved}"/>
                 </Grid>
 
                 <StackPanel Grid.Column="1" Orientation="Horizontal">
-                    <Button x:Name="BtnSave" Content="Salvar" Style="{StaticResource PrimaryButton}" MinWidth="104"
+                    <Button x:Name="BtnSave" Content="{loc:Loc Common.Save}" Style="{StaticResource PrimaryButton}" MinWidth="104"
                             Click="BtnSave_Click" Margin="0,0,8,0" IsDefault="True"/>
-                    <Button x:Name="BtnCancel" Content="Fechar" MinWidth="92" Click="BtnCancel_Click" IsCancel="True"/>
+                    <Button x:Name="BtnCancel" Content="{loc:Loc Common.Close}" MinWidth="92" Click="BtnCancel_Click" IsCancel="True"/>
                 </StackPanel>
             </Grid>
         </Border>

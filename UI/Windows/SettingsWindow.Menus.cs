@@ -35,13 +35,13 @@ public partial class SettingsWindow
 {
     private const string DefaultGlyph = "\uE734";
 
-    private static readonly (RadialContextKind Kind, string Label)[] ContextChoices =
+    private static readonly (RadialContextKind Kind, string LabelKey)[] ContextChoices =
     [
-        (RadialContextKind.FileOrFolder, "Arquivos e pastas"),
-        (RadialContextKind.DesktopBackground, "Área de trabalho"),
-        (RadialContextKind.TitleBar, "Barra de título"),
-        (RadialContextKind.TextField, "Campos de texto"),
-        (RadialContextKind.Generic, "Genérico"),
+        (RadialContextKind.FileOrFolder, "Menus.ContextFileOrFolder"),
+        (RadialContextKind.DesktopBackground, "Menus.ContextDesktop"),
+        (RadialContextKind.TitleBar, "Menus.ContextTitleBar"),
+        (RadialContextKind.TextField, "Menus.ContextTextField"),
+        (RadialContextKind.Generic, "Menus.ContextGeneric"),
     ];
 
     // Ordem da prévia: contextos específicos primeiro; "Genérico" só quando nenhum outro foi marcado.
@@ -73,7 +73,7 @@ public partial class SettingsWindow
     internal static Func<string?>? ChooseExportPathForTests { get; set; }
 
     // Dependências fixas (nada lê configurações nem disco): as fatias automáticas de cada contexto não mudam.
-    private static readonly Dictionary<RadialContextKind, IReadOnlyList<RadialSlice>> AutomaticPreviewCache = new();
+    private static readonly Dictionary<(RadialContextKind Kind, string Language), IReadOnlyList<RadialSlice>> AutomaticPreviewCache = new();
 
     private void InitializeMenusTab()
     {
@@ -90,12 +90,13 @@ public partial class SettingsWindow
             foreach (var (action, label) in CustomMenuChoices.Actions)
                 CmbItemAction.Items.Add(new ComboBoxItem { Content = label, Tag = action });
 
-            foreach (var (kind, label) in ContextChoices)
+            foreach (var (kind, labelKey) in ContextChoices)
             {
+                string label = Loc.Get(labelKey);
                 var check = new CheckBox { Content = label, Tag = kind, Margin = new Thickness(0, 4, 12, 4) };
                 check.Checked += ProfileField_Changed;
                 check.Unchecked += ProfileField_Changed;
-                AutomationProperties.SetName(check, $"Contexto: {label}");
+                AutomationProperties.SetName(check, Loc.Format("Menus.ContextAutomation", label));
                 PnlContexts.Children.Add(check);
             }
 
@@ -197,14 +198,14 @@ public partial class SettingsWindow
     {
         if (_menuProfiles.Count >= CustomMenuNormalizer.MaxProfiles)
         {
-            Dialogs.Message(this, "Menus personalizados",
-                $"Você pode ter no máximo {CustomMenuNormalizer.MaxProfiles} menus personalizados.", DialogIcon.Warning);
+            Dialogs.Message(this, Loc.Get("Menus.PageTitle"),
+                Loc.Format("Menus.MaxProfiles", CustomMenuNormalizer.MaxProfiles), DialogIcon.Warning);
             return;
         }
 
         var profile = new CustomMenuProfile
         {
-            Name = UniqueName(_menuProfiles.Select(p => p.Name), "Novo menu"),
+            Name = UniqueName(_menuProfiles.Select(p => p.Name), Loc.Get("Menus.NewMenu")),
             Enabled = true,
         };
 
@@ -219,14 +220,14 @@ public partial class SettingsWindow
 
         if (_menuProfiles.Count >= CustomMenuNormalizer.MaxProfiles)
         {
-            Dialogs.Message(this, "Menus personalizados",
-                $"Você pode ter no máximo {CustomMenuNormalizer.MaxProfiles} menus personalizados.", DialogIcon.Warning);
+            Dialogs.Message(this, Loc.Get("Menus.PageTitle"),
+                Loc.Format("Menus.MaxProfiles", CustomMenuNormalizer.MaxProfiles), DialogIcon.Warning);
             return;
         }
 
         CustomMenuProfile copy = CloneProfile(_selectedProfile);
         copy.Id = Guid.NewGuid().ToString("N");
-        copy.Name = UniqueName(_menuProfiles.Select(p => p.Name), $"{_selectedProfile.Name} (cópia)");
+        copy.Name = UniqueName(_menuProfiles.Select(p => p.Name), Loc.Format("Menus.CopySuffix", _selectedProfile.Name));
         foreach (CustomMenuItem item in copy.Items)
             item.Id = Guid.NewGuid().ToString("N");   // itens com o mesmo Id seriam deduplicados entre os perfis
 
@@ -266,8 +267,8 @@ public partial class SettingsWindow
                 out string? reason))
         {
             AppLog.Warning("Menus", $"Importação recusada: {reason}");
-            Dialogs.Message(this, "Importar menus",
-                $"Nenhum menu foi adicionado.\n\n{reason}", DialogIcon.Warning);
+            Dialogs.Message(this, Loc.Get("Menus.ImportTitle"),
+                Loc.Format("Menus.ImportFailed", reason), DialogIcon.Warning);
             return;
         }
 
@@ -277,8 +278,8 @@ public partial class SettingsWindow
         if (invalid is not null)
         {
             AppLog.Warning("Menus", $"Importação recusada: {invalid}");
-            Dialogs.Message(this, "Importar menus",
-                $"Nenhum menu foi adicionado.\n\n{invalid}", DialogIcon.Warning);
+            Dialogs.Message(this, Loc.Get("Menus.ImportTitle"),
+                Loc.Format("Menus.ImportFailed", invalid), DialogIcon.Warning);
             return;
         }
 
@@ -291,10 +292,10 @@ public partial class SettingsWindow
 
         int items = imported.Sum(p => p.Items.Count);
         AppLog.Info("Menus", $"{imported.Count} menu(s) importado(s) de '{path}'.");
-        Dialogs.Message(this, "Menus importados",
-            $"{DescribeCount(imported.Count, "menu", "menus")} e {DescribeCount(items, "item", "itens")} " +
-            "foram adicionados ao rascunho.\n\nNada é executado agora. Revise a prévia e clique em " +
-            "Salvar para aplicar; as mesmas regras de segurança valem para os itens importados.",
+        Dialogs.Message(this, Loc.Get("Menus.ImportedTitle"),
+            Loc.Format("Menus.ImportedMessage",
+                DescribeCount(imported.Count, "Common.MenusCountOne", "Common.MenusCountMany"),
+                DescribeCount(items, "Common.ItemsCountOne", "Common.ItemsCountMany")),
             DialogIcon.Info);
     }
 
@@ -305,7 +306,7 @@ public partial class SettingsWindow
         string? invalid = ValidateMenus();
         if (invalid is not null)
         {
-            Dialogs.Message(this, "Menus personalizados", invalid, DialogIcon.Warning);
+            Dialogs.Message(this, Loc.Get("Menus.PageTitle"), invalid, DialogIcon.Warning);
             return;
         }
 
@@ -316,16 +317,18 @@ public partial class SettingsWindow
         if (!CustomMenuTransfer.TryExportToFile(path, snapshot, out string? reason))
         {
             AppLog.Warning("Menus", $"Exportação falhou: {reason}");
-            Dialogs.Message(this, "Exportar menus",
-                reason ?? "Não foi possível exportar os menus.", DialogIcon.Error);
+            Dialogs.Message(this, Loc.Get("Menus.ExportTitle"),
+                reason ?? Loc.Get("Menus.ExportFailed"), DialogIcon.Error);
             return;
         }
 
         int items = snapshot.Sum(p => p.Items.Count);
         AppLog.Info("Menus", $"{snapshot.Count} menu(s) exportado(s) para '{path}'.");
-        Dialogs.Message(this, "Menus exportados",
-            $"{DescribeCount(snapshot.Count, "menu", "menus")} e {DescribeCount(items, "item", "itens")} " +
-            $"foram exportados para:\n{path}",
+        Dialogs.Message(this, Loc.Get("Menus.ExportedTitle"),
+            Loc.Format("Menus.ExportedMessage",
+                DescribeCount(snapshot.Count, "Common.MenusCountOne", "Common.MenusCountMany"),
+                DescribeCount(items, "Common.ItemsCountOne", "Common.ItemsCountMany"),
+                path),
             DialogIcon.Info);
     }
 
@@ -333,8 +336,8 @@ public partial class SettingsWindow
     {
         var dialog = new OpenFileDialog
         {
-            Title = "Importar menus personalizados",
-            Filter = "Menus do RadialFlow (*.json)|*.json|Todos os arquivos (*.*)|*.*",
+            Title = Loc.Get("Menus.ImportDialogTitle"),
+            Filter = Loc.Get("Menus.ImportFilter"),
             CheckFileExists = true,
             Multiselect = false,
         };
@@ -346,8 +349,8 @@ public partial class SettingsWindow
     {
         var dialog = new SaveFileDialog
         {
-            Title = "Exportar menus personalizados",
-            Filter = "Menus do RadialFlow (*.json)|*.json",
+            Title = Loc.Get("Menus.ExportDialogTitle"),
+            Filter = Loc.Get("Menus.ExportFilter"),
             DefaultExt = ".json",
             AddExtension = true,
             FileName = "radialflow-menus.json",
@@ -453,15 +456,14 @@ public partial class SettingsWindow
 
         if (_selectedProfile.Items.Count >= CustomMenuNormalizer.MaxItems)
         {
-            Dialogs.Message(this, "Itens do menu",
-                $"Cada menu pode ter no máximo {CustomMenuNormalizer.MaxItems} itens. " +
-                "Para mais opções, crie outro menu com condições diferentes.", DialogIcon.Warning);
+            Dialogs.Message(this, Loc.Get("Menus.ItemsTitle"),
+                Loc.Format("Menus.MaxItems", CustomMenuNormalizer.MaxItems), DialogIcon.Warning);
             return;
         }
 
         var item = new CustomMenuItem
         {
-            Label = UniqueName(_selectedProfile.Items.Select(i => i.Label), "Novo item"),
+            Label = UniqueName(_selectedProfile.Items.Select(i => i.Label), Loc.Get("Menus.NewItem")),
             Kind = CustomMenuItemKind.Action,
             Action = RadialAction.Convert,
         };
@@ -600,8 +602,8 @@ public partial class SettingsWindow
 
         if (!hasItem)
         {
-            TxtSubmenuCount.Text = $"0 de {CustomMenuNormalizer.MaxOptions} opções";
-            TxtSubmenuPreview.Text = "Nenhuma opção ainda.";
+            TxtSubmenuCount.Text = Loc.Format("Menus.SubmenuCountFormat", 0, CustomMenuNormalizer.MaxOptions);
+            TxtSubmenuPreview.Text = Loc.Get("Menus.NoOptionsYet");
             return;
         }
 
@@ -610,16 +612,16 @@ public partial class SettingsWindow
             .ToList();
         var active = CustomMenuNormalizer.ActiveOptions(_selectedItem);
 
-        TxtSubmenuCount.Text = $"{options.Count} de {CustomMenuNormalizer.MaxOptions} opções";
+        TxtSubmenuCount.Text = Loc.Format("Menus.SubmenuCountFormat", options.Count, CustomMenuNormalizer.MaxOptions);
         if (options.Count == 0)
         {
-            TxtSubmenuPreview.Text = "Nenhuma opção ainda.";
+            TxtSubmenuPreview.Text = Loc.Get("Menus.NoOptionsYet");
             return;
         }
 
         if (active.Count == 0)
         {
-            TxtSubmenuPreview.Text = "Nenhuma opção ativa.";
+            TxtSubmenuPreview.Text = Loc.Get("Menus.NoActiveOptions");
             return;
         }
 
@@ -627,8 +629,8 @@ public partial class SettingsWindow
         if (active.Count > 4) labels += "…";
 
         TxtSubmenuPreview.Text = active.Count < CustomMenuNormalizer.MinOptions
-            ? $"{active.Count} ativa: {labels}. Adicione mais uma para abrir o segundo anel."
-            : $"{active.Count} ativas: {labels}.";
+            ? Loc.Format("Menus.SubmenuActiveOne", active.Count, labels)
+            : Loc.Format("Menus.SubmenuActiveMany", active.Count, labels);
     }
 
     // ------------------------------------------------------------------
@@ -662,8 +664,8 @@ public partial class SettingsWindow
 
         if (!hasItem)
         {
-            TxtRoutineCount.Text = $"0 de {CustomRoutineLogic.MaxSteps} passos";
-            TxtRoutinePreview.Text = "Nenhum passo ainda.";
+            TxtRoutineCount.Text = Loc.Format("Menus.RoutineCountFormat", 0, CustomRoutineLogic.MaxSteps);
+            TxtRoutinePreview.Text = Loc.Get("Menus.NoStepsYet");
             TxtRoutineWarning.Text = "";
             TxtRoutineWarning.Visibility = Visibility.Collapsed;
             return;
@@ -673,10 +675,10 @@ public partial class SettingsWindow
             .Where(s => s is not null)
             .ToList();
 
-        TxtRoutineCount.Text = $"{steps.Count} de {CustomRoutineLogic.MaxSteps} passos";
+        TxtRoutineCount.Text = Loc.Format("Menus.RoutineCountFormat", steps.Count, CustomRoutineLogic.MaxSteps);
         if (steps.Count == 0)
         {
-            TxtRoutinePreview.Text = "Nenhum passo ainda.";
+            TxtRoutinePreview.Text = Loc.Get("Menus.NoStepsYet");
             TxtRoutineWarning.Text = "";
             TxtRoutineWarning.Visibility = Visibility.Collapsed;
             return;
@@ -693,7 +695,7 @@ public partial class SettingsWindow
         }
         else
         {
-            TxtRoutineWarning.Text = reason ?? "A rotina ainda não pode ser salva.";
+            TxtRoutineWarning.Text = reason ?? Loc.Get("Menus.RoutineCannotSave");
             TxtRoutineWarning.Visibility = Visibility.Visible;
         }
     }
@@ -727,8 +729,8 @@ public partial class SettingsWindow
     {
         var dialog = new OpenFileDialog
         {
-            Title = "Selecionar executável",
-            Filter = "Executáveis (*.exe)|*.exe",
+            Title = Loc.Get("Menus.PickExecutable"),
+            Filter = Loc.Get("Menus.ExecutableFilter"),
             CheckFileExists = true,
         };
         if (dialog.ShowDialog(this) == true) TxtItemLaunch.Text = dialog.FileName;
@@ -738,8 +740,8 @@ public partial class SettingsWindow
     {
         var dialog = new OpenFileDialog
         {
-            Title = "Selecionar arquivo",
-            Filter = "Todos os arquivos (*.*)|*.*",
+            Title = Loc.Get("Menus.PickFile"),
+            Filter = Loc.Get("Menus.AllFilesFilter"),
             CheckFileExists = true,
         };
         if (dialog.ShowDialog(this) == true) TxtItemPath.Text = dialog.FileName;
@@ -747,7 +749,7 @@ public partial class SettingsWindow
 
     private void BtnBrowseFolder_Click(object sender, RoutedEventArgs e)
     {
-        var dialog = new OpenFolderDialog { Title = "Selecionar pasta", Multiselect = false };
+        var dialog = new OpenFolderDialog { Title = Loc.Get("Menus.PickFolder"), Multiselect = false };
         if (dialog.ShowDialog(this) == true) TxtItemPath.Text = dialog.FolderName;
     }
 
@@ -764,7 +766,7 @@ public partial class SettingsWindow
         if (_selectedProfile is null)
         {
             _preview.Show(Array.Empty<CustomMergeEntry>());
-            PreviewContext.Text = "Nenhum menu selecionado.";
+            PreviewContext.Text = Loc.Get("Menus.NoProfilePreview");
             PreviewSummary.Text = "";
             PreviewWarning.Text = "";
             PreviewWarning.Visibility = Visibility.Collapsed;
@@ -783,11 +785,15 @@ public partial class SettingsWindow
         int replacements = plan.Entries.Count(e => e.Status == CustomMergeStatus.Replacement);
         int extras = plan.Entries.Count(e => e.Status == CustomMergeStatus.Extra);
 
-        PreviewContext.Text = $"Prévia no contexto “{ContextLabel(kind)}”" +
-            (_selectedProfile.Enabled ? "." : " (este menu está desativado).");
-        string replacementsText = replacements == 1 ? "1 substituição" : $"{replacements} substituições";
-        string extrasText = extras == 1 ? "1 extra" : $"{extras} extras";
-        PreviewSummary.Text = $"{automatic.Count} fatias automáticas · {replacementsText} · {extrasText}.";
+        PreviewContext.Text = Loc.Format("Menus.PreviewContext", ContextLabel(kind)) +
+            (_selectedProfile.Enabled ? "." : Loc.Get("Menus.PreviewContextDisabled"));
+        string replacementsText = replacements == 1
+            ? Loc.Get("Menus.PreviewReplacementsOne")
+            : Loc.Format("Menus.PreviewReplacementsMany", replacements);
+        string extrasText = extras == 1
+            ? Loc.Get("Menus.PreviewExtrasOne")
+            : Loc.Format("Menus.PreviewExtrasMany", extras);
+        PreviewSummary.Text = Loc.Format("Menus.PreviewSummary", automatic.Count, replacementsText, extrasText);
 
         if (plan.Dropped.Count == 0 && plan.Invalid.Count == 0)
         {
@@ -801,19 +807,19 @@ public partial class SettingsWindow
             int invalidRoutines = plan.Invalid.Count(i => i.Kind == CustomMenuItemKind.Routine);
 
             if (invalidSubmenus == 1)
-                parts.Add("1 submenu precisa de 2 opções ativas e não aparece.");
+                parts.Add(Loc.Get("Menus.WarnSubmenuOne"));
             else if (invalidSubmenus > 1)
-                parts.Add($"{invalidSubmenus} submenus precisam de 2 opções ativas e não aparecem.");
+                parts.Add(Loc.Format("Menus.WarnSubmenus", invalidSubmenus));
 
             if (invalidRoutines == 1)
-                parts.Add("1 rotina inválida não aparece.");
+                parts.Add(Loc.Get("Menus.WarnRoutineOne"));
             else if (invalidRoutines > 1)
-                parts.Add($"{invalidRoutines} rotinas inválidas não aparecem.");
+                parts.Add(Loc.Format("Menus.WarnRoutines", invalidRoutines));
 
             if (plan.Dropped.Count == 1)
-                parts.Add("1 item será ignorado (limite de 8 fatias).");
+                parts.Add(Loc.Get("Menus.WarnDroppedOne"));
             else if (plan.Dropped.Count > 1)
-                parts.Add($"{plan.Dropped.Count} itens serão ignorados (limite de 8 fatias).");
+                parts.Add(Loc.Format("Menus.WarnDropped", plan.Dropped.Count));
 
             PreviewWarning.Text = string.Join(" ", parts);
             PreviewWarning.Visibility = Visibility.Visible;
@@ -831,7 +837,8 @@ public partial class SettingsWindow
 
     private static IReadOnlyList<RadialSlice> PreviewAutomatic(RadialContextKind kind)
     {
-        if (AutomaticPreviewCache.TryGetValue(kind, out IReadOnlyList<RadialSlice>? cached)) return cached;
+        var cacheKey = (Kind: kind, Language: Loc.Culture.Name);
+        if (AutomaticPreviewCache.TryGetValue(cacheKey, out IReadOnlyList<RadialSlice>? cached)) return cached;
 
         ContextInfo ctx = new(kind, IntPtr.Zero, "", 0, 0,
             kind == RadialContextKind.FileOrFolder ? new[] { @"C:\preview.png" } : ContextInfo.NoPaths);
@@ -841,29 +848,31 @@ public partial class SettingsWindow
             PreviewSliceActions.Instance,
             _ => new[]
             {
-                new ConversionOption("pdf", "PDF — prévia", "Prévia"),
-                new ConversionOption("webp", "WEBP — prévia", "Prévia"),
+                new ConversionOption("pdf", Loc.Format("Menus.PreviewSampleConversionLabel", "PDF"),
+                    Loc.Get("Menus.PreviewSampleConversionGroup")),
+                new ConversionOption("webp", Loc.Format("Menus.PreviewSampleConversionLabel", "WEBP"),
+                    Loc.Get("Menus.PreviewSampleConversionGroup")),
             },
             () => new[]
             {
-                new FavoriteAppEntry("App de exemplo", @"C:\app.exe"),
-                new FavoriteAppEntry("Outro app", @"C:\outro.exe"),
+                new FavoriteAppEntry(Loc.Get("Menus.PreviewSampleApp"), @"C:\app.exe"),
+                new FavoriteAppEntry(Loc.Get("Menus.PreviewSampleAppOther"), @"C:\outro.exe"),
             },
             _ => true,
             null);
 
         IReadOnlyList<RadialSlice> slices = SliceFactory.Build(ctx, deps);
-        AutomaticPreviewCache[kind] = slices;
+        AutomaticPreviewCache[cacheKey] = slices;
         return slices;
     }
 
     private static string ContextLabel(RadialContextKind kind) => kind switch
     {
-        RadialContextKind.FileOrFolder => "arquivos e pastas",
-        RadialContextKind.DesktopBackground => "área de trabalho",
-        RadialContextKind.TitleBar => "barra de título",
-        RadialContextKind.TextField => "campos de texto",
-        _ => "genérico",
+        RadialContextKind.FileOrFolder => Loc.Get("Preview.ContextFileOrFolder"),
+        RadialContextKind.DesktopBackground => Loc.Get("Preview.ContextDesktop"),
+        RadialContextKind.TitleBar => Loc.Get("Preview.ContextTitleBar"),
+        RadialContextKind.TextField => Loc.Get("Preview.ContextTextField"),
+        _ => Loc.Get("Preview.ContextGeneric"),
     };
 
     private void UpdateMenuButtons()
@@ -887,7 +896,7 @@ public partial class SettingsWindow
 
         PnlNoItems.Visibility = hasProfile && _menuItems.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
         MenuProfileCount.Text = _menuProfiles.Count.ToString(CultureInfo.InvariantCulture);
-        MenuItemCount.Text = $"{_menuItems.Count} de {CustomMenuNormalizer.MaxItems}";
+        MenuItemCount.Text = Loc.Format("Menus.ItemsCountFormat", _menuItems.Count, CustomMenuNormalizer.MaxItems);
     }
 
     private void MarkMenusDirty(bool debouncePreview = false)
@@ -942,9 +951,9 @@ public partial class SettingsWindow
         {
             string name = (profile.Name ?? "").Trim();
             if (profile.Enabled && name.Length == 0)
-                return "Dê um nome a todos os menus ativos.";
+                return Loc.Get("Menus.ValidateNameRequired");
             if (name.Length > CustomMenuNormalizer.MaxNameLength)
-                return $"O nome de um menu passou de {CustomMenuNormalizer.MaxNameLength} caracteres.";
+                return Loc.Format("Menus.ValidateNameTooLong", CustomMenuNormalizer.MaxNameLength);
 
             if (!profile.Enabled) continue;
 
@@ -954,11 +963,11 @@ public partial class SettingsWindow
 
                 string label = (item.Label ?? "").Trim();
                 if (label.Length == 0)
-                    return $"Há um item sem rótulo no menu “{name}”.";
+                    return Loc.Format("Menus.ValidateItemLabelRequired", name);
                 if (label.Length > CustomMenuNormalizer.MaxLabelLength)
-                    return $"O rótulo “{label}” passou de {CustomMenuNormalizer.MaxLabelLength} caracteres.";
+                    return Loc.Format("Menus.ValidateLabelTooLong", label, CustomMenuNormalizer.MaxLabelLength);
                 if ((item.Description ?? "").Length > CustomMenuNormalizer.MaxDescriptionLength)
-                    return $"A descrição do item “{label}” passou de {CustomMenuNormalizer.MaxDescriptionLength} caracteres.";
+                    return Loc.Format("Menus.ValidateDescriptionTooLong", label, CustomMenuNormalizer.MaxDescriptionLength);
 
                 switch (item.Kind)
                 {
@@ -968,7 +977,7 @@ public partial class SettingsWindow
                         break;
 
                     default:
-                        string? targetError = CustomMenuValidation.ValidateTarget(item, label, "item");
+                        string? targetError = CustomMenuValidation.ValidateTarget(item, label);
                         if (targetError is not null) return targetError;
                         break;
                 }
@@ -985,11 +994,11 @@ public partial class SettingsWindow
             .ToList();
 
         if (options.Count > CustomMenuNormalizer.MaxOptions)
-            return $"O submenu “{label}” passou de {CustomMenuNormalizer.MaxOptions} opções.";
+            return Loc.Format("Menus.ValidateSubmenuTooMany", label, CustomMenuNormalizer.MaxOptions);
 
         var active = CustomMenuNormalizer.ActiveOptions(item);
         if (active.Count < CustomMenuNormalizer.MinOptions)
-            return $"O submenu “{label}” precisa de pelo menos {CustomMenuNormalizer.MinOptions} opções ativas.";
+            return Loc.Format("Menus.ValidateSubmenuMinOptions", label, CustomMenuNormalizer.MinOptions);
 
         foreach (CustomMenuItem option in active)
         {
@@ -1056,9 +1065,9 @@ public partial class SettingsWindow
         List<string> changed = ChangedSections();
         if (changed.Count > 0)
         {
-            bool discard = Dialogs.Confirm(this, "Descartar alterações?",
-                $"Configurações não salvas: {string.Join(", ", changed)}. Fechar mesmo assim?",
-                "Descartar", "Continuar editando", DialogIcon.Warning, defaultIsConfirm: false);
+            bool discard = Dialogs.Confirm(this, Loc.Get("Settings.DiscardTitle"),
+                Loc.Format("Settings.DiscardPrompt", string.Join(", ", changed)),
+                Loc.Get("Settings.Discard"), Loc.Get("Settings.ContinueEditing"), DialogIcon.Warning, defaultIsConfirm: false);
             if (!discard)
             {
                 e.Cancel = true;
@@ -1117,8 +1126,8 @@ public partial class SettingsWindow
         DelayMilliseconds = step.DelayMilliseconds,
     };
 
-    private static string DescribeCount(int value, string singular, string plural) =>
-        $"{value} {(value == 1 ? singular : plural)}";
+    private static string DescribeCount(int value, string oneKey, string manyKey) =>
+        value == 1 ? Loc.Get(oneKey) : Loc.Format(manyKey, value);
 
     private static string UniqueName(IEnumerable<string?> names, string baseName)
     {
@@ -1140,7 +1149,7 @@ public partial class SettingsWindow
         GlyphChoice? choice = _glyphChoices.FirstOrDefault(g => g.Glyph == value);
         if (choice is null)
         {
-            choice = new GlyphChoice(value, "Personalizado");
+            choice = new GlyphChoice(value, Loc.Get("Menus.CustomGlyph"));
             _glyphChoices.Add(choice);
         }
 

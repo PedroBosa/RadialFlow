@@ -8,6 +8,7 @@
 
 using RadialFlow.Config;
 using RadialFlow.Context;
+using RadialFlow.Infrastructure;
 using RadialFlow.Security;
 using RadialFlow.Services;
 
@@ -20,62 +21,62 @@ internal static class CustomMenuValidation
     {
         string label = (option.Label ?? "").Trim();
         if (label.Length == 0)
-            return $"Há uma opção sem rótulo no submenu “{submenuLabel}”.";
+            return Loc.Format("MenuValidation.OptionMissingLabel", submenuLabel);
         if (label.Length > CustomMenuNormalizer.MaxLabelLength)
-            return $"A opção “{label}” do submenu “{submenuLabel}” passou de {CustomMenuNormalizer.MaxLabelLength} caracteres.";
+            return Loc.Format("MenuValidation.OptionLabelTooLong", label, submenuLabel, CustomMenuNormalizer.MaxLabelLength);
         if ((option.Description ?? "").Length > CustomMenuNormalizer.MaxDescriptionLength)
-            return $"A descrição da opção “{label}” passou de {CustomMenuNormalizer.MaxDescriptionLength} caracteres.";
+            return Loc.Format("MenuValidation.OptionDescriptionTooLong", label, CustomMenuNormalizer.MaxDescriptionLength);
         if (option.Kind == CustomMenuItemKind.Submenu)
-            return $"O submenu “{submenuLabel}” não pode ter outro submenu dentro.";
+            return Loc.Format("MenuValidation.NestedSubmenu", submenuLabel);
         if (option.Kind == CustomMenuItemKind.Routine)
-            return $"O submenu “{submenuLabel}” não pode ter uma rotina: rotinas ficam no primeiro anel.";
+            return Loc.Format("MenuValidation.RoutineInside", submenuLabel);
 
-        return ValidateTarget(option, label, "opção");
+        return ValidateTarget(option, label, isOption: true);
     }
 
-    internal static string? ValidateTarget(CustomMenuItem item, string label, string noun)
+    internal static string? ValidateTarget(CustomMenuItem item, string label, bool isOption = false)
     {
-        string article = noun == "opção" ? "da" : "do";
+        string noun = Loc.Get(isOption ? "MenuValidation.NounOption" : "MenuValidation.NounItem");
 
         switch (item.Kind)
         {
             case CustomMenuItemKind.Action:
                 if (!System.Enum.IsDefined(item.Action))
-                    return $"A ação {article} {noun} “{label}” não existe mais.";
+                    return Loc.Format("MenuValidation.ActionMissing", noun, label);
                 break;
 
             case CustomMenuItemKind.Launch:
                 if (string.IsNullOrWhiteSpace(item.Target))
-                    return $"Informe o executável {article} {noun} “{label}”.";
+                    return Loc.Format("MenuValidation.LaunchRequired", noun, label);
                 break;
 
             case CustomMenuItemKind.OpenUrl:
                 if (!UnelevatedLauncher.IsSafeUrl(item.Target))
-                    return $"A URL {article} {noun} “{label}” precisa começar com http:// ou https://.";
+                    return Loc.Format("MenuValidation.UrlInvalid", noun, label);
                 break;
 
             case CustomMenuItemKind.OpenPath:
                 if (string.IsNullOrWhiteSpace(item.Target))
-                    return $"Informe o arquivo ou a pasta {article} {noun} “{label}”.";
+                    return Loc.Format("MenuValidation.PathRequired", noun, label);
                 if (!TrustedPath.TryGetSafeFullPath(item.Target, out _))
-                    return $"O caminho {article} {noun} “{label}” é inválido.";
+                    return Loc.Format("MenuValidation.PathInvalid", noun, label);
                 break;
 
             case CustomMenuItemKind.Hotkey:
                 if (!CustomActionLogic.TryParseHotkey(item.Target, out _, out string? reason))
-                    return $"Atalho {article} {noun} “{label}”: {reason}";
+                    return Loc.Format("MenuValidation.HotkeyInvalid", noun, label, reason);
                 break;
 
             case CustomMenuItemKind.Text:
                 if (string.IsNullOrEmpty(item.Text))
-                    return $"Informe o texto a colar {article} {noun} “{label}”.";
+                    return Loc.Format("MenuValidation.TextRequired", noun, label);
                 if (item.Text.Length > CustomMenuNormalizer.MaxTextLength)
-                    return $"O texto {article} {noun} “{label}” passou de {CustomMenuNormalizer.MaxTextLength} caracteres.";
+                    return Loc.Format("MenuValidation.TextTooLong", noun, label, CustomMenuNormalizer.MaxTextLength);
                 break;
 
             case CustomMenuItemKind.Routine:
                 if (!CustomRoutineLogic.TryBuildPlan(item, out _, out string? routineReason))
-                    return $"A rotina {article} {noun} “{label}” está inválida. {routineReason}";
+                    return Loc.Format("MenuValidation.RoutineInvalid", noun, label, routineReason);
                 break;
         }
 

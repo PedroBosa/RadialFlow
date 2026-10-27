@@ -18,6 +18,7 @@ using System.Windows;
 using System.Windows.Controls;
 using RadialFlow.Config;
 using RadialFlow.Context;
+using RadialFlow.Infrastructure;
 
 namespace RadialFlow.UI;
 
@@ -31,7 +32,7 @@ public sealed class RoutineStepRow
     public string Glyph => Step.Kind == CustomRoutineStepKind.Delay ? "\uE916" : "\uE768";
 
     public string Label => Step.Kind == CustomRoutineStepKind.Delay
-        ? $"Aguardar {Step.DelayMilliseconds} ms"
+        ? Loc.Format("Routine.Wait", Step.DelayMilliseconds)
         : CustomMenuChoices.ActionLabel(Step.Action);
 }
 
@@ -54,8 +55,8 @@ public partial class RoutineEditorWindow : Window
         InitializeComponent();
         Icon = AppIconRenderer.WindowIcon;
 
-        string label = string.IsNullOrWhiteSpace(itemLabel) ? "esta rotina" : itemLabel.Trim();
-        TxtSubtitle.Text = $"“{label}” executa os passos abaixo, nesta ordem.";
+        string label = string.IsNullOrWhiteSpace(itemLabel) ? Loc.Get("Routine.ThisRoutine") : itemLabel.Trim();
+        TxtSubtitle.Text = Loc.Format("Routine.SubtitleFormat", label);
 
         foreach (CustomRoutineStep step in steps ?? Array.Empty<CustomRoutineStep>())
             if (step is not null) _steps.Add(Clone(step));
@@ -120,8 +121,8 @@ public partial class RoutineEditorWindow : Window
         CustomRoutineStep step = row.Step;
         SetPanels(step.Kind);
         TxtStepKind.Text = step.Kind == CustomRoutineStepKind.Delay
-            ? "Pausa entre ações"
-            : "Ação do RadialFlow";
+            ? Loc.Get("Routine.DelayKind")
+            : Loc.Get("Routine.ActionKind");
 
         if (step.Kind == CustomRoutineStepKind.Delay) SelectDelay(step.DelayMilliseconds);
         else SelectAction(step.Action);
@@ -145,8 +146,8 @@ public partial class RoutineEditorWindow : Window
     {
         if (_steps.Count >= CustomRoutineLogic.MaxSteps)
         {
-            Dialogs.Message(this, "Passos da rotina",
-                $"Uma rotina pode ter no máximo {CustomRoutineLogic.MaxSteps} passos.", DialogIcon.Warning);
+            Dialogs.Message(this, Loc.Get("Routine.Title"),
+                Loc.Format("Routine.MaxSteps", CustomRoutineLogic.MaxSteps), DialogIcon.Warning);
             return;
         }
 
@@ -265,8 +266,8 @@ public partial class RoutineEditorWindow : Window
         bool hasAction = _steps.Any(s => s.Kind == CustomRoutineStepKind.Action);
 
         TxtStepCount.Text = _steps.Count == 0
-            ? $"0 de {CustomRoutineLogic.MaxSteps} passos"
-            : $"{_steps.Count} de {CustomRoutineLogic.MaxSteps} passos · {totalDelay} ms de pausa";
+            ? Loc.Get("Menus.RoutineCountZero")
+            : Loc.Format("Routine.CountWithDelayFormat", _steps.Count, CustomRoutineLogic.MaxSteps, totalDelay);
         PnlNoSteps.Visibility = _steps.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
 
         bool hasSelection = _selected is not null;
@@ -280,11 +281,11 @@ public partial class RoutineEditorWindow : Window
         string? warning = null;
         if (_steps.Count > 0 && !hasAction)
         {
-            warning = "Adicione pelo menos uma ação: uma rotina só com pausas não faz nada.";
+            warning = Loc.Get("Routine.WarnNoAction");
         }
         else if (totalDelay > CustomRoutineLogic.MaxTotalDelayMilliseconds)
         {
-            warning = $"As pausas somam {totalDelay} ms; o máximo é {CustomRoutineLogic.MaxTotalDelayMilliseconds} ms.";
+            warning = Loc.Format("Routine.WarnTotalDelay", totalDelay, CustomRoutineLogic.MaxTotalDelayMilliseconds);
         }
         else if (_selected is not null &&
                  !CustomRoutineLogic.TryValidateStep(_selected.Step, out string? stepReason))
@@ -309,7 +310,7 @@ public partial class RoutineEditorWindow : Window
         string? problem = FirstProblem();
         if (problem is not null)
         {
-            Dialogs.Message(this, "Passos da rotina", problem, DialogIcon.Warning);
+            Dialogs.Message(this, Loc.Get("Routine.Title"), problem, DialogIcon.Warning);
             return;
         }
 
@@ -320,17 +321,17 @@ public partial class RoutineEditorWindow : Window
     private string? FirstProblem()
     {
         if (_steps.Count == 0)
-            return "Adicione pelo menos uma ação à rotina.";
+            return Loc.Get("Routine.NeedAction");
         if (_steps.All(s => s.Kind != CustomRoutineStepKind.Action))
-            return "Adicione pelo menos uma ação: uma rotina só com pausas não faz nada.";
+            return Loc.Get("Routine.WarnNoAction");
         if (_steps.Count > CustomRoutineLogic.MaxSteps)
-            return $"Uma rotina pode ter no máximo {CustomRoutineLogic.MaxSteps} passos.";
+            return Loc.Format("Routine.MaxSteps", CustomRoutineLogic.MaxSteps);
 
         int totalDelay = _steps
             .Where(s => s.Kind == CustomRoutineStepKind.Delay)
             .Sum(s => s.DelayMilliseconds);
         if (totalDelay > CustomRoutineLogic.MaxTotalDelayMilliseconds)
-            return $"As pausas somam mais de {CustomRoutineLogic.MaxTotalDelayMilliseconds} ms.";
+            return Loc.Format("Routine.TotalDelayTooHigh", CustomRoutineLogic.MaxTotalDelayMilliseconds);
 
         foreach (CustomRoutineStep step in _steps)
         {

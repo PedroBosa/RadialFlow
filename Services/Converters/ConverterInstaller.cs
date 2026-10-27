@@ -18,6 +18,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
@@ -81,12 +82,11 @@ internal sealed class ConverterInstaller(ConverterInstallerOptions options)
     public static string? CheckCanInstall()
     {
         if (!UnelevatedLauncher.IsElevated())
-            return "Para instalar conversores, o RadialFlow precisa estar aberto como administrador.";
+            return Loc.Get("Converters.CannotInstall.NotAdmin");
 
         string? exe = Environment.ProcessPath;
         if (exe is null || !TrustedPath.IsTrusted(exe))
-            return "Os conversores só podem ser instalados no RadialFlow instalado pelo instalador (em C:\\Program Files). " +
-                   "Esta cópia está numa pasta que outros programas conseguem alterar.";
+            return Loc.Get("Converters.CannotInstall.NotInstalled");
 
         return null;
     }
@@ -123,13 +123,15 @@ internal sealed class ConverterInstaller(ConverterInstallerOptions options)
         {
             ct.ThrowIfCancellationRequested();
             double start = before * 99.0 / total, span = package.SizeBytes * 99.0 / total;
-            var step = new StepProgress(progress, start, span, packages.Count > 1 ? $"{package.Name} ({results.Count + 1} de {packages.Count})" : package.Name);
+            var step = new StepProgress(progress, start, span, packages.Count > 1
+                ? Loc.Format("Converters.Progress.StepFormat", package.Name, results.Count + 1, packages.Count)
+                : package.Name);
 
             try
             {
                 if (IsInstalled(package))
                 {
-                    step.Report(1.0, "já está instalado.");
+                    step.Report(1.0, Loc.Get("Converters.Progress.AlreadyInstalled"));
                 }
                 else
                 {
@@ -162,14 +164,18 @@ internal sealed class ConverterInstaller(ConverterInstallerOptions options)
         var failed = results.Where(r => !r.Succeeded).ToList();
 
         if (failed.Count == 0)
-            return ok.Count == 1 ? $"{ok[0]} pronto para converter." : $"Prontos para converter: {JoinNames(ok)}.";
+            return ok.Count == 1
+                ? Loc.Format("Converters.Summary.OneReady", ok[0])
+                : Loc.Format("Converters.Summary.ManyReady", JoinNames(ok));
 
         string failures = string.Join(" ", failed.Select(f => $"{f.Package.Name}: {f.Error}"));
-        return ok.Count == 0 ? $"Não foi possível instalar. {failures}" : $"Instalados: {JoinNames(ok)}. Falhou: {failures}";
+        return ok.Count == 0
+                ? Loc.Format("Converters.Summary.Failed", failures)
+                : Loc.Format("Converters.Summary.Partial", JoinNames(ok), failures);
     }
 
     private static string JoinNames(List<string> names) =>
-        names.Count <= 1 ? string.Concat(names) : string.Join(", ", names.Take(names.Count - 1)) + " e " + names[^1];
+        names.Count <= 1 ? string.Concat(names) : string.Join(", ", names.Take(names.Count - 1)) + Loc.Get("Common.And") + names[^1];
 
     // ------------------------------------------------------------------
     // Um pacote
@@ -187,10 +193,14 @@ internal sealed class ConverterInstaller(ConverterInstallerOptions options)
             double downloadShare = package.Kind == PackageKind.ZipToAppTools ? 0.9 : 0.7;
             await DownloadVerifiedAsync(package, download,
                 (received, total) => step.Report(received * downloadShare / total,
-                    $"baixando {received / 1048576.0:0} de {total / 1048576.0:0} MB..."), ct).ConfigureAwait(false);
+                    Loc.Format("Converters.Progress.Downloading",
+                        (received / 1048576.0).ToString("0", CultureInfo.CurrentCulture),
+                        (total / 1048576.0).ToString("0", CultureInfo.CurrentCulture))), ct).ConfigureAwait(false);
 
             // Daqui em diante não há cancelamento: interromper um instalador deixaria o programa pela metade.
-            step.Report(downloadShare, package.Kind == PackageKind.ZipToAppTools ? "extraindo..." : "instalando (pode levar alguns minutos)...");
+            step.Report(downloadShare, Loc.Get(package.Kind == PackageKind.ZipToAppTools
+                ? "Converters.Progress.Extracting"
+                : "Converters.Progress.Installing"));
 
             if (package.Kind == PackageKind.ZipToAppTools)
             {
@@ -204,7 +214,7 @@ internal sealed class ConverterInstaller(ConverterInstallerOptions options)
                 {
                     string? kept = KeepFailureLog(package, log);
                     throw new InvalidOperationException(ConverterPackages.DescribeExitCode(package, code) +
-                        (kept is null ? "" : $" Detalhes em {kept}."));
+                        (kept is null ? "" : Loc.Format("Converters.Error.LogDetails", kept)));
                 }
             }
 
@@ -212,9 +222,9 @@ internal sealed class ConverterInstaller(ConverterInstallerOptions options)
             // ToolResolver (30 s) esconderia o executável recém-instalado.
             if (options.IsInstalled is null) ToolResolver.ResetCache();
             if (!IsInstalled(package))
-                throw new InvalidOperationException($"a instalação terminou, mas o {package.ToolExe} não foi encontrado numa pasta protegida.");
+                throw new InvalidOperationException(Loc.Format("Converters.Error.ToolMissing", package.ToolExe));
 
-            step.Report(1.0, "pronto.");
+            step.Report(1.0, Loc.Get("Converters.Progress.Ready"));
         }
         finally
         {
@@ -236,7 +246,7 @@ internal sealed class ConverterInstaller(ConverterInstallerOptions options)
     internal async Task DownloadVerifiedAsync(ConverterPackage package, string destination, Action<long, long>? onProgress, CancellationToken ct)
     {
         if (package.Url.Scheme != Uri.UriSchemeHttps)
-            throw new InvalidOperationException("Só downloads por HTTPS são aceitos.");
+            throw new InvalidOperationException(Loc.Get("Converters.Error.HttpsOnly"));
 
         string partial = destination + ".partial";
         TryDelete(partial);
@@ -258,17 +268,17 @@ internal sealed class ConverterInstaller(ConverterInstallerOptions options)
             }
             catch (HttpRequestException ex)
             {
-                throw new InvalidOperationException("sem conexão com a internet, ou o site do " + package.Name + " não respondeu.", ex);
+                throw new InvalidOperationException(Loc.Format("Converters.Error.NoConnection", package.Name), ex);
             }
             catch (OperationCanceledException) when (!ct.IsCancellationRequested)
             {
-                throw new InvalidOperationException("o site do " + package.Name + " não respondeu a tempo.");
+                throw new InvalidOperationException(Loc.Format("Converters.Error.Timeout", package.Name));
             }
 
             using (response)
             {
                 if (!response.IsSuccessStatusCode)
-                    throw new InvalidOperationException($"o download falhou (o site respondeu {(int)response.StatusCode}).");
+                    throw new InvalidOperationException(Loc.Format("Converters.Error.DownloadFailed", (int)response.StatusCode));
 
                 using var hash = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
                 long limit = package.SizeBytes;
@@ -288,18 +298,18 @@ internal sealed class ConverterInstaller(ConverterInstallerOptions options)
                         }
                         catch (OperationCanceledException) when (!ct.IsCancellationRequested)
                         {
-                            throw new InvalidOperationException("o download parou (a conexão ficou sem resposta).");
+                            throw new InvalidOperationException(Loc.Get("Converters.Error.DownloadStopped"));
                         }
                         catch (IOException ex)
                         {
-                            throw new InvalidOperationException("a conexão caiu durante o download.", ex);
+                            throw new InvalidOperationException(Loc.Get("Converters.Error.ConnectionLost"), ex);
                         }
 
                         if (read == 0) break;
 
                         received += read;
                         if (received > limit)
-                            throw new InvalidDataException("o arquivo baixado é maior que o esperado; a instalação foi interrompida por segurança.");
+                            throw new InvalidDataException(Loc.Get("Converters.Error.TooLarge"));
 
                         hash.AppendData(buffer, 0, read);
                         await file.WriteAsync(buffer.AsMemory(0, read), ct).ConfigureAwait(false);
@@ -308,11 +318,11 @@ internal sealed class ConverterInstaller(ConverterInstallerOptions options)
                 }
 
                 if (received != limit)
-                    throw new InvalidDataException("o download veio incompleto. Tente de novo.");
+                    throw new InvalidDataException(Loc.Get("Converters.Error.Incomplete"));
 
                 string actual = Convert.ToHexStringLower(hash.GetHashAndReset());
                 if (!string.Equals(actual, package.Sha256, StringComparison.OrdinalIgnoreCase))
-                    throw new InvalidDataException("o arquivo baixado não é o original (a impressão digital SHA-256 não confere); nada foi instalado.");
+                    throw new InvalidDataException(Loc.Get("Converters.Error.HashMismatch"));
             }
 
             File.Move(partial, destination, overwrite: true);
@@ -360,7 +370,7 @@ internal sealed class ConverterInstaller(ConverterInstallerOptions options)
             }
 
             if (!File.Exists(Path.Combine(staging, "ffmpeg.exe")))
-                throw new InvalidDataException("o pacote do FFmpeg não tem o ffmpeg.exe.");
+                throw new InvalidDataException(Loc.Get("Converters.Error.ZipMissingExe"));
 
             if (Directory.Exists(targetDirectory)) Directory.Delete(targetDirectory, recursive: true);
             Directory.Move(staging, targetDirectory);
@@ -382,7 +392,7 @@ internal sealed class ConverterInstaller(ConverterInstallerOptions options)
     private static string ResolveMsiexec() =>
         TrustedPath.TryResolveSystemTool("msiexec.exe", out string path)
             ? path
-            : throw new InvalidOperationException("o Windows Installer (msiexec.exe) não foi encontrado.");
+            : throw new InvalidOperationException(Loc.Get("Converters.Error.MsiexecMissing"));
 
     /// <summary>
     /// Executa o instalador COM as permissões do RadialFlow (administrador): instalar em Arquivos de Programas exige.
@@ -393,7 +403,7 @@ internal sealed class ConverterInstaller(ConverterInstallerOptions options)
         var info = new ProcessStartInfo(exe) { UseShellExecute = false, CreateNoWindow = true, WorkingDirectory = Path.GetDirectoryName(exe)! };
         foreach (string arg in args) info.ArgumentList.Add(arg);
 
-        using Process process = Process.Start(info) ?? throw new InvalidOperationException($"não foi possível iniciar {Path.GetFileName(exe)}.");
+        using Process process = Process.Start(info) ?? throw new InvalidOperationException(Loc.Format("Converters.Error.StartFailed", Path.GetFileName(exe)));
         await process.WaitForExitAsync().ConfigureAwait(false);
         return process.ExitCode;
     }

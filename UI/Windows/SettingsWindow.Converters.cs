@@ -9,6 +9,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
@@ -29,7 +30,7 @@ public partial class SettingsWindow
         foreach (ConverterPackage package in ConverterPackages.All)
         {
             var check = new CheckBox { VerticalAlignment = VerticalAlignment.Top, Margin = new Thickness(0, 2, 12, 0), IsEnabled = false };
-            AutomationProperties.SetName(check, $"Instalar o {package.Name}");
+            AutomationProperties.SetName(check, Loc.Format("Converters.InstalledAutomation", package.Name));
             check.Checked += (_, _) => UpdateInstallButton();
             check.Unchecked += (_, _) => UpdateInstallButton();
             _converterChecks[package] = check;
@@ -40,7 +41,7 @@ public partial class SettingsWindow
             text.Children.Add(new TextBlock
             {
                 Style = (Style)FindResource("CardHint"), Margin = new Thickness(0, 4, 0, 0), Tag = package,
-                Text = $"Versão {package.Version} · download de {package.SizeText} · licença {package.License}"
+                Text = Loc.Format("Converters.PackageInfo", package.Version, package.SizeText, package.License)
             });
 
             var row = new DockPanel();
@@ -59,7 +60,7 @@ public partial class SettingsWindow
     {
         BtnInstallConverters.IsEnabled = false;
         BtnRefreshConverters.IsEnabled = false;
-        ConverterStatus.Text = "Verificando o que está instalado...";
+        ConverterStatus.Text = Loc.Get("Converters.Checking");
 
         var installer = ConverterInstaller.CreateDefault();
         Dictionary<ConverterPackage, bool> installed;
@@ -77,7 +78,7 @@ public partial class SettingsWindow
         catch (Exception ex) when (ex is not OutOfMemoryException)
         {
             AppLog.Error("Settings", "Falha ao verificar os conversores.", ex);
-            ConverterStatus.Text = $"Não foi possível verificar os conversores: {ex.Message}";
+            ConverterStatus.Text = Loc.Format("Converters.CheckFailed", ex.Message);
             BtnRefreshConverters.IsEnabled = true;
             return;
         }
@@ -87,16 +88,16 @@ public partial class SettingsWindow
             bool has = installed[package];
             check.IsChecked = has;
             check.IsEnabled = !has && blocked is null && !_installingConverters;
-            check.ToolTip = has ? "Já instalado" : null;
+            check.ToolTip = has ? Loc.Get("Converters.AlreadyInstalled") : null;
             if (check.Parent is DockPanel row && row.Children[1] is StackPanel text && text.Children[0] is TextBlock name)
-                name.Text = has ? $"{package.Name}  ✓ instalado" : package.Name;
+                name.Text = has ? Loc.Format("Converters.InstalledName", package.Name) : package.Name;
         }
 
         bool anyMissing = installed.Values.Any(v => !v);
         ConverterStatus.Text = blocked ?? (anyMissing
-            ? "Marque os programas que quiser e clique em Instalar. Precisa de internet; o LibreOffice é grande e pode levar alguns minutos."
-            : "Todos os conversores estão instalados.");
-        WindowsCodecsStatus.Text = $"Neste computador o Windows lê {imageFormats} formatos de imagem.";
+            ? Loc.Get("Converters.SelectHint")
+            : Loc.Get("Converters.AllInstalled"));
+        WindowsCodecsStatus.Text = Loc.Format("Converters.ImageFormats", imageFormats);
 
         BtnRefreshConverters.IsEnabled = !_installingConverters;
         UpdateInstallButton();
@@ -117,16 +118,16 @@ public partial class SettingsWindow
 
         long bytes = chosen.Sum(p => p.SizeBytes);
         string names = string.Join(", ", chosen.Select(p => p.Name));
-        if (!Dialogs.Confirm(this, "Instalar conversores",
-                $"Instalar {names}? O download tem cerca de {Math.Round(bytes / 1048576.0):0} MB e vem dos sites oficiais. " +
-                "Você pode continuar usando o computador enquanto isso.", "Instalar", "Cancelar"))
+        if (!Dialogs.Confirm(this, Loc.Get("Converters.InstallTitle"),
+                Loc.Format("Converters.InstallConfirm", names, Math.Round(bytes / 1048576.0).ToString("0", CultureInfo.CurrentCulture)),
+                Loc.Get("Common.Install"), Loc.Get("Common.Cancel")))
             return;
 
         _installingConverters = true;
         BtnInstallConverters.IsEnabled = false;
         BtnRefreshConverters.IsEnabled = false;
         foreach (CheckBox check in _converterChecks.Values) check.IsEnabled = false;
-        ConverterStatus.Text = "Instalando... acompanhe na janela de progresso.";
+        ConverterStatus.Text = Loc.Get("Converters.Installing");
         AppLog.Info("Settings", $"Instalação de conversores pedida: {names}.");
 
         ConverterSetup.Run(chosen, succeeded =>

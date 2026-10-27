@@ -63,4 +63,500 @@
   <data name="Settings.AppearanceSubtitle" xml:space="preserve"><value>Cor, estilo da roda e idioma. As alterações valem depois de salvar.</value></data>
   <data name="Settings.AllSaved" xml:space="preserve"><value>Tudo salvo</value></data>
   <data name="Settings.Unsaved" xml:space="preserve"><value>Alterações não salvas: {0}</value></data>
+
+  <!-- Configurações, menus e conversores -->
+  <data name="Common.Label" xml:space="preserve"><value>Rótulo</value></data>
+  <data name="Common.Icon" xml:space="preserve"><value>Ícone</value></data>
+  <data name="Common.DescriptionOptional" xml:space="preserve"><value>Descrição (opcional)</value></data>
+  <data name="Common.ResetDefaults" xml:space="preserve"><value>Restaurar padrões</value></data>
+  <data name="Common.MoveUp" xml:space="preserve"><value>Subir</value></data>
+  <data name="Common.MoveDown" xml:space="preserve"><value>Descer</value></data>
+  <data name="Common.Done" xml:space="preserve"><value>Concluir</value></data>
+  <data name="Common.Install" xml:space="preserve"><value>Instalar</value></data>
+  <data name="Common.And" xml:space="preserve"><value> e </value></data>
+  <data name="Common.MenusCountOne" xml:space="preserve"><value>1 menu</value></data>
+  <data name="Common.MenusCountMany" xml:space="preserve"><value>{0} menus</value></data>
+  <data name="Settings.General.StartupSection" xml:space="preserve"><value>INICIALIZAÇÃO</value></data>
+  <data name="Settings.General.StartWithWindows" xml:space="preserve"><value>Iniciar com o Windows</value></data>
+  <data name="Settings.General.StartWithWindowsHint" xml:space="preserve"><value>O RadialFlow abre sozinho quando você entra no Windows.</value></data>
+  <data name="Settings.General.BlockFullscreen" xml:space="preserve"><value>Pausar em tela cheia exclusiva</value></data>
+  <data name="Settings.General.BlockFullscreenHint" xml:space="preserve"><value>Em jogos e vídeos em tela cheia, o botão direito volta a funcionar normalmente.</value></data>
+  <data name="Settings.General.GestureSection" xml:space="preserve"><value>GESTO</value></data>
+  <data name="Settings.General.Sensitivity" xml:space="preserve"><value>Sensibilidade</value></data>
+  <data name="Settings.General.SensitivityHint" xml:space="preserve"><value>Quanto é preciso arrastar com o botão direito para a roda abrir. Valores menores abrem a roda com menos movimento.</value></data>
+  <data name="Settings.General.SensitivityAutomation" xml:space="preserve"><value>Sensibilidade do gesto, em pixels</value></data>
+  <data name="Settings.General.Dwell" xml:space="preserve"><value>Tempo para abrir opções</value></data>
+  <data name="Settings.General.DwellHint" xml:space="preserve"><value>Quanto tempo o cursor precisa ficar sobre uma fatia com mais opções (como Converter) para elas aparecerem. Um traço na borda da fatia mostra quando vai abrir.</value></data>
+  <data name="Settings.General.DwellAutomation" xml:space="preserve"><value>Tempo para abrir opções, em milissegundos</value></data>
+  <data name="Settings.Appearance.Accent" xml:space="preserve"><value>Cor de destaque</value></data>
+  <data name="Settings.Appearance.AccentHint" xml:space="preserve"><value>Cor da fatia sob o cursor e dos botões. O claro ou escuro segue o tema do Windows.</value></data>
+  <data name="Settings.Appearance.Selected" xml:space="preserve"><value>Selecionada:</value></data>
+  <data name="Settings.Appearance.WheelStyle" xml:space="preserve"><value>Estilo da roda</value></data>
+  <data name="Settings.Appearance.WheelStyleHint" xml:space="preserve"><value>Tamanho e contraste da roda. A cor de destaque continua valendo em todos os estilos.</value></data>
+  <data name="Settings.Appearance.AccentAutomation" xml:space="preserve"><value>Cor de destaque: {0}</value></data>
+  <data name="Settings.Blacklist.Title" xml:space="preserve"><value>Programas ignorados</value></data>
+  <data name="Settings.Blacklist.Subtitle" xml:space="preserve"><value>Nestes programas a roda não abre e o botão direito funciona como sempre. Útil em programas 3D e jogos, que usam o botão direito para mexer a câmera.</value></data>
+  <data name="Settings.Blacklist.Add" xml:space="preserve"><value>Adicionar…</value></data>
+  <data name="Settings.Blacklist.EmptyTitle" xml:space="preserve"><value>Nenhum programa ignorado</value></data>
+  <data name="Settings.Blacklist.EmptyHint" xml:space="preserve"><value>A roda abre normalmente em todos os programas.</value></data>
+  <data name="Settings.Blacklist.AddTitle" xml:space="preserve"><value>Adicionar à blacklist</value></data>
+  <data name="Settings.Blacklist.ProcessPrompt" xml:space="preserve"><value>Nome do processo (ex.: blender, acad, maya)</value></data>
+  <data name="Settings.Blacklist.ProcessRequired" xml:space="preserve"><value>Informe o nome do processo.</value></data>
+  <data name="Settings.Blacklist.ProcessInvalid" xml:space="preserve"><value>Use só o nome do processo, sem pasta nem caracteres especiais.</value></data>
+  <data name="Settings.Blacklist.AlreadyListed" xml:space="preserve"><value>'{0}' já está na lista.</value></data>
+  <data name="Settings.Blacklist.ResetTitle" xml:space="preserve"><value>Restaurar blacklist</value></data>
+  <data name="Settings.Blacklist.ResetPrompt" xml:space="preserve"><value>Restaurar a lista padrão de programas ignorados? A lista atual será substituída.</value></data>
+  <data name="Settings.Favorites.PageTitle" xml:space="preserve"><value>Apps favoritos</value></data>
+  <data name="Settings.Favorites.Subtitle" xml:space="preserve"><value>Atalhos da fatia “Apps favoritos”. Aparecem quando você abre a roda sobre a área de trabalho ou um espaço vazio de uma pasta.</value></data>
+  <data name="Settings.Favorites.Add" xml:space="preserve"><value>Adicionar app…</value></data>
+  <data name="Settings.Favorites.EmptyTitle" xml:space="preserve"><value>Nenhum app favorito</value></data>
+  <data name="Settings.Favorites.EmptyHint" xml:space="preserve"><value>Adicione atalhos para abrir seus programas pela roda.</value></data>
+  <data name="Settings.Favorites.PickExecutable" xml:space="preserve"><value>Selecionar Executável do Aplicativo</value></data>
+  <data name="Settings.Favorites.ExecutableFilter" xml:space="preserve"><value>Executáveis (*.exe)|*.exe|Todos os arquivos (*.*)|*.*</value></data>
+  <data name="Settings.Favorites.ResetTitle" xml:space="preserve"><value>Restaurar apps favoritos</value></data>
+  <data name="Settings.Favorites.ResetPrompt" xml:space="preserve"><value>Restaurar a lista padrão de apps favoritos? A lista atual será substituída.</value></data>
+  <data name="Settings.ClipboardTitle" xml:space="preserve"><value>Área de transferência</value></data>
+  <data name="Settings.ClipboardBusy" xml:space="preserve"><value>A área de transferência está em uso por outro programa. Tente de novo.</value></data>
+  <data name="Settings.SaveFailedTitle" xml:space="preserve"><value>Não foi possível salvar</value></data>
+  <data name="Settings.SaveFailed" xml:space="preserve"><value>Não foi possível salvar as configurações.</value></data>
+  <data name="Settings.DiscardTitle" xml:space="preserve"><value>Descartar alterações?</value></data>
+  <data name="Settings.DiscardPrompt" xml:space="preserve"><value>Configurações não salvas: {0}. Fechar mesmo assim?</value></data>
+  <data name="Settings.Discard" xml:space="preserve"><value>Descartar</value></data>
+  <data name="Settings.ContinueEditing" xml:space="preserve"><value>Continuar editando</value></data>
+  <data name="Menus.PageTitle" xml:space="preserve"><value>Menus personalizados</value></data>
+  <data name="Menus.PageSubtitle" xml:space="preserve"><value>Crie menus que aparecem só nos aplicativos e contextos que você escolher. Cada item vira uma fatia da roda.</value></data>
+  <data name="Menus.ProfilesTitle" xml:space="preserve"><value>Seus menus</value></data>
+  <data name="Menus.ProfilesHint" xml:space="preserve"><value>Aparecem só onde as condições casarem.</value></data>
+  <data name="Menus.ProfilesCountAutomation" xml:space="preserve"><value>Total de menus</value></data>
+  <data name="Menus.NewMenu" xml:space="preserve"><value>Novo menu</value></data>
+  <data name="Menus.NewMenuAutomation" xml:space="preserve"><value>Adicionar menu personalizado</value></data>
+  <data name="Menus.Import" xml:space="preserve"><value>Importar…</value></data>
+  <data name="Menus.ImportToolTip" xml:space="preserve"><value>Adiciona menus de um arquivo .json ao rascunho.</value></data>
+  <data name="Menus.ImportAutomation" xml:space="preserve"><value>Importar menus de um arquivo</value></data>
+  <data name="Menus.Export" xml:space="preserve"><value>Exportar…</value></data>
+  <data name="Menus.ExportToolTip" xml:space="preserve"><value>Salva todos os menus em um arquivo .json.</value></data>
+  <data name="Menus.ExportAutomation" xml:space="preserve"><value>Exportar todos os menus para um arquivo</value></data>
+  <data name="Menus.Duplicate" xml:space="preserve"><value>Duplicar</value></data>
+  <data name="Menus.DuplicateAutomation" xml:space="preserve"><value>Duplicar menu selecionado</value></data>
+  <data name="Menus.RemoveAutomation" xml:space="preserve"><value>Remover menu selecionado</value></data>
+  <data name="Menus.DisabledBadge" xml:space="preserve"><value>DESATIVADO</value></data>
+  <data name="Menus.ProcessFormat" xml:space="preserve"><value>Processo: {0}</value></data>
+  <data name="Menus.AnyApp" xml:space="preserve"><value>Qualquer aplicativo</value></data>
+  <data name="Menus.ConditionsTitle" xml:space="preserve"><value>Condições do menu</value></data>
+  <data name="Menus.ConditionsHint" xml:space="preserve"><value>Todos os campos são opcionais. Preenchidos, precisam casar para o menu aparecer.</value></data>
+  <data name="Menus.NameLabel" xml:space="preserve"><value>Nome do menu</value></data>
+  <data name="Menus.Active" xml:space="preserve"><value>Ativo</value></data>
+  <data name="Menus.ProcessLabel" xml:space="preserve"><value>Processo (sem .exe)</value></data>
+  <data name="Menus.ProcessHint" xml:space="preserve"><value>Vazio = qualquer aplicativo.</value></data>
+  <data name="Menus.TitleContains" xml:space="preserve"><value>Título contém</value></data>
+  <data name="Menus.TitleHint" xml:space="preserve"><value>Vazio = qualquer título.</value></data>
+  <data name="Menus.Priority" xml:space="preserve"><value>Prioridade</value></data>
+  <data name="Menus.PriorityHint" xml:space="preserve"><value>Maior prioridade é considerada primeiro quando a roda não tem espaço para tudo.</value></data>
+  <data name="Menus.PriorityAutomation" xml:space="preserve"><value>Prioridade do menu</value></data>
+  <data name="Menus.ContextsLabel" xml:space="preserve"><value>Contextos (nenhum marcado = todos)</value></data>
+  <data name="Menus.ItemsTitle" xml:space="preserve"><value>Itens do menu</value></data>
+  <data name="Menus.ItemsHint" xml:space="preserve"><value>Cada item vira uma fatia da roda. Até 8 itens por menu.</value></data>
+  <data name="Menus.ItemsCountFormat" xml:space="preserve"><value>{0} de {1}</value></data>
+  <data name="Menus.ItemsCountZero" xml:space="preserve"><value>0 de 8</value></data>
+  <data name="Menus.ItemsCountAutomation" xml:space="preserve"><value>Itens neste menu</value></data>
+  <data name="Menus.AddItemAutomation" xml:space="preserve"><value>Adicionar item ao menu</value></data>
+  <data name="Menus.RemoveItemAutomation" xml:space="preserve"><value>Remover item selecionado</value></data>
+  <data name="Menus.MoveItemUpAutomation" xml:space="preserve"><value>Mover item para cima</value></data>
+  <data name="Menus.MoveItemDownAutomation" xml:space="preserve"><value>Mover item para baixo</value></data>
+  <data name="Menus.SubmenuBadgeFormat" xml:space="preserve"><value>{0} opções</value></data>
+  <data name="Menus.NoItems" xml:space="preserve"><value>Nenhum item</value></data>
+  <data name="Menus.NoItemsHint" xml:space="preserve"><value>Use “Adicionar” para criar o primeiro.</value></data>
+  <data name="Menus.AppearanceSection" xml:space="preserve"><value>APARÊNCIA</value></data>
+  <data name="Menus.ActionSection" xml:space="preserve"><value>AÇÃO</value></data>
+  <data name="Menus.ItemKind" xml:space="preserve"><value>Tipo de item</value></data>
+  <data name="Menus.Executable" xml:space="preserve"><value>Executável</value></data>
+  <data name="Menus.ExecutableHint" xml:space="preserve"><value>Só executáveis em pastas protegidas (System32, Program Files). Sem argumentos.</value></data>
+  <data name="Menus.UrlLabel" xml:space="preserve"><value>Endereço (http ou https)</value></data>
+  <data name="Menus.PathLabel" xml:space="preserve"><value>Arquivo ou pasta</value></data>
+  <data name="Menus.FileButton" xml:space="preserve"><value>Arquivo…</value></data>
+  <data name="Menus.FolderButton" xml:space="preserve"><value>Pasta…</value></data>
+  <data name="Menus.PathHint" xml:space="preserve"><value>Executáveis, scripts e atalhos são recusados aqui; para eles use Executável.</value></data>
+  <data name="Menus.HotkeyLabel" xml:space="preserve"><value>Atalho (ex.: Ctrl+Shift+P)</value></data>
+  <data name="Menus.HotkeyHint" xml:space="preserve"><value>Modificadores Ctrl/Alt/Shift/Win e uma tecla final. O foco precisa estar na janela de origem.</value></data>
+  <data name="Menus.TextLabel" xml:space="preserve"><value>Texto a colar</value></data>
+  <data name="Menus.SubmenuSection" xml:space="preserve"><value>OPÇÕES DO SUBMENU</value></data>
+  <data name="Menus.SubmenuCountFormat" xml:space="preserve"><value>{0} de {1} opções</value></data>
+  <data name="Menus.SubmenuCountZero" xml:space="preserve"><value>0 de 8 opções</value></data>
+  <data name="Menus.NoOptionsYet" xml:space="preserve"><value>Nenhuma opção ainda.</value></data>
+  <data name="Menus.EditOptions" xml:space="preserve"><value>Editar opções…</value></data>
+  <data name="Menus.EditOptionsAutomation" xml:space="preserve"><value>Editar opções do submenu</value></data>
+  <data name="Menus.SubmenuHint" xml:space="preserve"><value>Use entre 2 e 8 opções ativas. Na roda, segure a fatia para abrir o segundo anel.</value></data>
+  <data name="Menus.RoutineSection" xml:space="preserve"><value>PASSOS DA ROTINA</value></data>
+  <data name="Menus.RoutineCountFormat" xml:space="preserve"><value>{0} de {1} passos</value></data>
+  <data name="Menus.RoutineCountZero" xml:space="preserve"><value>0 de 8 passos</value></data>
+  <data name="Menus.NoStepsYet" xml:space="preserve"><value>Nenhum passo ainda.</value></data>
+  <data name="Menus.EditSteps" xml:space="preserve"><value>Editar passos…</value></data>
+  <data name="Menus.EditStepsAutomation" xml:space="preserve"><value>Editar passos da rotina</value></data>
+  <data name="Menus.RoutineHint" xml:space="preserve"><value>Ações nativas do RadialFlow, na ordem definida. Sem shell, argumentos ou URLs.</value></data>
+  <data name="Menus.NoItemSelected" xml:space="preserve"><value>Nenhum item selecionado</value></data>
+  <data name="Menus.NoItemSelectedHint" xml:space="preserve"><value>Selecione um item na lista ou clique em “Adicionar”.</value></data>
+  <data name="Menus.PreviewTitle" xml:space="preserve"><value>Prévia da roda</value></data>
+  <data name="Menus.Legend" xml:space="preserve"><value>LEGENDA</value></data>
+  <data name="Menus.LegendAutomatic" xml:space="preserve"><value>automática</value></data>
+  <data name="Menus.LegendReplaces" xml:space="preserve"><value>substitui</value></data>
+  <data name="Menus.LegendExtra" xml:space="preserve"><value>extra</value></data>
+  <data name="Menus.SubmenuLegendToolTip" xml:space="preserve"><value>A fatia abre um segundo anel ao segurar.</value></data>
+  <data name="Menus.LegendSubmenu" xml:space="preserve"><value>abre submenu</value></data>
+  <data name="Menus.PreviewHint" xml:space="preserve"><value>Fatias em destaque vêm deste menu; as demais são automáticas do contexto. Segure uma fatia com ▾ para abrir o segundo anel. Itens além do limite de 8 ficam de fora da roda.</value></data>
+  <data name="Menus.NoProfileSelected" xml:space="preserve"><value>Nenhum menu selecionado</value></data>
+  <data name="Menus.NoProfileSelectedHint" xml:space="preserve"><value>Crie um menu com “Novo menu” ou selecione um na lista à esquerda. Os itens dele aparecem só nos aplicativos e contextos que você escolher.</value></data>
+  <data name="Menus.EmptyTitle" xml:space="preserve"><value>Crie seu primeiro menu</value></data>
+  <data name="Menus.EmptyHint" xml:space="preserve"><value>Dê um nome, escolha em quais aplicativos e contextos ele aparece e adicione os itens da roda.</value></data>
+  <data name="Menus.CreateFirst" xml:space="preserve"><value>Criar primeiro menu</value></data>
+  <data name="Menus.CreateFirstAutomation" xml:space="preserve"><value>Criar o primeiro menu personalizado</value></data>
+  <data name="Menus.ImportFromFile" xml:space="preserve"><value>Importar de um arquivo…</value></data>
+  <data name="Menus.ImportFromFileAutomation" xml:space="preserve"><value>Importar menus personalizados de um arquivo</value></data>
+  <data name="Menus.EmptyFooterHint" xml:space="preserve"><value>Você pode duplicar, desativar e conferir a prévia antes de salvar.</value></data>
+  <data name="Menus.ContextFileOrFolder" xml:space="preserve"><value>Arquivos e pastas</value></data>
+  <data name="Menus.ContextDesktop" xml:space="preserve"><value>Área de trabalho</value></data>
+  <data name="Menus.ContextTitleBar" xml:space="preserve"><value>Barra de título</value></data>
+  <data name="Menus.ContextTextField" xml:space="preserve"><value>Campos de texto</value></data>
+  <data name="Menus.ContextGeneric" xml:space="preserve"><value>Genérico</value></data>
+  <data name="Menus.ContextAutomation" xml:space="preserve"><value>Contexto: {0}</value></data>
+  <data name="Preview.ContextFileOrFolder" xml:space="preserve"><value>arquivos e pastas</value></data>
+  <data name="Preview.ContextDesktop" xml:space="preserve"><value>área de trabalho</value></data>
+  <data name="Preview.ContextTitleBar" xml:space="preserve"><value>barra de título</value></data>
+  <data name="Preview.ContextTextField" xml:space="preserve"><value>campos de texto</value></data>
+  <data name="Preview.ContextGeneric" xml:space="preserve"><value>genérico</value></data>
+  <data name="Menus.MaxProfiles" xml:space="preserve"><value>Você pode ter no máximo {0} menus personalizados.</value></data>
+  <data name="Menus.CopySuffix" xml:space="preserve"><value>{0} (cópia)</value></data>
+  <data name="Menus.ImportTitle" xml:space="preserve"><value>Importar menus</value></data>
+  <data name="Menus.ImportFailed" xml:space="preserve"><value>Nenhum menu foi adicionado.&#10;&#10;{0}</value></data>
+  <data name="Menus.ImportedTitle" xml:space="preserve"><value>Menus importados</value></data>
+  <data name="Menus.ImportedMessage" xml:space="preserve"><value>{0} e {1} foram adicionados ao rascunho.&#10;&#10;Nada é executado agora. Revise a prévia e clique em Salvar para aplicar; as mesmas regras de segurança valem para os itens importados.</value></data>
+  <data name="Menus.ExportTitle" xml:space="preserve"><value>Exportar menus</value></data>
+  <data name="Menus.ExportFailed" xml:space="preserve"><value>Não foi possível exportar os menus.</value></data>
+  <data name="Menus.ExportedTitle" xml:space="preserve"><value>Menus exportados</value></data>
+  <data name="Menus.ExportedMessage" xml:space="preserve"><value>{0} e {1} foram exportados para:&#10;{2}</value></data>
+  <data name="Menus.ImportDialogTitle" xml:space="preserve"><value>Importar menus personalizados</value></data>
+  <data name="Menus.ImportFilter" xml:space="preserve"><value>Menus do RadialFlow (*.json)|*.json|Todos os arquivos (*.*)|*.*</value></data>
+  <data name="Menus.ExportDialogTitle" xml:space="preserve"><value>Exportar menus personalizados</value></data>
+  <data name="Menus.ExportFilter" xml:space="preserve"><value>Menus do RadialFlow (*.json)|*.json</value></data>
+  <data name="Menus.MaxItems" xml:space="preserve"><value>Cada menu pode ter no máximo {0} itens. Para mais opções, crie outro menu com condições diferentes.</value></data>
+  <data name="Menus.NewItem" xml:space="preserve"><value>Novo item</value></data>
+  <data name="Menus.NoActiveOptions" xml:space="preserve"><value>Nenhuma opção ativa.</value></data>
+  <data name="Menus.SubmenuActiveOne" xml:space="preserve"><value>{0} ativa: {1}. Adicione mais uma para abrir o segundo anel.</value></data>
+  <data name="Menus.SubmenuActiveMany" xml:space="preserve"><value>{0} ativas: {1}.</value></data>
+  <data name="Menus.RoutineCannotSave" xml:space="preserve"><value>A rotina ainda não pode ser salva.</value></data>
+  <data name="Menus.PickExecutable" xml:space="preserve"><value>Selecionar executável</value></data>
+  <data name="Menus.ExecutableFilter" xml:space="preserve"><value>Executáveis (*.exe)|*.exe</value></data>
+  <data name="Menus.PickFile" xml:space="preserve"><value>Selecionar arquivo</value></data>
+  <data name="Menus.AllFilesFilter" xml:space="preserve"><value>Todos os arquivos (*.*)|*.*</value></data>
+  <data name="Menus.PickFolder" xml:space="preserve"><value>Selecionar pasta</value></data>
+  <data name="Menus.NoProfilePreview" xml:space="preserve"><value>Nenhum menu selecionado.</value></data>
+  <data name="Menus.PreviewContext" xml:space="preserve"><value>Prévia no contexto “{0}”</value></data>
+  <data name="Menus.PreviewContextDisabled" xml:space="preserve"><value> (este menu está desativado).</value></data>
+  <data name="Menus.PreviewReplacementsOne" xml:space="preserve"><value>1 substituição</value></data>
+  <data name="Menus.PreviewReplacementsMany" xml:space="preserve"><value>{0} substituições</value></data>
+  <data name="Menus.PreviewExtrasOne" xml:space="preserve"><value>1 extra</value></data>
+  <data name="Menus.PreviewExtrasMany" xml:space="preserve"><value>{0} extras</value></data>
+  <data name="Menus.PreviewSummary" xml:space="preserve"><value>{0} fatias automáticas · {1} · {2}.</value></data>
+  <data name="Menus.WarnSubmenuOne" xml:space="preserve"><value>1 submenu precisa de 2 opções ativas e não aparece.</value></data>
+  <data name="Menus.WarnSubmenus" xml:space="preserve"><value>{0} submenus precisam de 2 opções ativas e não aparecem.</value></data>
+  <data name="Menus.WarnRoutineOne" xml:space="preserve"><value>1 rotina inválida não aparece.</value></data>
+  <data name="Menus.WarnRoutines" xml:space="preserve"><value>{0} rotinas inválidas não aparecem.</value></data>
+  <data name="Menus.WarnDroppedOne" xml:space="preserve"><value>1 item será ignorado (limite de 8 fatias).</value></data>
+  <data name="Menus.WarnDropped" xml:space="preserve"><value>{0} itens serão ignorados (limite de 8 fatias).</value></data>
+  <data name="Menus.ValidateNameRequired" xml:space="preserve"><value>Dê um nome a todos os menus ativos.</value></data>
+  <data name="Menus.ValidateNameTooLong" xml:space="preserve"><value>O nome de um menu passou de {0} caracteres.</value></data>
+  <data name="Menus.ValidateItemLabelRequired" xml:space="preserve"><value>Há um item sem rótulo no menu “{0}”.</value></data>
+  <data name="Menus.ValidateLabelTooLong" xml:space="preserve"><value>O rótulo “{0}” passou de {1} caracteres.</value></data>
+  <data name="Menus.ValidateDescriptionTooLong" xml:space="preserve"><value>A descrição do item “{0}” passou de {1} caracteres.</value></data>
+  <data name="Menus.ValidateSubmenuTooMany" xml:space="preserve"><value>O submenu “{0}” passou de {1} opções.</value></data>
+  <data name="Menus.ValidateSubmenuMinOptions" xml:space="preserve"><value>O submenu “{0}” precisa de pelo menos {1} opções ativas.</value></data>
+  <data name="Menus.CustomGlyph" xml:space="preserve"><value>Personalizado</value></data>
+  <data name="Converters.PageTitle" xml:space="preserve"><value>Conversores</value></data>
+  <data name="Converters.PageSubtitle" xml:space="preserve"><value>Formatos extras para vídeo, áudio e documentos. Os programas são gratuitos, vêm do site oficial de cada um e são conferidos antes de instalar.</value></data>
+  <data name="Converters.AvailableSection" xml:space="preserve"><value>PROGRAMAS DISPONÍVEIS</value></data>
+  <data name="Converters.Installation" xml:space="preserve"><value>Instalação</value></data>
+  <data name="Converters.InstallSelected" xml:space="preserve"><value>Instalar selecionados</value></data>
+  <data name="Converters.InstallSelectedAutomation" xml:space="preserve"><value>Instalar os conversores selecionados</value></data>
+  <data name="Converters.Refresh" xml:space="preserve"><value>Verificar de novo</value></data>
+  <data name="Converters.RefreshAutomation" xml:space="preserve"><value>Verificar de novo quais conversores estão instalados</value></data>
+  <data name="Converters.PhotosTitle" xml:space="preserve"><value>Fotos WebP, HEIC e AVIF</value></data>
+  <data name="Converters.PhotosHint" xml:space="preserve"><value>Essas fotos são lidas pelo próprio Windows, com as extensões gratuitas da Microsoft Store: Extensões de Imagem HEIF, Extensões de Imagem da Web e Extensão de Imagem Bruta (o Windows 11 geralmente já tem).</value></data>
+  <data name="Converters.InstalledAutomation" xml:space="preserve"><value>Instalar o {0}</value></data>
+  <data name="Converters.PackageInfo" xml:space="preserve"><value>Versão {0} · download de {1} · licença {2}</value></data>
+  <data name="Converters.Checking" xml:space="preserve"><value>Verificando o que está instalado...</value></data>
+  <data name="Converters.CheckFailed" xml:space="preserve"><value>Não foi possível verificar os conversores: {0}</value></data>
+  <data name="Converters.AlreadyInstalled" xml:space="preserve"><value>Já instalado</value></data>
+  <data name="Converters.InstalledName" xml:space="preserve"><value>{0}  ✓ instalado</value></data>
+  <data name="Converters.SelectHint" xml:space="preserve"><value>Marque os programas que quiser e clique em Instalar. Precisa de internet; o LibreOffice é grande e pode levar alguns minutos.</value></data>
+  <data name="Converters.AllInstalled" xml:space="preserve"><value>Todos os conversores estão instalados.</value></data>
+  <data name="Converters.ImageFormats" xml:space="preserve"><value>Neste computador o Windows lê {0} formatos de imagem.</value></data>
+  <data name="Converters.InstallTitle" xml:space="preserve"><value>Instalar conversores</value></data>
+  <data name="Converters.InstallConfirm" xml:space="preserve"><value>Instalar {0}? O download tem cerca de {1} MB e vem dos sites oficiais. Você pode continuar usando o computador enquanto isso.</value></data>
+  <data name="Converters.Installing" xml:space="preserve"><value>Instalando... acompanhe na janela de progresso.</value></data>
+  <data name="Converters.Package.FFmpeg.Purpose" xml:space="preserve"><value>Vídeo e áudio: MP4, MKV, WEBM, MP3, M4A, FLAC, GIF animado...</value></data>
+  <data name="Converters.Package.ImageMagick.Purpose" xml:space="preserve"><value>Imagens para WEBP e formatos que o Windows não abre (SVG, PSD...)</value></data>
+  <data name="Converters.Package.Pandoc.Purpose" xml:space="preserve"><value>Markdown e EPUB, e Word para Markdown</value></data>
+  <data name="Converters.Package.LibreOffice.Purpose" xml:space="preserve"><value>Word, Excel e PowerPoint para PDF e outros formatos (instala a suíte completa)</value></data>
+  <data name="Converters.Exit.Busy" xml:space="preserve"><value>outra instalação está em andamento no Windows. Espere ela terminar e tente de novo.</value></data>
+  <data name="Converters.Exit.Cancelled" xml:space="preserve"><value>a instalação foi cancelada.</value></data>
+  <data name="Converters.Exit.MsiError" xml:space="preserve"><value>o instalador do Windows encontrou um erro (código 1603).</value></data>
+  <data name="Converters.Exit.OtherVersion" xml:space="preserve"><value>já existe outra versão instalada que impede esta.</value></data>
+  <data name="Converters.Exit.Generic" xml:space="preserve"><value>o instalador terminou com o código {0}.</value></data>
+  <data name="Converters.CannotInstall.NotAdmin" xml:space="preserve"><value>Para instalar conversores, o RadialFlow precisa estar aberto como administrador.</value></data>
+  <data name="Converters.CannotInstall.NotInstalled" xml:space="preserve"><value>Os conversores só podem ser instalados no RadialFlow instalado pelo instalador (em C:\Program Files). Esta cópia está numa pasta que outros programas conseguem alterar.</value></data>
+  <data name="Converters.Error.HttpsOnly" xml:space="preserve"><value>Só downloads por HTTPS são aceitos.</value></data>
+  <data name="Converters.Error.NoConnection" xml:space="preserve"><value>sem conexão com a internet, ou o site do {0} não respondeu.</value></data>
+  <data name="Converters.Error.Timeout" xml:space="preserve"><value>o site do {0} não respondeu a tempo.</value></data>
+  <data name="Converters.Error.DownloadFailed" xml:space="preserve"><value>o download falhou (o site respondeu {0}).</value></data>
+  <data name="Converters.Error.DownloadStopped" xml:space="preserve"><value>o download parou (a conexão ficou sem resposta).</value></data>
+  <data name="Converters.Error.ConnectionLost" xml:space="preserve"><value>a conexão caiu durante o download.</value></data>
+  <data name="Converters.Error.TooLarge" xml:space="preserve"><value>o arquivo baixado é maior que o esperado; a instalação foi interrompida por segurança.</value></data>
+  <data name="Converters.Error.Incomplete" xml:space="preserve"><value>o download veio incompleto. Tente de novo.</value></data>
+  <data name="Converters.Error.HashMismatch" xml:space="preserve"><value>o arquivo baixado não é o original (a impressão digital SHA-256 não confere); nada foi instalado.</value></data>
+  <data name="Converters.Error.ToolMissing" xml:space="preserve"><value>a instalação terminou, mas o {0} não foi encontrado numa pasta protegida.</value></data>
+  <data name="Converters.Error.ZipMissingExe" xml:space="preserve"><value>o pacote do FFmpeg não tem o ffmpeg.exe.</value></data>
+  <data name="Converters.Error.MsiexecMissing" xml:space="preserve"><value>o Windows Installer (msiexec.exe) não foi encontrado.</value></data>
+  <data name="Converters.Error.StartFailed" xml:space="preserve"><value>não foi possível iniciar {0}.</value></data>
+  <data name="Converters.Error.LogDetails" xml:space="preserve"><value> Detalhes em {0}.</value></data>
+  <data name="Converters.Progress.StepFormat" xml:space="preserve"><value>{0} ({1} de {2})</value></data>
+  <data name="Converters.Progress.AlreadyInstalled" xml:space="preserve"><value>já está instalado.</value></data>
+  <data name="Converters.Progress.Downloading" xml:space="preserve"><value>baixando {0} de {1} MB...</value></data>
+  <data name="Converters.Progress.Extracting" xml:space="preserve"><value>extraindo...</value></data>
+  <data name="Converters.Progress.Installing" xml:space="preserve"><value>instalando (pode levar alguns minutos)...</value></data>
+  <data name="Converters.Progress.Ready" xml:space="preserve"><value>pronto.</value></data>
+  <data name="Converters.Summary.OneReady" xml:space="preserve"><value>{0} pronto para converter.</value></data>
+  <data name="Converters.Summary.ManyReady" xml:space="preserve"><value>Prontos para converter: {0}.</value></data>
+  <data name="Converters.Summary.Failed" xml:space="preserve"><value>Não foi possível instalar. {0}</value></data>
+  <data name="Converters.Summary.Partial" xml:space="preserve"><value>Instalados: {0}. Falhou: {1}</value></data>
+  <data name="About.Subtitle" xml:space="preserve"><value>Como usar o RadialFlow e informações de diagnóstico.</value></data>
+  <data name="About.VersionFormat" xml:space="preserve"><value>Versão {0} · Menu radial contextual para Windows</value></data>
+  <data name="About.Diagnostics" xml:space="preserve"><value>Diagnóstico</value></data>
+  <data name="About.DiagnosticsHint" xml:space="preserve"><value>Se algo não funcionar, o registro mostra o que aconteceu. Ele não cresce sem limite: os arquivos antigos são apagados sozinhos.</value></data>
+  <data name="About.OpenLogs" xml:space="preserve"><value>Abrir pasta de logs</value></data>
+  <data name="About.OpenLogsAutomation" xml:space="preserve"><value>Abrir a pasta dos logs no Explorer</value></data>
+  <data name="About.CopyPath" xml:space="preserve"><value>Copiar caminho</value></data>
+  <data name="About.CopyPathAutomation" xml:space="preserve"><value>Copiar o caminho do arquivo de log</value></data>
+  <data name="About.HowToUse" xml:space="preserve"><value>Como usar</value></data>
+  <data name="About.HowToUse1" xml:space="preserve"><value>•  Segure e arraste com o botão direito para abrir a roda.</value></data>
+  <data name="About.HowToUse2" xml:space="preserve"><value>•  Solte sobre uma fatia para executá-la.</value></data>
+  <data name="About.HowToUse3" xml:space="preserve"><value>•  Fatias com seta ⌄ têm submenu: segure o cursor sobre elas.</value></data>
+  <data name="About.HowToUse4" xml:space="preserve"><value>•  Solte no centro do anel para cancelar.</value></data>
+  <data name="About.HowToUse5" xml:space="preserve"><value>•  Um clique direito simples, sem arrastar, abre o menu normal do Windows.</value></data>
+  <data name="About.ContextSlices" xml:space="preserve"><value>Fatias por contexto</value></data>
+  <data name="About.ContextSlices1" xml:space="preserve"><value>•  Arquivos e pastas: Comprimir, Converter, Copiar caminho, Mover, Enviar e Renomear.</value></data>
+  <data name="About.ContextSlices2" xml:space="preserve"><value>•  Barra de título: Maximizar, Snap, Transparência, Sempre no topo, Minimizar e Fechar.</value></data>
+  <data name="About.ContextSlices3" xml:space="preserve"><value>•  Campos de texto: Colar, Traduzir, Pesquisar, Formatar e Limpar.</value></data>
+  <data name="About.ContextSlices4" xml:space="preserve"><value>•  Área de trabalho: Apps favoritos, Ajustes rápidos, Área de transferência e Bloquear.</value></data>
+  <data name="Choices.Action.Convert" xml:space="preserve"><value>Converter</value></data>
+  <data name="Choices.Action.Compress" xml:space="preserve"><value>Comprimir</value></data>
+  <data name="Choices.Action.CopyPath" xml:space="preserve"><value>Copiar caminho</value></data>
+  <data name="Choices.Action.MoveTo" xml:space="preserve"><value>Mover para</value></data>
+  <data name="Choices.Action.SendTo" xml:space="preserve"><value>Enviar para</value></data>
+  <data name="Choices.Action.Rename" xml:space="preserve"><value>Renomear</value></data>
+  <data name="Choices.Action.FavoriteApps" xml:space="preserve"><value>Apps favoritos</value></data>
+  <data name="Choices.Action.SystemControls" xml:space="preserve"><value>Ajustes rápidos</value></data>
+  <data name="Choices.Action.ClipboardHistory" xml:space="preserve"><value>Área de transferência</value></data>
+  <data name="Choices.Action.LockScreen" xml:space="preserve"><value>Bloquear</value></data>
+  <data name="Choices.Action.SnapLeft" xml:space="preserve"><value>Snap à esquerda</value></data>
+  <data name="Choices.Action.SnapRight" xml:space="preserve"><value>Snap à direita</value></data>
+  <data name="Choices.Action.Maximize" xml:space="preserve"><value>Maximizar</value></data>
+  <data name="Choices.Action.Minimize" xml:space="preserve"><value>Minimizar</value></data>
+  <data name="Choices.Action.Close" xml:space="preserve"><value>Fechar</value></data>
+  <data name="Choices.Action.AlwaysOnTop" xml:space="preserve"><value>Sempre no topo</value></data>
+  <data name="Choices.Action.Transparency" xml:space="preserve"><value>Transparência</value></data>
+  <data name="Choices.Action.Paste" xml:space="preserve"><value>Colar</value></data>
+  <data name="Choices.Action.Translate" xml:space="preserve"><value>Traduzir</value></data>
+  <data name="Choices.Action.Clear" xml:space="preserve"><value>Limpar</value></data>
+  <data name="Choices.Action.SearchWeb" xml:space="preserve"><value>Pesquisar na web</value></data>
+  <data name="Choices.Action.Format" xml:space="preserve"><value>Formatar (negrito)</value></data>
+  <data name="Choices.Kind.Action" xml:space="preserve"><value>Ação do RadialFlow</value></data>
+  <data name="Choices.Kind.Launch" xml:space="preserve"><value>Abrir executável</value></data>
+  <data name="Choices.Kind.OpenUrl" xml:space="preserve"><value>Abrir site (URL)</value></data>
+  <data name="Choices.Kind.OpenPath" xml:space="preserve"><value>Abrir arquivo ou pasta</value></data>
+  <data name="Choices.Kind.Hotkey" xml:space="preserve"><value>Enviar atalho</value></data>
+  <data name="Choices.Kind.Text" xml:space="preserve"><value>Colar texto</value></data>
+  <data name="Choices.Kind.Submenu" xml:space="preserve"><value>Submenu (segundo anel)</value></data>
+  <data name="Choices.Kind.Routine" xml:space="preserve"><value>Rotina de ações</value></data>
+  <data name="Glyph.Apps" xml:space="preserve"><value>Aplicativos</value></data>
+  <data name="Glyph.Edit" xml:space="preserve"><value>Editar</value></data>
+  <data name="Glyph.Document" xml:space="preserve"><value>Documento</value></data>
+  <data name="Glyph.Image" xml:space="preserve"><value>Imagem</value></data>
+  <data name="Glyph.Video" xml:space="preserve"><value>Vídeo</value></data>
+  <data name="Glyph.Audio" xml:space="preserve"><value>Áudio</value></data>
+  <data name="Glyph.ZipFile" xml:space="preserve"><value>Arquivo zip</value></data>
+  <data name="Glyph.Convert" xml:space="preserve"><value>Converter</value></data>
+  <data name="Glyph.Rename" xml:space="preserve"><value>Renomear</value></data>
+  <data name="Glyph.Move" xml:space="preserve"><value>Mover</value></data>
+  <data name="Glyph.Send" xml:space="preserve"><value>Enviar</value></data>
+  <data name="Glyph.Copy" xml:space="preserve"><value>Copiar</value></data>
+  <data name="Glyph.Folder" xml:space="preserve"><value>Pasta</value></data>
+  <data name="Glyph.Translate" xml:space="preserve"><value>Traduzir</value></data>
+  <data name="Glyph.Search" xml:space="preserve"><value>Pesquisar</value></data>
+  <data name="Glyph.Paste" xml:space="preserve"><value>Colar</value></data>
+  <data name="Glyph.Lock" xml:space="preserve"><value>Bloquear</value></data>
+  <data name="Glyph.Settings" xml:space="preserve"><value>Ajustes</value></data>
+  <data name="Glyph.Close" xml:space="preserve"><value>Fechar</value></data>
+  <data name="Glyph.Maximize" xml:space="preserve"><value>Maximizar</value></data>
+  <data name="Glyph.Minimize" xml:space="preserve"><value>Minimizar</value></data>
+  <data name="Glyph.Pin" xml:space="preserve"><value>Fixar</value></data>
+  <data name="Glyph.Transparency" xml:space="preserve"><value>Transparência</value></data>
+  <data name="Glyph.Bold" xml:space="preserve"><value>Negrito</value></data>
+  <data name="Glyph.Clear" xml:space="preserve"><value>Limpar</value></data>
+  <data name="Glyph.Calculator" xml:space="preserve"><value>Calculadora</value></data>
+  <data name="Glyph.Terminal" xml:space="preserve"><value>Terminal</value></data>
+  <data name="Glyph.Home" xml:space="preserve"><value>Início</value></data>
+  <data name="Glyph.NewFolder" xml:space="preserve"><value>Nova pasta</value></data>
+  <data name="Glyph.Page" xml:space="preserve"><value>Página</value></data>
+  <data name="Glyph.OpenFile" xml:space="preserve"><value>Abrir arquivo</value></data>
+  <data name="Glyph.Save" xml:space="preserve"><value>Salvar</value></data>
+  <data name="Glyph.Print" xml:space="preserve"><value>Imprimir</value></data>
+  <data name="Glyph.Delete" xml:space="preserve"><value>Excluir</value></data>
+  <data name="Glyph.Cut" xml:space="preserve"><value>Recortar</value></data>
+  <data name="Glyph.Refresh" xml:space="preserve"><value>Atualizar</value></data>
+  <data name="Glyph.Download" xml:space="preserve"><value>Baixar</value></data>
+  <data name="Glyph.Play" xml:space="preserve"><value>Reproduzir</value></data>
+  <data name="Glyph.Pause" xml:space="preserve"><value>Pausar</value></data>
+  <data name="Glyph.Stop" xml:space="preserve"><value>Parar</value></data>
+  <data name="Glyph.Warning" xml:space="preserve"><value>Aviso</value></data>
+  <data name="Glyph.Info" xml:space="preserve"><value>Informações</value></data>
+  <data name="Glyph.Done" xml:space="preserve"><value>Concluído</value></data>
+  <data name="Glyph.Unlock" xml:space="preserve"><value>Desbloquear</value></data>
+  <data name="Glyph.SelectAll" xml:space="preserve"><value>Selecionar tudo</value></data>
+  <data name="Glyph.Calendar" xml:space="preserve"><value>Calendário</value></data>
+  <data name="Glyph.Preview" xml:space="preserve"><value>Visualizar</value></data>
+  <data name="Submenu.WindowTitle" xml:space="preserve"><value>RadialFlow — Opções do submenu</value></data>
+  <data name="Submenu.Title" xml:space="preserve"><value>Opções do submenu</value></data>
+  <data name="Submenu.Subtitle" xml:space="preserve"><value>O segundo anel deste item terá estas opções.</value></data>
+  <data name="Submenu.SubtitleFormat" xml:space="preserve"><value>“{0}” abre um segundo anel com estas opções.</value></data>
+  <data name="Submenu.ThisItem" xml:space="preserve"><value>este item</value></data>
+  <data name="Submenu.OptionsTitle" xml:space="preserve"><value>Opções do segundo anel</value></data>
+  <data name="Submenu.AddAutomation" xml:space="preserve"><value>Adicionar opção</value></data>
+  <data name="Submenu.RemoveAutomation" xml:space="preserve"><value>Remover opção selecionada</value></data>
+  <data name="Submenu.MoveUpAutomation" xml:space="preserve"><value>Mover opção para cima</value></data>
+  <data name="Submenu.MoveDownAutomation" xml:space="preserve"><value>Mover opção para baixo</value></data>
+  <data name="Submenu.OrderHint" xml:space="preserve"><value>A ordem aqui é a ordem no segundo anel.</value></data>
+  <data name="Submenu.EmptyTitle" xml:space="preserve"><value>Nenhuma opção</value></data>
+  <data name="Submenu.EmptyHint" xml:space="preserve"><value>Use “Adicionar” para criar a primeira.</value></data>
+  <data name="Submenu.Active" xml:space="preserve"><value>Opção ativa</value></data>
+  <data name="Submenu.KindLabel" xml:space="preserve"><value>Tipo de opção</value></data>
+  <data name="Submenu.HotkeyHint" xml:space="preserve"><value>Modificadores Ctrl/Alt/Shift/Win e uma tecla final.</value></data>
+  <data name="Submenu.NoSelection" xml:space="preserve"><value>Nenhuma opção selecionada</value></data>
+  <data name="Submenu.NoSelectionHint" xml:space="preserve"><value>Selecione uma opção na lista ou clique em “Adicionar”.</value></data>
+  <data name="Submenu.WarnNoneActive" xml:space="preserve"><value>Nenhuma opção ativa: ative pelo menos 2 para o segundo anel aparecer.</value></data>
+  <data name="Submenu.WarnOneActive" xml:space="preserve"><value>Falta 1 opção ativa: o segundo anel só abre com 2 ou mais.</value></data>
+  <data name="Submenu.MinActive" xml:space="preserve"><value>Ative pelo menos {0} opções: o segundo anel só abre com duas ou mais.</value></data>
+  <data name="Submenu.MaxOptions" xml:space="preserve"><value>Cada submenu pode ter no máximo {0} opções.</value></data>
+  <data name="Submenu.NewOption" xml:space="preserve"><value>Nova opção</value></data>
+  <data name="Routine.WindowTitle" xml:space="preserve"><value>RadialFlow — Passos da rotina</value></data>
+  <data name="Routine.Title" xml:space="preserve"><value>Passos da rotina</value></data>
+  <data name="Routine.Subtitle" xml:space="preserve"><value>A rotina executa estes passos, nesta ordem.</value></data>
+  <data name="Routine.SubtitleFormat" xml:space="preserve"><value>“{0}” executa os passos abaixo, nesta ordem.</value></data>
+  <data name="Routine.ThisRoutine" xml:space="preserve"><value>esta rotina</value></data>
+  <data name="Routine.Sequence" xml:space="preserve"><value>Sequência</value></data>
+  <data name="Routine.AddAction" xml:space="preserve"><value>Adicionar ação</value></data>
+  <data name="Routine.AddDelay" xml:space="preserve"><value>Adicionar pausa</value></data>
+  <data name="Routine.MoveUpAutomation" xml:space="preserve"><value>Mover passo para cima</value></data>
+  <data name="Routine.MoveDownAutomation" xml:space="preserve"><value>Mover passo para baixo</value></data>
+  <data name="Routine.RemoveAutomation" xml:space="preserve"><value>Remover passo selecionado</value></data>
+  <data name="Routine.OrderHint" xml:space="preserve"><value>A ordem aqui é a ordem de execução.</value></data>
+  <data name="Routine.EmptyTitle" xml:space="preserve"><value>Nenhum passo</value></data>
+  <data name="Routine.EmptyHint" xml:space="preserve"><value>Use “Adicionar ação” para começar.</value></data>
+  <data name="Routine.StepSection" xml:space="preserve"><value>PASSO</value></data>
+  <data name="Routine.DelayKind" xml:space="preserve"><value>Pausa entre ações</value></data>
+  <data name="Routine.ActionKind" xml:space="preserve"><value>Ação do RadialFlow</value></data>
+  <data name="Routine.StepHint" xml:space="preserve"><value>Cada passo roda em sequência; um passo que o contexto não permite interrompe a rotina.</value></data>
+  <data name="Routine.NativeAction" xml:space="preserve"><value>Ação nativa</value></data>
+  <data name="Routine.ActionHint" xml:space="preserve"><value>Só ações do RadialFlow. Sem shell, argumentos, URLs ou texto.</value></data>
+  <data name="Routine.FocusHint" xml:space="preserve"><value>Pesquisar, Traduzir e Área de transferência abrem outra janela: use-as apenas no último passo.</value></data>
+  <data name="Routine.Delay" xml:space="preserve"><value>Pausa</value></data>
+  <data name="Routine.DelayHint" xml:space="preserve"><value>De 50 a 2000 ms por pausa; no total, até 5000 ms.</value></data>
+  <data name="Routine.NoSelection" xml:space="preserve"><value>Nenhum passo selecionado</value></data>
+  <data name="Routine.NoSelectionHint" xml:space="preserve"><value>Selecione um passo na lista ou adicione uma ação.</value></data>
+  <data name="Routine.Wait" xml:space="preserve"><value>Aguardar {0} ms</value></data>
+  <data name="Routine.CountWithDelayFormat" xml:space="preserve"><value>{0} de {1} passos · {2} ms de pausa</value></data>
+  <data name="Routine.WarnNoAction" xml:space="preserve"><value>Adicione pelo menos uma ação: uma rotina só com pausas não faz nada.</value></data>
+  <data name="Routine.WarnTotalDelay" xml:space="preserve"><value>As pausas somam {0} ms; o máximo é {1} ms.</value></data>
+  <data name="Routine.MaxSteps" xml:space="preserve"><value>Uma rotina pode ter no máximo {0} passos.</value></data>
+  <data name="Routine.NeedAction" xml:space="preserve"><value>Adicione pelo menos uma ação à rotina.</value></data>
+  <data name="Routine.TotalDelayTooHigh" xml:space="preserve"><value>As pausas somam mais de {0} ms.</value></data>
+  <data name="MenuValidation.NounItem" xml:space="preserve"><value>do item</value></data>
+  <data name="MenuValidation.NounOption" xml:space="preserve"><value>da opção</value></data>
+  <data name="MenuValidation.OptionMissingLabel" xml:space="preserve"><value>Há uma opção sem rótulo no submenu “{0}”.</value></data>
+  <data name="MenuValidation.OptionLabelTooLong" xml:space="preserve"><value>A opção “{0}” do submenu “{1}” passou de {2} caracteres.</value></data>
+  <data name="MenuValidation.OptionDescriptionTooLong" xml:space="preserve"><value>A descrição da opção “{0}” passou de {1} caracteres.</value></data>
+  <data name="MenuValidation.NestedSubmenu" xml:space="preserve"><value>O submenu “{0}” não pode ter outro submenu dentro.</value></data>
+  <data name="MenuValidation.RoutineInside" xml:space="preserve"><value>O submenu “{0}” não pode ter uma rotina: rotinas ficam no primeiro anel.</value></data>
+  <data name="MenuValidation.ActionMissing" xml:space="preserve"><value>A ação {0} “{1}” não existe mais.</value></data>
+  <data name="MenuValidation.LaunchRequired" xml:space="preserve"><value>Informe o executável {0} “{1}”.</value></data>
+  <data name="MenuValidation.UrlInvalid" xml:space="preserve"><value>A URL {0} “{1}” precisa começar com http:// ou https://.</value></data>
+  <data name="MenuValidation.PathRequired" xml:space="preserve"><value>Informe o arquivo ou a pasta {0} “{1}”.</value></data>
+  <data name="MenuValidation.PathInvalid" xml:space="preserve"><value>O caminho {0} “{1}” é inválido.</value></data>
+  <data name="MenuValidation.HotkeyInvalid" xml:space="preserve"><value>Atalho {0} “{1}”: {2}</value></data>
+  <data name="MenuValidation.TextRequired" xml:space="preserve"><value>Informe o texto a colar {0} “{1}”.</value></data>
+  <data name="MenuValidation.TextTooLong" xml:space="preserve"><value>O texto {0} “{1}” passou de {2} caracteres.</value></data>
+  <data name="MenuValidation.RoutineInvalid" xml:space="preserve"><value>A rotina {0} “{1}” está inválida. {2}</value></data>
+  <data name="Transfer.NoFile" xml:space="preserve"><value>Nenhum arquivo foi escolhido.</value></data>
+  <data name="Transfer.FileEmpty" xml:space="preserve"><value>O arquivo está vazio.</value></data>
+  <data name="Transfer.InvalidJson" xml:space="preserve"><value>O JSON do arquivo está inválido. {0}</value></data>
+  <data name="Transfer.NotRadialFlow" xml:space="preserve"><value>O arquivo não é um menu do RadialFlow.</value></data>
+  <data name="Transfer.MissingVersion" xml:space="preserve"><value>O arquivo não informa a versão dos menus.</value></data>
+  <data name="Transfer.IncompatibleVersion" xml:space="preserve"><value>A versão {0} do arquivo não é compatível com esta versão do RadialFlow.</value></data>
+  <data name="Transfer.NoMenus" xml:space="preserve"><value>O arquivo não tem menus.</value></data>
+  <data name="Transfer.TooManyMenus" xml:space="preserve"><value>O arquivo passa de {0} menus.</value></data>
+  <data name="Transfer.NoRoomForMenus" xml:space="preserve"><value>Não há espaço para {0} menu(s): o limite é {1} e você já tem {2}.</value></data>
+  <data name="Transfer.NoMenusToExport" xml:space="preserve"><value>Não há menus para exportar.</value></data>
+  <data name="Transfer.EmptyMenuToExport" xml:space="preserve"><value>Há um menu vazio para exportar.</value></data>
+  <data name="Transfer.ExportLimit" xml:space="preserve"><value>O limite é {0} menus.</value></data>
+  <data name="Transfer.GenerateFailed" xml:space="preserve"><value>Não foi possível gerar o arquivo. {0}</value></data>
+  <data name="Transfer.WriteFailed" xml:space="preserve"><value>Não foi possível gravar o arquivo: {0}</value></data>
+  <data name="Transfer.ReadFailed" xml:space="preserve"><value>Não foi possível ler o arquivo: {0}</value></data>
+  <data name="Transfer.TooBig" xml:space="preserve"><value>O arquivo passa de {0} MB.</value></data>
+  <data name="Transfer.EmptyMenu" xml:space="preserve"><value>Há um menu vazio.</value></data>
+  <data name="Transfer.EmptyMenuItem" xml:space="preserve"><value>Há um item de menu vazio.</value></data>
+  <data name="Transfer.EmptyRoutineStep" xml:space="preserve"><value>Há um passo de rotina vazio.</value></data>
+  <data name="Transfer.WhereMenu" xml:space="preserve"><value>Menu {0} (“{1}”)</value></data>
+  <data name="Transfer.WhereItem" xml:space="preserve"><value>{0}, item {1} (“{2}”)</value></data>
+  <data name="Transfer.NameTooLong" xml:space="preserve"><value>{0}: o nome passa de {1} caracteres.</value></data>
+  <data name="Transfer.TitleTooLong" xml:space="preserve"><value>{0}: o título contém passa de {1} caracteres.</value></data>
+  <data name="Transfer.PriorityOutOfRange" xml:space="preserve"><value>{0}: a prioridade precisa ficar entre {1} e {2}.</value></data>
+  <data name="Transfer.ContextUnknown" xml:space="preserve"><value>{0}: o contexto {1} não existe.</value></data>
+  <data name="Transfer.TooManyItems" xml:space="preserve"><value>{0}: passa de {1} itens.</value></data>
+  <data name="Transfer.ItemLabelEmpty" xml:space="preserve"><value>{0}: o rótulo está vazio.</value></data>
+  <data name="Transfer.ItemLabelTooLong" xml:space="preserve"><value>{0}: o rótulo passa de {1} caracteres.</value></data>
+  <data name="Transfer.ItemDescriptionTooLong" xml:space="preserve"><value>{0}: a descrição passa de {1} caracteres.</value></data>
+  <data name="Transfer.ItemTargetTooLong" xml:space="preserve"><value>{0}: o alvo passa de {1} caracteres.</value></data>
+  <data name="Transfer.ItemTextTooLong" xml:space="preserve"><value>{0}: o texto passa de {1} caracteres.</value></data>
+  <data name="Transfer.ItemKindUnknown" xml:space="preserve"><value>{0}: o tipo {1} não existe.</value></data>
+  <data name="Transfer.ItemActionUnknown" xml:space="preserve"><value>{0}: a ação {1} não existe.</value></data>
+  <data name="Transfer.NestedSubmenu" xml:space="preserve"><value>{0}: um submenu não pode ficar dentro de outro submenu.</value></data>
+  <data name="Transfer.TooManyOptions" xml:space="preserve"><value>{0}: passa de {1} opções.</value></data>
+  <data name="Transfer.AdvancedInsideSubmenu" xml:space="preserve"><value>{0}, opção {1}: submenu e rotina ficam no primeiro anel.</value></data>
+  <data name="Transfer.RoutineInsideSubmenu" xml:space="preserve"><value>{0}: uma rotina não pode ficar dentro de um submenu.</value></data>
+  <data name="Transfer.RoutineInvalid" xml:space="preserve"><value>{0}: {1}</value></data>
+  <data name="Transfer.UnnamedLabel" xml:space="preserve"><value>sem rótulo</value></data>
+  <data name="Transfer.ImportedSuffix" xml:space="preserve"><value> (importado)</value></data>
+  <data name="Transfer.ImportedSuffixNumbered" xml:space="preserve"><value> (importado {0})</value></data>
+  <data name="Transfer.ImportedRandomSuffix" xml:space="preserve"><value> (importado {0})</value></data>
+  <data name="RoutineLogic.FocusNotLast" xml:space="preserve"><value>A ação '{0}' abre outra janela e só pode ser o último passo.</value></data>
+  <data name="RoutineLogic.ItemEmpty" xml:space="preserve"><value>O item está vazio.</value></data>
+  <data name="RoutineLogic.NotRoutine" xml:space="preserve"><value>O item não é uma rotina.</value></data>
+  <data name="RoutineLogic.VersionUnsupported" xml:space="preserve"><value>A versão de rotina {0} não é suportada.</value></data>
+  <data name="RoutineLogic.NoSteps" xml:space="preserve"><value>A rotina não tem passos.</value></data>
+  <data name="RoutineLogic.TooManySteps" xml:space="preserve"><value>A rotina passa de {0} passos.</value></data>
+  <data name="RoutineLogic.StepPrefix" xml:space="preserve"><value>Passo {0}: {1}</value></data>
+  <data name="RoutineLogic.NeedAction" xml:space="preserve"><value>A rotina precisa de pelo menos uma ação.</value></data>
+  <data name="RoutineLogic.TotalDelay" xml:space="preserve"><value>As pausas somam mais de {0} ms.</value></data>
+  <data name="RoutineLogic.EmptyStep" xml:space="preserve"><value>O passo está vazio.</value></data>
+  <data name="RoutineLogic.UnknownAction" xml:space="preserve"><value>A ação desconhecida ({0}) não existe.</value></data>
+  <data name="RoutineLogic.ActionNotAllowed" xml:space="preserve"><value>A ação '{0}' não é permitida em rotinas.</value></data>
+  <data name="RoutineLogic.DelayTooShort" xml:space="preserve"><value>A pausa precisa ter pelo menos {0} ms.</value></data>
+  <data name="RoutineLogic.DelayTooLong" xml:space="preserve"><value>A pausa passa de {0} ms.</value></data>
+  <data name="RoutineLogic.UnknownStepKind" xml:space="preserve"><value>O tipo de passo ({0}) é inválido.</value></data>
+  <data name="Transfer.WhereOption" xml:space="preserve"><value>{0}, opção {1} (“{2}”)</value></data>
+  <data name="Menus.ItemActive" xml:space="preserve"><value>Item ativo</value></data>
+  <data name="Menus.PreviewEmptyRings" xml:space="preserve"><value>Sem itens</value></data>
+  <data name="Menus.PreviewHub" xml:space="preserve"><value>prévia</value></data>
+  <data name="Menus.PreviewSampleApp" xml:space="preserve"><value>App de exemplo</value></data>
+  <data name="Menus.PreviewSampleAppOther" xml:space="preserve"><value>Outro app</value></data>
+  <data name="Menus.PreviewSampleConversionLabel" xml:space="preserve"><value>{0} — prévia</value></data>
+  <data name="Menus.PreviewSampleConversionGroup" xml:space="preserve"><value>Prévia</value></data>
 </root>

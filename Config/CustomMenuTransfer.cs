@@ -21,6 +21,7 @@ using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using RadialFlow.Context;
+using RadialFlow.Infrastructure;
 
 namespace RadialFlow.Config;
 
@@ -70,7 +71,7 @@ internal static class CustomMenuTransfer
 
         if (string.IsNullOrWhiteSpace(path))
         {
-            reason = "Nenhum arquivo foi escolhido.";
+            reason = Loc.Get("Transfer.NoFile");
             return false;
         }
 
@@ -89,7 +90,7 @@ internal static class CustomMenuTransfer
 
         if (string.IsNullOrWhiteSpace(json))
         {
-            reason = "O arquivo está vazio.";
+            reason = Loc.Get("Transfer.FileEmpty");
             return false;
         }
 
@@ -100,42 +101,42 @@ internal static class CustomMenuTransfer
         }
         catch (Exception ex) when (ex is JsonException or NotSupportedException)
         {
-            reason = $"O JSON do arquivo está inválido. {ex.Message}";
+            reason = Loc.Format("Transfer.InvalidJson", ex.Message);
             return false;
         }
 
         if (bundle is null ||
             !string.Equals(bundle.Format, CustomMenuBundle.FormatName, StringComparison.Ordinal))
         {
-            reason = "O arquivo não é um menu do RadialFlow.";
+            reason = Loc.Get("Transfer.NotRadialFlow");
             return false;
         }
 
         if (bundle.Version != CustomMenuBundle.CurrentVersion)
         {
             reason = bundle.Version is null
-                ? "O arquivo não informa a versão dos menus."
-                : $"A versão {bundle.Version} do arquivo não é compatível com esta versão do RadialFlow.";
+                ? Loc.Get("Transfer.MissingVersion")
+                : Loc.Format("Transfer.IncompatibleVersion", bundle.Version);
             return false;
         }
 
         if (bundle.Profiles is null || bundle.Profiles.Count == 0)
         {
-            reason = "O arquivo não tem menus.";
+            reason = Loc.Get("Transfer.NoMenus");
             return false;
         }
 
         if (bundle.Profiles.Count > CustomMenuNormalizer.MaxProfiles)
         {
-            reason = $"O arquivo passa de {CustomMenuNormalizer.MaxProfiles} menus.";
+            reason = Loc.Format("Transfer.TooManyMenus", CustomMenuNormalizer.MaxProfiles);
             return false;
         }
 
         existingProfileCount = Math.Max(0, existingProfileCount);
         if (existingProfileCount + bundle.Profiles.Count > CustomMenuNormalizer.MaxProfiles)
         {
-            reason = $"Não há espaço para {bundle.Profiles.Count} menu(s): o limite é " +
-                $"{CustomMenuNormalizer.MaxProfiles} e você já tem {existingProfileCount}.";
+            reason = Loc.Format("Transfer.NoRoomForMenus", bundle.Profiles.Count,
+                CustomMenuNormalizer.MaxProfiles, existingProfileCount);
             return false;
         }
 
@@ -180,19 +181,19 @@ internal static class CustomMenuTransfer
 
         if (profiles.Count == 0)
         {
-            reason = "Não há menus para exportar.";
+            reason = Loc.Get("Transfer.NoMenusToExport");
             return false;
         }
 
         if (profiles.Any(p => p is null))
         {
-            reason = "Há um menu vazio para exportar.";
+            reason = Loc.Get("Transfer.EmptyMenuToExport");
             return false;
         }
 
         if (profiles.Count > CustomMenuNormalizer.MaxProfiles)
         {
-            reason = $"O limite é {CustomMenuNormalizer.MaxProfiles} menus.";
+            reason = Loc.Format("Transfer.ExportLimit", CustomMenuNormalizer.MaxProfiles);
             return false;
         }
 
@@ -222,7 +223,7 @@ internal static class CustomMenuTransfer
         }
         catch (Exception ex) when (ex is JsonException or NotSupportedException)
         {
-            reason = $"Não foi possível gerar o arquivo. {ex.Message}";
+            reason = Loc.Format("Transfer.GenerateFailed", ex.Message);
             return false;
         }
 
@@ -237,7 +238,7 @@ internal static class CustomMenuTransfer
     {
         if (string.IsNullOrWhiteSpace(path))
         {
-            reason = "Nenhum arquivo foi escolhido.";
+            reason = Loc.Get("Transfer.NoFile");
             return false;
         }
 
@@ -255,7 +256,7 @@ internal static class CustomMenuTransfer
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or NotSupportedException or ArgumentException)
         {
-            reason = $"Não foi possível gravar o arquivo: {ex.Message}";
+            reason = Loc.Format("Transfer.WriteFailed", ex.Message);
             return false;
         }
         finally
@@ -287,7 +288,7 @@ internal static class CustomMenuTransfer
                 total += read;
                 if (total > MaxFileCharacters)
                 {
-                    reason = $"O arquivo passa de {MaxFileCharacters / (1024 * 1024)} MB.";
+                    reason = Loc.Format("Transfer.TooBig", MaxFileCharacters / (1024 * 1024));
                     return false;
                 }
 
@@ -300,7 +301,7 @@ internal static class CustomMenuTransfer
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or NotSupportedException or ArgumentException)
         {
-            reason = $"Não foi possível ler o arquivo: {ex.Message}";
+            reason = Loc.Format("Transfer.ReadFailed", ex.Message);
             return false;
         }
     }
@@ -312,7 +313,7 @@ internal static class CustomMenuTransfer
     private static List<CustomMenuProfile> CloneProfiles(
         IReadOnlyList<CustomMenuProfile> profiles, bool newIds) =>
         profiles
-            .Select(p => CloneProfile(p ?? throw new InvalidDataException("Há um menu vazio."), newIds))
+            .Select(p => CloneProfile(p ?? throw new InvalidDataException(Loc.Get("Transfer.EmptyMenu")), newIds))
             .ToList();
 
     private static CustomMenuProfile CloneProfile(CustomMenuProfile source, bool newIds)
@@ -322,7 +323,7 @@ internal static class CustomMenuTransfer
         return new CustomMenuProfile
         {
             Id = newIds || string.IsNullOrWhiteSpace(source.Id) ? NewId() : source.Id.Trim(),
-            Name = name.Length == 0 ? "Novo menu" : name,
+            Name = name.Length == 0 ? Loc.Get("Menus.NewMenu") : name,
             Enabled = source.Enabled,
             Priority = source.Priority,
             ProcessName = CustomMenuNormalizer.NormalizeProcessName(source.ProcessName),
@@ -334,7 +335,7 @@ internal static class CustomMenuTransfer
 
     private static List<CustomMenuItem> CloneItems(List<CustomMenuItem>? items, bool newIds) =>
         (items ?? new List<CustomMenuItem>())
-            .Select(i => CloneItem(i ?? throw new InvalidDataException("Há um item de menu vazio."), newIds))
+            .Select(i => CloneItem(i ?? throw new InvalidDataException(Loc.Get("Transfer.EmptyMenuItem")), newIds))
             .ToList();
 
     private static CustomMenuItem CloneItem(CustomMenuItem source, bool newIds)
@@ -365,7 +366,7 @@ internal static class CustomMenuTransfer
         {
             item.Steps = (source.Steps ?? new List<CustomRoutineStep>())
                 .Select(s => s is null
-                    ? throw new InvalidDataException("Há um passo de rotina vazio.")
+                    ? throw new InvalidDataException(Loc.Get("Transfer.EmptyRoutineStep"))
                     : new CustomRoutineStep
                     {
                         Kind = s.Kind,
@@ -382,37 +383,37 @@ internal static class CustomMenuTransfer
     {
         if (profiles.Count == 0)
         {
-            reason = "O arquivo não tem menus.";
+            reason = Loc.Get("Transfer.NoMenus");
             return false;
         }
 
         if (profiles.Count > CustomMenuNormalizer.MaxProfiles)
         {
-            reason = $"O arquivo passa de {CustomMenuNormalizer.MaxProfiles} menus.";
+            reason = Loc.Format("Transfer.TooManyMenus", CustomMenuNormalizer.MaxProfiles);
             return false;
         }
 
         for (int i = 0; i < profiles.Count; i++)
         {
             CustomMenuProfile profile = profiles[i];
-            string where = $"Menu {i + 1} (“{profile.Name}”)";
+            string where = Loc.Format("Transfer.WhereMenu", i + 1, profile.Name);
 
             if (profile.Name.Length > CustomMenuNormalizer.MaxNameLength)
             {
-                reason = $"{where}: o nome passa de {CustomMenuNormalizer.MaxNameLength} caracteres.";
+                reason = Loc.Format("Transfer.NameTooLong", where, CustomMenuNormalizer.MaxNameLength);
                 return false;
             }
 
             if (profile.TitleContains.Length > CustomMenuNormalizer.MaxDescriptionLength)
             {
-                reason = $"{where}: o título contém passa de {CustomMenuNormalizer.MaxDescriptionLength} caracteres.";
+                reason = Loc.Format("Transfer.TitleTooLong", where, CustomMenuNormalizer.MaxDescriptionLength);
                 return false;
             }
 
             if (profile.Priority is < CustomMenuNormalizer.MinPriority or > CustomMenuNormalizer.MaxPriority)
             {
-                reason = $"{where}: a prioridade precisa ficar entre " +
-                    $"{CustomMenuNormalizer.MinPriority} e {CustomMenuNormalizer.MaxPriority}.";
+                reason = Loc.Format("Transfer.PriorityOutOfRange", where,
+                    CustomMenuNormalizer.MinPriority, CustomMenuNormalizer.MaxPriority);
                 return false;
             }
 
@@ -420,21 +421,21 @@ internal static class CustomMenuTransfer
             {
                 if (!Enum.IsDefined(context))
                 {
-                    reason = $"{where}: o contexto {(int)context} não existe.";
+                    reason = Loc.Format("Transfer.ContextUnknown", where, (int)context);
                     return false;
                 }
             }
 
             if (profile.Items.Count > CustomMenuNormalizer.MaxItems)
             {
-                reason = $"{where}: passa de {CustomMenuNormalizer.MaxItems} itens.";
+                reason = Loc.Format("Transfer.TooManyItems", where, CustomMenuNormalizer.MaxItems);
                 return false;
             }
 
             for (int j = 0; j < profile.Items.Count; j++)
             {
                 CustomMenuItem item = profile.Items[j];
-                string itemWhere = $"{where}, item {j + 1} (“{LabelFor(item.Label)}”)";
+                string itemWhere = Loc.Format("Transfer.WhereItem", where, j + 1, LabelFor(item.Label));
                 if (!TryValidateItem(item, itemWhere, allowAdvanced: true, out reason)) return false;
             }
         }
@@ -450,43 +451,43 @@ internal static class CustomMenuTransfer
 
         if (item.Label.Length == 0)
         {
-            reason = $"{where}: o rótulo está vazio.";
+            reason = Loc.Format("Transfer.ItemLabelEmpty", where);
             return false;
         }
 
         if (item.Label.Length > CustomMenuNormalizer.MaxLabelLength)
         {
-            reason = $"{where}: o rótulo passa de {CustomMenuNormalizer.MaxLabelLength} caracteres.";
+            reason = Loc.Format("Transfer.ItemLabelTooLong", where, CustomMenuNormalizer.MaxLabelLength);
             return false;
         }
 
         if (item.Description.Length > CustomMenuNormalizer.MaxDescriptionLength)
         {
-            reason = $"{where}: a descrição passa de {CustomMenuNormalizer.MaxDescriptionLength} caracteres.";
+            reason = Loc.Format("Transfer.ItemDescriptionTooLong", where, CustomMenuNormalizer.MaxDescriptionLength);
             return false;
         }
 
         if (item.Target.Length > CustomMenuNormalizer.MaxTargetLength)
         {
-            reason = $"{where}: o alvo passa de {CustomMenuNormalizer.MaxTargetLength} caracteres.";
+            reason = Loc.Format("Transfer.ItemTargetTooLong", where, CustomMenuNormalizer.MaxTargetLength);
             return false;
         }
 
         if (item.Text.Length > CustomMenuNormalizer.MaxTextLength)
         {
-            reason = $"{where}: o texto passa de {CustomMenuNormalizer.MaxTextLength} caracteres.";
+            reason = Loc.Format("Transfer.ItemTextTooLong", where, CustomMenuNormalizer.MaxTextLength);
             return false;
         }
 
         if (!Enum.IsDefined(item.Kind))
         {
-            reason = $"{where}: o tipo {(int)item.Kind} não existe.";
+            reason = Loc.Format("Transfer.ItemKindUnknown", where, (int)item.Kind);
             return false;
         }
 
         if (!Enum.IsDefined(item.Action))
         {
-            reason = $"{where}: a ação {(int)item.Action} não existe.";
+            reason = Loc.Format("Transfer.ItemActionUnknown", where, (int)item.Action);
             return false;
         }
 
@@ -494,13 +495,13 @@ internal static class CustomMenuTransfer
         {
             if (!allowAdvanced)
             {
-                reason = $"{where}: um submenu não pode ficar dentro de outro submenu.";
+                reason = Loc.Format("Transfer.NestedSubmenu", where);
                 return false;
             }
 
             if (item.Options.Count > CustomMenuNormalizer.MaxOptions)
             {
-                reason = $"{where}: passa de {CustomMenuNormalizer.MaxOptions} opções.";
+                reason = Loc.Format("Transfer.TooManyOptions", where, CustomMenuNormalizer.MaxOptions);
                 return false;
             }
 
@@ -509,11 +510,11 @@ internal static class CustomMenuTransfer
                 CustomMenuItem option = item.Options[i];
                 if (option.Kind is CustomMenuItemKind.Submenu or CustomMenuItemKind.Routine)
                 {
-                    reason = $"{where}, opção {i + 1}: submenu e rotina ficam no primeiro anel.";
+                    reason = Loc.Format("Transfer.AdvancedInsideSubmenu", where, i + 1);
                     return false;
                 }
 
-                string optionWhere = $"{where}, opção {i + 1} (“{LabelFor(option.Label)}”)";
+                string optionWhere = Loc.Format("Transfer.WhereOption", where, i + 1, LabelFor(option.Label));
                 if (!TryValidateItem(option, optionWhere, allowAdvanced: false, out reason)) return false;
             }
         }
@@ -522,13 +523,13 @@ internal static class CustomMenuTransfer
         {
             if (!allowAdvanced)
             {
-                reason = $"{where}: uma rotina não pode ficar dentro de um submenu.";
+                reason = Loc.Format("Transfer.RoutineInsideSubmenu", where);
                 return false;
             }
 
             if (!CustomRoutineLogic.TryBuildPlan(item, out _, out string? routineReason))
             {
-                reason = $"{where}: {routineReason}";
+                reason = Loc.Format("Transfer.RoutineInvalid", where, routineReason);
                 return false;
             }
         }
@@ -559,13 +560,13 @@ internal static class CustomMenuTransfer
             if (!used.Contains(candidate)) return candidate;
         }
 
-        string suffix = $" (importado {Guid.NewGuid().ToString("N")[..6]})";
+        string suffix = Loc.Format("Transfer.ImportedRandomSuffix", Guid.NewGuid().ToString("N")[..6]);
         return AppendSuffix(name, suffix);
     }
 
     private static string NumberedName(string name, int number)
     {
-        string suffix = number == 1 ? " (importado)" : $" (importado {number})";
+        string suffix = number == 1 ? Loc.Get("Transfer.ImportedSuffix") : Loc.Format("Transfer.ImportedSuffixNumbered", number);
         return AppendSuffix(name, suffix);
     }
 
@@ -579,7 +580,7 @@ internal static class CustomMenuTransfer
     private static string LabelFor(string? label)
     {
         string text = (label ?? "").Trim();
-        return text.Length == 0 ? "sem rótulo" : text;
+        return text.Length == 0 ? Loc.Get("Transfer.UnnamedLabel") : text;
     }
 
     private static string NewId() => Guid.NewGuid().ToString("N");

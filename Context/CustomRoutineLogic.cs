@@ -16,6 +16,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using RadialFlow.Config;
+using RadialFlow.Infrastructure;
 
 namespace RadialFlow.Context;
 
@@ -87,7 +88,7 @@ internal static class CustomRoutineLogic
                 IsFocusChangingAction(step.Action))
             {
                 index = i;
-                reason = $"A ação '{step.Action}' abre outra janela e só pode ser o último passo.";
+                reason = Loc.Format("RoutineLogic.FocusNotLast", step.Action);
                 return true;
             }
         }
@@ -102,18 +103,18 @@ internal static class CustomRoutineLogic
         plan = null!;
         reason = null;
 
-        if (item is null) { reason = "O item está vazio."; return false; }
-        if (item.Kind != CustomMenuItemKind.Routine) { reason = "O item não é uma rotina."; return false; }
+        if (item is null) { reason = Loc.Get("RoutineLogic.ItemEmpty"); return false; }
+        if (item.Kind != CustomMenuItemKind.Routine) { reason = Loc.Get("RoutineLogic.NotRoutine"); return false; }
 
         if (item.RoutineVersion != CustomMenuItem.RoutineSchemaVersion)
         {
-            reason = $"A versão de rotina {item.RoutineVersion} não é suportada.";
+            reason = Loc.Format("RoutineLogic.VersionUnsupported", item.RoutineVersion);
             return false;
         }
 
         var steps = item.Steps ?? new List<CustomRoutineStep>();
-        if (steps.Count == 0) { reason = "A rotina não tem passos."; return false; }
-        if (steps.Count > MaxSteps) { reason = $"A rotina passa de {MaxSteps} passos."; return false; }
+        if (steps.Count == 0) { reason = Loc.Get("RoutineLogic.NoSteps"); return false; }
+        if (steps.Count > MaxSteps) { reason = Loc.Format("RoutineLogic.TooManySteps", MaxSteps); return false; }
 
         var planned = new List<CustomRoutineStepPlan>(steps.Count);
         int totalDelay = 0;
@@ -124,7 +125,7 @@ internal static class CustomRoutineLogic
             CustomRoutineStep step = steps[i];
             if (!TryValidateStep(step, out string? stepReason))
             {
-                reason = $"Passo {i + 1}: {stepReason}";
+                reason = Loc.Format("RoutineLogic.StepPrefix", i + 1, stepReason);
                 return false;
             }
 
@@ -140,15 +141,15 @@ internal static class CustomRoutineLogic
             }
         }
 
-        if (!hasAction) { reason = "A rotina precisa de pelo menos uma ação."; return false; }
+        if (!hasAction) { reason = Loc.Get("RoutineLogic.NeedAction"); return false; }
         if (totalDelay > MaxTotalDelayMilliseconds)
         {
-            reason = $"As pausas somam mais de {MaxTotalDelayMilliseconds} ms.";
+            reason = Loc.Format("RoutineLogic.TotalDelay", MaxTotalDelayMilliseconds);
             return false;
         }
         if (TryFindMisplacedFocusStep(steps, out int focusIndex, out string? focusReason))
         {
-            reason = $"Passo {focusIndex + 1}: {focusReason}";
+            reason = Loc.Format("RoutineLogic.StepPrefix", focusIndex + 1, focusReason);
             return false;
         }
 
@@ -161,19 +162,19 @@ internal static class CustomRoutineLogic
     {
         reason = null;
 
-        if (step is null) { reason = "O passo está vazio."; return false; }
+        if (step is null) { reason = Loc.Get("RoutineLogic.EmptyStep"); return false; }
 
         switch (step.Kind)
         {
             case CustomRoutineStepKind.Action:
                 if (!Enum.IsDefined(step.Action))
                 {
-                    reason = $"A ação desconhecida ({(int)step.Action}) não existe.";
+                    reason = Loc.Format("RoutineLogic.UnknownAction", (int)step.Action);
                     return false;
                 }
                 if (!IsAllowedAction(step.Action))
                 {
-                    reason = $"A ação '{step.Action}' não é permitida em rotinas.";
+                    reason = Loc.Format("RoutineLogic.ActionNotAllowed", step.Action);
                     return false;
                 }
                 return true;
@@ -181,18 +182,18 @@ internal static class CustomRoutineLogic
             case CustomRoutineStepKind.Delay:
                 if (step.DelayMilliseconds < MinDelayMilliseconds)
                 {
-                    reason = $"A pausa precisa ter pelo menos {MinDelayMilliseconds} ms.";
+                    reason = Loc.Format("RoutineLogic.DelayTooShort", MinDelayMilliseconds);
                     return false;
                 }
                 if (step.DelayMilliseconds > MaxDelayMilliseconds)
                 {
-                    reason = $"A pausa passa de {MaxDelayMilliseconds} ms.";
+                    reason = Loc.Format("RoutineLogic.DelayTooLong", MaxDelayMilliseconds);
                     return false;
                 }
                 return true;
 
             default:
-                reason = $"O tipo de passo ({(int)step.Kind}) é inválido.";
+                reason = Loc.Format("RoutineLogic.UnknownStepKind", (int)step.Kind);
                 return false;
         }
     }

@@ -14,6 +14,7 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Shapes;
 using RadialFlow.Context;
+using RadialFlow.Infrastructure;
 using RadialFlow.UI;
 
 namespace RadialFlow.UI;
@@ -50,7 +51,7 @@ internal sealed class MenuPreview : Canvas
         DrawHub();
         if (entries.Count == 0)
         {
-            AddCenteredText("Sem itens", 11.5, "TextDimBrush", 38);
+            AddCenteredText(Loc.Get("Menus.PreviewEmptyRings"), 11.5, "TextDimBrush", 38);
             return;
         }
 
@@ -70,7 +71,7 @@ internal sealed class MenuPreview : Canvas
         Canvas.SetTop(hub, Center - hubSize / 2);
         Children.Add(hub);
 
-        AddCenteredText("prévia", 10, "TextDimBrush", 0);
+        AddCenteredText(Loc.Get("Menus.PreviewHub"), 10, "TextDimBrush", 0);
     }
 
     private void AddSlice(CustomMergeEntry entry, int index, int count)

@@ -1,7 +1,8 @@
 <Window x:Class="RadialFlow.UI.SubmenuEditorWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="RadialFlow — Opções do submenu"
+        xmlns:loc="clr-namespace:RadialFlow.UI.Markup"
+        Title="{loc:Loc Submenu.WindowTitle}"
         Width="820" Height="660"
         MinWidth="740" MinHeight="560"
         WindowStartupLocation="CenterOwner"
@@ -53,8 +54,8 @@
                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </Grid>
                 <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                    <TextBlock Text="Opções do submenu" FontSize="16" FontWeight="SemiBold"/>
-                    <TextBlock x:Name="TxtSubtitle" Text="O segundo anel deste item terá estas opções."
+                    <TextBlock Text="{loc:Loc Submenu.Title}" FontSize="16" FontWeight="SemiBold"/>
+                    <TextBlock x:Name="TxtSubtitle" Text="{loc:Loc Submenu.Subtitle}"
                                Style="{StaticResource CardHint}" TextTrimming="CharacterEllipsis"/>
                 </StackPanel>
             </Grid>
@@ -76,11 +77,11 @@
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
-                        <TextBlock Text="Opções do segundo anel" Style="{StaticResource SectionLabel}"
+                        <TextBlock Text="{loc:Loc Submenu.OptionsTitle}" Style="{StaticResource SectionLabel}"
                                    VerticalAlignment="Center" Margin="0,0,0,6"/>
                         <Border Grid.Column="1" Background="{DynamicResource ControlBrush}" CornerRadius="8"
                                 Padding="7,1" Margin="6,0,0,6">
-                            <TextBlock x:Name="TxtOptionCount" Text="0 de 8 opções" FontSize="11" FontWeight="SemiBold"
+                            <TextBlock x:Name="TxtOptionCount" Text="{loc:Loc Menus.SubmenuCountZero}" FontSize="11" FontWeight="SemiBold"
                                        Foreground="{DynamicResource TextDimBrush}"/>
                         </Border>
                     </Grid>
@@ -92,10 +93,10 @@
                                 <ColumnDefinition Width="6"/>
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
-                            <Button x:Name="BtnAddOption" Content="Adicionar" Padding="8,6"
-                                    Click="BtnAddOption_Click" AutomationProperties.Name="Adicionar opção"/>
-                            <Button x:Name="BtnRemoveOption" Grid.Column="2" Content="Remover" Padding="8,6"
-                                    Click="BtnRemoveOption_Click" AutomationProperties.Name="Remover opção selecionada"/>
+                            <Button x:Name="BtnAddOption" Content="{loc:Loc Common.Add}" Padding="8,6"
+                                    Click="BtnAddOption_Click" AutomationProperties.Name="{loc:Loc Submenu.AddAutomation}"/>
+                            <Button x:Name="BtnRemoveOption" Grid.Column="2" Content="{loc:Loc Common.Remove}" Padding="8,6"
+                                    Click="BtnRemoveOption_Click" AutomationProperties.Name="{loc:Loc Submenu.RemoveAutomation}"/>
                         </Grid>
                         <Grid Margin="0,6,0,0">
                             <Grid.ColumnDefinitions>
@@ -103,12 +104,12 @@
                                 <ColumnDefinition Width="6"/>
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
-                            <Button x:Name="BtnOptionUp" Content="Subir" Padding="8,6"
-                                    Click="BtnOptionUp_Click" AutomationProperties.Name="Mover opção para cima"/>
-                            <Button x:Name="BtnOptionDown" Grid.Column="2" Content="Descer" Padding="8,6"
-                                    Click="BtnOptionDown_Click" AutomationProperties.Name="Mover opção para baixo"/>
+                            <Button x:Name="BtnOptionUp" Content="{loc:Loc Common.MoveUp}" Padding="8,6"
+                                    Click="BtnOptionUp_Click" AutomationProperties.Name="{loc:Loc Submenu.MoveUpAutomation}"/>
+                            <Button x:Name="BtnOptionDown" Grid.Column="2" Content="{loc:Loc Common.MoveDown}" Padding="8,6"
+                                    Click="BtnOptionDown_Click" AutomationProperties.Name="{loc:Loc Submenu.MoveDownAutomation}"/>
                         </Grid>
-                        <TextBlock Text="A ordem aqui é a ordem no segundo anel." Style="{StaticResource FieldHint}"
+                        <TextBlock Text="{loc:Loc Submenu.OrderHint}" Style="{StaticResource FieldHint}"
                                    Margin="0,8,0,0"/>
                     </StackPanel>
 
@@ -145,9 +146,9 @@
                             <TextBlock Text="&#xE710;" FontFamily="{StaticResource IconFont}" FontSize="20"
                                        Foreground="{DynamicResource TextDimBrush}" HorizontalAlignment="Center"
                                        Opacity="0.8"/>
-                            <TextBlock Text="Nenhuma opção" FontSize="12" FontWeight="SemiBold"
+                            <TextBlock Text="{loc:Loc Submenu.EmptyTitle}" FontSize="12" FontWeight="SemiBold"
                                        HorizontalAlignment="Center" Margin="0,5,0,0"/>
-                            <TextBlock Text="Use “Adicionar” para criar a primeira." Style="{StaticResource CardHint}"
+                            <TextBlock Text="{loc:Loc Submenu.EmptyHint}" Style="{StaticResource CardHint}"
                                        FontSize="11" TextAlignment="Center" MaxWidth="130" Margin="0,2,0,0"/>
                         </StackPanel>
                     </Grid>
@@ -160,19 +161,19 @@
                               HorizontalScrollBarVisibility="Disabled" Padding="0,0,4,0">
                     <Border x:Name="BdOptionEditor" Style="{StaticResource Card}" Margin="0" Padding="18,14">
                         <StackPanel x:Name="PnlOptionEditor">
-                            <TextBlock Text="APARÊNCIA" Style="{StaticResource SectionLabel}"/>
+                            <TextBlock Text="{loc:Loc Menus.AppearanceSection}" Style="{StaticResource SectionLabel}"/>
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
                                 <StackPanel>
-                                    <TextBlock Text="Rótulo" Style="{StaticResource FieldLabel}" Margin="0,0,0,5"/>
+                                    <TextBlock Text="{loc:Loc Common.Label}" Style="{StaticResource FieldLabel}" Margin="0,0,0,5"/>
                                     <TextBox x:Name="TxtOptionLabel" MaxLength="24" TextChanged="OptionField_Changed"
                                              LostFocus="TxtOptionLabel_LostFocus"/>
                                 </StackPanel>
                                 <StackPanel Grid.Column="1" Margin="10,0,0,0">
-                                    <TextBlock Text="Ícone" Style="{StaticResource FieldLabel}" Margin="0,0,0,5"/>
+                                    <TextBlock Text="{loc:Loc Common.Icon}" Style="{StaticResource FieldLabel}" Margin="0,0,0,5"/>
                                     <ComboBox x:Name="CmbOptionGlyph" Width="140" SelectionChanged="OptionVisual_Changed">
                                         <ComboBox.ItemTemplate>
                                             <DataTemplate>
@@ -187,15 +188,15 @@
                                 </StackPanel>
                             </Grid>
 
-                            <TextBlock Text="Descrição (opcional)" Style="{StaticResource FieldLabel}"/>
+                            <TextBlock Text="{loc:Loc Common.DescriptionOptional}" Style="{StaticResource FieldLabel}"/>
                             <TextBox x:Name="TxtOptionDescription" MaxLength="120" TextChanged="OptionField_Changed"/>
-                            <CheckBox x:Name="ChkOptionEnabled" Content="Opção ativa" Margin="0,8,0,0"
+                            <CheckBox x:Name="ChkOptionEnabled" Content="{loc:Loc Submenu.Active}" Margin="0,8,0,0"
                                       Checked="OptionVisual_Changed" Unchecked="OptionVisual_Changed"/>
 
                             <Border Height="1" Background="{DynamicResource CardBorderBrush}" Margin="0,12,0,10"/>
 
-                            <TextBlock Text="AÇÃO" Style="{StaticResource SectionLabel}"/>
-                            <TextBlock Text="Tipo de opção" Style="{StaticResource FieldLabel}" Margin="0,0,0,5"/>
+                            <TextBlock Text="{loc:Loc Menus.ActionSection}" Style="{StaticResource SectionLabel}"/>
+                            <TextBlock Text="{loc:Loc Submenu.KindLabel}" Style="{StaticResource FieldLabel}" Margin="0,0,0,5"/>
                             <ComboBox x:Name="CmbOptionKind" SelectionChanged="CmbOptionKind_SelectionChanged"/>
 
                             <Border x:Name="BdOptionTarget" Background="{DynamicResource SurfaceBrush}"
@@ -203,51 +204,51 @@
                                     BorderThickness="1" CornerRadius="10" Padding="12,2,12,10" Margin="0,10,0,0">
                                 <Grid>
                                     <StackPanel x:Name="PnlOptionAction">
-                                        <TextBlock Text="Ação do RadialFlow" Style="{StaticResource FieldLabel}"/>
+                                        <TextBlock Text="{loc:Loc Choices.Kind.Action}" Style="{StaticResource FieldLabel}"/>
                                         <ComboBox x:Name="CmbOptionAction" SelectionChanged="OptionField_Changed"/>
                                     </StackPanel>
 
                                     <StackPanel x:Name="PnlOptionLaunch">
-                                        <TextBlock Text="Executável" Style="{StaticResource FieldLabel}"/>
+                                        <TextBlock Text="{loc:Loc Menus.Executable}" Style="{StaticResource FieldLabel}"/>
                                         <Grid>
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="*"/>
                                                 <ColumnDefinition Width="Auto"/>
                                             </Grid.ColumnDefinitions>
                                             <TextBox x:Name="TxtOptionLaunch" MaxLength="2048" TextChanged="OptionField_Changed"/>
-                                            <Button Grid.Column="1" Content="Procurar…" Margin="8,0,0,0" Padding="10,6"
+                                            <Button Grid.Column="1" Content="{loc:Loc Common.Browse}" Margin="8,0,0,0" Padding="10,6"
                                                     Click="BtnBrowseOptionExecutable_Click"/>
                                         </Grid>
-                                        <TextBlock Text="Só executáveis em pastas protegidas (System32, Program Files). Sem argumentos."
+                                        <TextBlock Text="{loc:Loc Menus.ExecutableHint}"
                                                    Style="{StaticResource FieldHint}"/>
                                     </StackPanel>
 
                                     <StackPanel x:Name="PnlOptionUrl">
-                                        <TextBlock Text="Endereço (http ou https)" Style="{StaticResource FieldLabel}"/>
+                                        <TextBlock Text="{loc:Loc Menus.UrlLabel}" Style="{StaticResource FieldLabel}"/>
                                         <TextBox x:Name="TxtOptionUrl" MaxLength="2048" TextChanged="OptionField_Changed"/>
                                     </StackPanel>
 
                                     <StackPanel x:Name="PnlOptionPath">
-                                        <TextBlock Text="Arquivo ou pasta" Style="{StaticResource FieldLabel}"/>
+                                        <TextBlock Text="{loc:Loc Menus.PathLabel}" Style="{StaticResource FieldLabel}"/>
                                         <TextBox x:Name="TxtOptionPath" MaxLength="2048" TextChanged="OptionField_Changed"/>
                                         <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
-                                            <Button Content="Arquivo…" Padding="10,6" Margin="0,0,6,0"
+                                            <Button Content="{loc:Loc Menus.FileButton}" Padding="10,6" Margin="0,0,6,0"
                                                     Click="BtnBrowseOptionFile_Click"/>
-                                            <Button Content="Pasta…" Padding="10,6" Click="BtnBrowseOptionFolder_Click"/>
+                                            <Button Content="{loc:Loc Menus.FolderButton}" Padding="10,6" Click="BtnBrowseOptionFolder_Click"/>
                                         </StackPanel>
-                                        <TextBlock Text="Executáveis, scripts e atalhos são recusados aqui; para eles use Executável."
+                                        <TextBlock Text="{loc:Loc Menus.PathHint}"
                                                    Style="{StaticResource FieldHint}"/>
                                     </StackPanel>
 
                                     <StackPanel x:Name="PnlOptionHotkey">
-                                        <TextBlock Text="Atalho (ex.: Ctrl+Shift+P)" Style="{StaticResource FieldLabel}"/>
+                                        <TextBlock Text="{loc:Loc Menus.HotkeyLabel}" Style="{StaticResource FieldLabel}"/>
                                         <TextBox x:Name="TxtOptionHotkey" MaxLength="80" TextChanged="OptionField_Changed"/>
-                                        <TextBlock Text="Modificadores Ctrl/Alt/Shift/Win e uma tecla final."
+                                        <TextBlock Text="{loc:Loc Submenu.HotkeyHint}"
                                                    Style="{StaticResource FieldHint}"/>
                                     </StackPanel>
 
                                     <StackPanel x:Name="PnlOptionText">
-                                        <TextBlock Text="Texto a colar" Style="{StaticResource FieldLabel}"/>
+                                        <TextBlock Text="{loc:Loc Menus.TextLabel}" Style="{StaticResource FieldLabel}"/>
                                         <TextBox x:Name="TxtOptionText" MaxLength="4096" Height="76" AcceptsReturn="True"
                                                  TextWrapping="Wrap" VerticalScrollBarVisibility="Auto"
                                                  TextChanged="OptionField_Changed"/>
@@ -265,9 +266,9 @@
                         <TextBlock Text="&#xE8A9;" FontFamily="{StaticResource IconFont}" FontSize="24"
                                    Foreground="{DynamicResource TextDimBrush}" HorizontalAlignment="Center"
                                    Opacity="0.8"/>
-                        <TextBlock Text="Nenhuma opção selecionada" FontSize="13" FontWeight="SemiBold"
+                        <TextBlock Text="{loc:Loc Submenu.NoSelection}" FontSize="13" FontWeight="SemiBold"
                                    HorizontalAlignment="Center" Margin="0,8,0,0"/>
-                        <TextBlock Text="Selecione uma opção na lista ou clique em “Adicionar”."
+                        <TextBlock Text="{loc:Loc Submenu.NoSelectionHint}"
                                    Style="{StaticResource CardHint}" FontSize="11.5" TextAlignment="Center"
                                    Margin="0,3,0,0"/>
                     </StackPanel>
@@ -289,8 +290,8 @@
                            Foreground="{DynamicResource WarningBrush}" Visibility="Collapsed"/>
 
                 <StackPanel Grid.Column="1" Orientation="Horizontal">
-                    <Button Content="Cancelar" MinWidth="96" IsCancel="True"/>
-                    <Button x:Name="BtnDone" Content="Concluir" MinWidth="104" Margin="8,0,0,0"
+                    <Button Content="{loc:Loc Common.Cancel}" MinWidth="96" IsCancel="True"/>
+                    <Button x:Name="BtnDone" Content="{loc:Loc Common.Done}" MinWidth="104" Margin="8,0,0,0"
                             Style="{StaticResource PrimaryButton}" IsDefault="True" Click="BtnDone_Click"/>
                 </StackPanel>
             </Grid>
