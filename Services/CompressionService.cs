@@ -24,8 +24,10 @@ public static class CompressionService
 {
     private const int BufferSize = 81920; // 80 KB por bloco
 
-    // Limite do formato ZIP para datas: 1980-01-01 .. 2107-12-31.
+    // Limite do formato ZIP para datas: 1980-01-01 .. 2107-12-31 23:59:58 (campo MS-DOS, passo de 2 s).
+    // Fora dessa faixa, ZipArchiveEntry.LastWriteTime lança ArgumentOutOfRangeException.
     private static readonly DateTime ZipMinDate = new(1980, 1, 1);
+    private static readonly DateTime ZipMaxDate = new(2107, 12, 31, 23, 59, 58);
 
     public static async Task CompressAsync(
         IReadOnlyList<string> sourcePaths,
@@ -103,7 +105,9 @@ public static class CompressionService
                     var entry = archive.CreateEntry(relPath.Replace('\\', '/'), CompressionLevel.Optimal);
 
                     DateTime written = File.GetLastWriteTime(fullPath);
-                    entry.LastWriteTime = written < ZipMinDate ? ZipMinDate : written;
+                    entry.LastWriteTime =
+                        written < ZipMinDate ? ZipMinDate :
+                        written > ZipMaxDate ? ZipMaxDate : written;
 
                     await using var entryStream = entry.Open();
                     await using var sourceStream = new FileStream(fullPath, FileMode.Open, FileAccess.Read,
