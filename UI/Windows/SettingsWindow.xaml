@@ -1,7 +1,8 @@
 <Window x:Class="RadialFlow.UI.SettingsWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="RadialFlow — Configurações"
+        xmlns:loc="clr-namespace:RadialFlow.UI.Markup"
+        Title="{loc:Loc Settings.WindowTitle}"
         Width="1040" Height="680"
         MinWidth="940" MinHeight="600"
         WindowStartupLocation="CenterScreen"
@@ -12,6 +13,48 @@
 
     <!-- Estilos e cores: Theme/Controls.xaml + UiTheme (instalados no construtor, antes do InitializeComponent). -->
     <Window.Resources>
+        <!-- Ícones vetoriais da navegação lateral (traço de 1,6 px, pontas arredondadas). -->
+        <GeometryGroup x:Key="IconGeneral">
+            <LineGeometry StartPoint="4,7" EndPoint="6.8,7"/>
+            <LineGeometry StartPoint="11.2,7" EndPoint="20,7"/>
+            <LineGeometry StartPoint="4,17" EndPoint="12.8,17"/>
+            <LineGeometry StartPoint="17.2,17" EndPoint="20,17"/>
+            <EllipseGeometry Center="9,7" RadiusX="2.2" RadiusY="2.2"/>
+            <EllipseGeometry Center="15,17" RadiusX="2.2" RadiusY="2.2"/>
+        </GeometryGroup>
+        <GeometryGroup x:Key="IconAppearance">
+            <PathGeometry Figures="M12,3 C7.6,3 4,6.6 4,11 C4,14.7 6.5,17.6 9.9,18 C10.9,18.1 11.4,18.9 11.1,19.7 C10.7,20.9 11.7,22 13,22 C17.6,22 21,18.2 21,13 C21,7.5 17,3 12,3 Z"/>
+            <EllipseGeometry Center="7.8,10.2" RadiusX="1.1" RadiusY="1.1"/>
+            <EllipseGeometry Center="10.4,6.8" RadiusX="1.1" RadiusY="1.1"/>
+            <EllipseGeometry Center="14.4,6.6" RadiusX="1.1" RadiusY="1.1"/>
+            <EllipseGeometry Center="17.4,9.8" RadiusX="1.1" RadiusY="1.1"/>
+        </GeometryGroup>
+        <GeometryGroup x:Key="IconBlacklist">
+            <EllipseGeometry Center="12,12" RadiusX="8.5" RadiusY="8.5"/>
+            <LineGeometry StartPoint="6.2,17.8" EndPoint="17.8,6.2"/>
+        </GeometryGroup>
+        <PathGeometry x:Key="IconFavorites"
+                      Figures="M12,3.4 L14.6,9.2 L21,9.9 L16.2,14.1 L17.6,20.4 L12,17.1 L6.4,20.4 L7.8,14.1 L3,9.9 L9.4,9.2 Z"/>
+        <GeometryGroup x:Key="IconMenus">
+            <EllipseGeometry Center="12,12" RadiusX="8.5" RadiusY="8.5"/>
+            <EllipseGeometry Center="12,12" RadiusX="3.2" RadiusY="3.2"/>
+            <LineGeometry StartPoint="12,3.5" EndPoint="12,8.8"/>
+            <LineGeometry StartPoint="20.5,12" EndPoint="15.2,12"/>
+            <LineGeometry StartPoint="12,20.5" EndPoint="12,15.2"/>
+            <LineGeometry StartPoint="3.5,12" EndPoint="8.8,12"/>
+        </GeometryGroup>
+        <GeometryGroup x:Key="IconConverters">
+            <PathGeometry Figures="M4.5,12 A7.5,7.5 0 0 1 19.5,12"/>
+            <PathGeometry Figures="M19.5,12 A7.5,7.5 0 0 1 4.5,12"/>
+            <PathGeometry Figures="M17.2,9.7 L19.5,12 L17.2,14.3"/>
+            <PathGeometry Figures="M6.8,9.7 L4.5,12 L6.8,14.3"/>
+        </GeometryGroup>
+        <GeometryGroup x:Key="IconAbout">
+            <EllipseGeometry Center="12,12" RadiusX="8.5" RadiusY="8.5"/>
+            <LineGeometry StartPoint="12,11" EndPoint="12,17"/>
+            <EllipseGeometry Center="12,7.4" RadiusX="0.7" RadiusY="0.7"/>
+        </GeometryGroup>
+
         <Style x:Key="PageTitle" TargetType="TextBlock">
             <Setter Property="FontSize" Value="24"/>
             <Setter Property="FontWeight" Value="Bold"/>
@@ -72,8 +115,10 @@
                             <Border x:Name="marker" Width="3" Height="18" CornerRadius="1.5" HorizontalAlignment="Left"
                                     Background="{DynamicResource AccentBrush}" Opacity="0"/>
                             <StackPanel Orientation="Horizontal" Margin="13,0,10,0" VerticalAlignment="Center">
-                                <TextBlock Text="{TemplateBinding Tag}" FontFamily="{StaticResource IconFont}" FontSize="16"
-                                           Width="26" VerticalAlignment="Center" Foreground="{TemplateBinding Foreground}"/>
+                                <Path Data="{TemplateBinding Tag}" Width="18" Height="18" Margin="0,0,9,0"
+                                      Stroke="{TemplateBinding Foreground}" StrokeThickness="1.6"
+                                      StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"
+                                      Fill="Transparent" Stretch="Uniform" VerticalAlignment="Center"/>
                                 <ContentPresenter ContentSource="Header" VerticalAlignment="Center"
                                                   TextElement.Foreground="{TemplateBinding Foreground}"/>
                             </StackPanel>
@@ -116,7 +161,7 @@
                                         <StackPanel VerticalAlignment="Center">
                                             <TextBlock Text="RadialFlow" FontSize="16" FontWeight="Bold"
                                                        Foreground="{DynamicResource TextBrush}"/>
-                                            <TextBlock Text="Configurações" FontSize="11.5"
+                                            <TextBlock Text="{loc:Loc Settings.SidebarTitle}" FontSize="11.5"
                                                        Foreground="{DynamicResource TextDimBrush}" Margin="0,1,0,0"/>
                                         </StackPanel>
                                     </StackPanel>
@@ -124,7 +169,7 @@
                                     <Border DockPanel.Dock="Top" Height="1" Background="{DynamicResource CardBorderBrush}"
                                             Margin="16,0,16,6"/>
 
-                                    <TextBlock DockPanel.Dock="Bottom" Text="Menu radial para Windows" FontSize="10.5"
+                                    <TextBlock DockPanel.Dock="Bottom" Text="{loc:Loc Settings.SidebarFooter}" FontSize="10.5"
                                                Foreground="{DynamicResource TextDimBrush}" Margin="22,12,22,16"
                                                TextWrapping="Wrap"/>
 
@@ -152,7 +197,7 @@
         <TabControl x:Name="MainTabs" Grid.Row="0" Style="{StaticResource SettingsTabControl}">
 
             <!-- ================= GERAL ================= -->
-            <TabItem Header="Geral" Tag="&#xE713;" Style="{StaticResource SettingsTabItem}">
+            <TabItem Header="{loc:Loc Settings.General}" Tag="{StaticResource IconGeneral}" Style="{StaticResource SettingsTabItem}">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
@@ -160,9 +205,8 @@
                     </Grid.RowDefinitions>
 
                     <StackPanel Margin="32,24,32,10">
-                        <TextBlock Text="Geral" Style="{StaticResource PageTitle}"/>
-                        <TextBlock Text="Inicialização, gesto e aparência. As alterações valem depois de salvar."
-                                   Style="{StaticResource PageSubtitle}"/>
+                        <TextBlock Text="{loc:Loc Settings.General}" Style="{StaticResource PageTitle}"/>
+                        <TextBlock Text="{loc:Loc Settings.GeneralSubtitle}" Style="{StaticResource PageSubtitle}"/>
                     </StackPanel>
 
                     <!-- O ScrollViewer fica na linha "*" da página: recebe altura finita e rola. -->
@@ -263,8 +307,28 @@
                                     </Grid>
                                 </StackPanel>
                             </Border>
+                        </StackPanel>
+                    </ScrollViewer>
+                </Grid>
+            </TabItem>
 
-                            <TextBlock Text="APARÊNCIA" Style="{StaticResource SectionLabel}"/>
+            <!-- ================= APARÊNCIA ================= -->
+            <TabItem Header="{loc:Loc Settings.Appearance}" Tag="{StaticResource IconAppearance}" Style="{StaticResource SettingsTabItem}">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <StackPanel Margin="32,24,32,10">
+                        <TextBlock Text="{loc:Loc Settings.Appearance}" Style="{StaticResource PageTitle}"/>
+                        <TextBlock Text="{loc:Loc Settings.AppearanceSubtitle}" Style="{StaticResource PageSubtitle}"/>
+                    </StackPanel>
+
+                    <ScrollViewer x:Name="AppearanceScroll" Grid.Row="1" VerticalScrollBarVisibility="Auto"
+                                  HorizontalScrollBarVisibility="Disabled" PanningMode="VerticalOnly">
+                        <StackPanel Margin="32,4,20,20">
+
                             <Border Style="{StaticResource Card}">
                                 <StackPanel>
                                     <TextBlock Text="Cor de destaque" Style="{StaticResource CardTitle}"/>
@@ -277,9 +341,11 @@
                                         <TextBlock x:Name="AccentName" FontSize="12" FontWeight="SemiBold" Margin="4,0,0,0"
                                                    Foreground="{DynamicResource TextBrush}" VerticalAlignment="Center"/>
                                     </StackPanel>
+                                </StackPanel>
+                            </Border>
 
-                                    <Border Style="{StaticResource Divider}" Margin="0,14,0,12"/>
-
+                            <Border Style="{StaticResource Card}">
+                                <StackPanel>
                                     <TextBlock Text="Estilo da roda" Style="{StaticResource CardTitle}"/>
                                     <TextBlock Style="{StaticResource CardHint}"
                                                Text="Tamanho e contraste da roda. A cor de destaque continua valendo em todos os estilos."/>
@@ -289,13 +355,28 @@
                                     <TextBlock x:Name="WheelPresetHint" Style="{StaticResource FieldHint}"/>
                                 </StackPanel>
                             </Border>
+
+                            <Border Style="{StaticResource Card}">
+                                <StackPanel>
+                                    <TextBlock Text="{loc:Loc Settings.Language}" Style="{StaticResource CardTitle}"/>
+                                    <TextBlock Text="{loc:Loc Settings.LanguageDescription}"
+                                               Style="{StaticResource CardHint}"/>
+                                    <ComboBox x:Name="CmbLanguage" Width="280" HorizontalAlignment="Left" Margin="0,10,0,0"
+                                              DisplayMemberPath="NativeName" SelectionChanged="Language_Changed"
+                                              AutomationProperties.Name="{loc:Loc Settings.Language}"/>
+                                    <TextBlock Text="{loc:Loc Settings.LanguageHint}" Style="{StaticResource FieldHint}"/>
+                                    <TextBlock x:Name="LanguageRestartHint" Text="{loc:Loc Settings.RestartRequired}"
+                                               Style="{StaticResource FieldHint}" Foreground="{DynamicResource WarningBrush}"
+                                               Visibility="Collapsed"/>
+                                </StackPanel>
+                            </Border>
                         </StackPanel>
                     </ScrollViewer>
                 </Grid>
             </TabItem>
 
             <!-- ================= BLACKLIST ================= -->
-            <TabItem Header="Blacklist" Tag="&#xE72E;" Style="{StaticResource SettingsTabItem}">
+            <TabItem Header="{loc:Loc Settings.Blacklist}" Tag="{StaticResource IconBlacklist}" Style="{StaticResource SettingsTabItem}">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
@@ -367,7 +448,7 @@
             </TabItem>
 
             <!-- ================= APPS FAVORITOS ================= -->
-            <TabItem Header="Apps Favoritos" Tag="&#xE734;" Style="{StaticResource SettingsTabItem}">
+            <TabItem Header="{loc:Loc Settings.Favorites}" Tag="{StaticResource IconFavorites}" Style="{StaticResource SettingsTabItem}">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
@@ -459,7 +540,7 @@
             </TabItem>
 
             <!-- ================= MENUS PERSONALIZADOS (editor em código: SettingsWindow.Menus.cs) ================= -->
-            <TabItem Header="Menus" Tag="&#xE8FD;" Style="{StaticResource SettingsTabItem}">
+            <TabItem Header="{loc:Loc Settings.Menus}" Tag="{StaticResource IconMenus}" Style="{StaticResource SettingsTabItem}">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
@@ -1020,7 +1101,7 @@
             </TabItem>
 
             <!-- ================= CONVERSORES (lista montada em código: SettingsWindow.Converters.cs) ================= -->
-            <TabItem Header="Conversores" Tag="&#xE8AB;" Style="{StaticResource SettingsTabItem}">
+            <TabItem Header="{loc:Loc Settings.Converters}" Tag="{StaticResource IconConverters}" Style="{StaticResource SettingsTabItem}">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
@@ -1066,7 +1147,7 @@
             </TabItem>
 
             <!-- ================= SOBRE ================= -->
-            <TabItem Header="Sobre" Tag="&#xE946;" Style="{StaticResource SettingsTabItem}">
+            <TabItem Header="{loc:Loc Settings.About}" Tag="{StaticResource IconAbout}" Style="{StaticResource SettingsTabItem}">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>

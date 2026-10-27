@@ -88,6 +88,12 @@ public sealed class MenusTabTests : IDisposable
 
     private static void Click(Button button) => button.RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent));
 
+    private static void SelectTab(SettingsWindow window, string header)
+    {
+        var tabs = Find<TabControl>(window, "MainTabs");
+        tabs.SelectedItem = tabs.Items.Cast<TabItem>().Single(t => (string)t.Header == header);
+    }
+
     private static void SelectTag(ComboBox combo, object tag) =>
         combo.SelectedItem = combo.Items.Cast<ComboBoxItem>().Single(i => Equals(i.Tag, tag));
 
@@ -171,10 +177,12 @@ public sealed class MenusTabTests : IDisposable
             SettingsWindow window = OpenSettings();
             TabItem[] tabs = Find<TabControl>(window, "MainTabs").Items.Cast<TabItem>().ToArray();
 
-            Assert.Equal(6, tabs.Length);
-            Assert.Equal("Apps Favoritos", tabs[2].Header);
-            Assert.Equal("Menus", tabs[3].Header);
-            Assert.Equal("Conversores", tabs[4].Header);
+            Assert.Equal(7, tabs.Length);
+            Assert.Equal("Aparência", tabs[1].Header);
+            Assert.Equal("Blacklist", tabs[2].Header);
+            Assert.Equal("Apps Favoritos", tabs[3].Header);
+            Assert.Equal("Menus", tabs[4].Header);
+            Assert.Equal("Conversores", tabs[5].Header);
             window.Close();
         });
     }
@@ -426,7 +434,7 @@ public sealed class MenusTabTests : IDisposable
         {
             SettingsService.OverrideCurrentForTests(SettingsWithSubmenu(SubmenuItem()));
             SettingsWindow window = OpenSettings();
-            Find<TabControl>(window, "MainTabs").SelectedIndex = 3;
+            SelectTab(window, "Menus");
             Pump(300);
             Find<ListBox>(window, "ListItems").SelectedIndex = 0;
 
@@ -606,7 +614,7 @@ public sealed class MenusTabTests : IDisposable
             SettingsService.OverrideCurrentForTests(SettingsWithRoutine(
                 RoutineItem(RoutineAction(RadialAction.CopyPath), RoutineDelay(250), RoutineAction(RadialAction.Paste))));
             SettingsWindow window = OpenSettings();
-            Find<TabControl>(window, "MainTabs").SelectedIndex = 3;
+            SelectTab(window, "Menus");
             Pump(300);
             Find<ListBox>(window, "ListItems").SelectedIndex = 0;
 

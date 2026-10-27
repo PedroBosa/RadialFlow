@@ -9,6 +9,7 @@ using System.Windows.Controls.Primitives;
 using System.Windows.Media;
 using System.Windows.Threading;
 using RadialFlow.Config;
+using RadialFlow.Infrastructure;
 using RadialFlow.Input;
 using RadialFlow.UI;
 using Xunit;
@@ -133,11 +134,9 @@ public sealed class SettingsDraftTests : IDisposable
         {
             AppSettings settings = SettingsService.Current;
             int deadzone = settings.DeadzonePixels;
-            string accent = settings.Accent;
 
             SettingsWindow window = OpenSettings();
             Find<Slider>(window, "SliderDeadzone").Value = 33;
-            Accent(window, "Violet").IsChecked = true;
 
             string? shown = null;
             OnShown(w =>
@@ -148,17 +147,43 @@ public sealed class SettingsDraftTests : IDisposable
 
             window.Close();
 
-            Assert.NotNull(shown);
-            Assert.Contains("Geral", shown);
+            Assert.StartsWith("Configurações não salvas: Geral.", shown);
             Assert.False(window.IsVisible);
             Assert.Equal(deadzone, settings.DeadzonePixels);
+            Assert.Null(_saved);
+        });
+    }
+
+    [Fact]
+    public void Cancelar_Aparencia_AvisaENaoAlteraCurrent()
+    {
+        RunSta(() =>
+        {
+            AppSettings settings = SettingsService.Current;
+            string accent = settings.Accent;
+
+            SettingsWindow window = OpenSettings();
+            Accent(window, "Violet").IsChecked = true;
+            Pump(50);
+
+            string? shown = null;
+            OnShown(w =>
+            {
+                shown = VisibleText(w, "Configurações não salvas");
+                Click(ButtonsOf(w).Single(b => (string)b.Content == "Descartar"));
+            });
+
+            window.Close();
+
+            Assert.StartsWith("Configurações não salvas: Aparência.", shown);
+            Assert.False(window.IsVisible);
             Assert.Equal(accent, settings.Accent);
             Assert.Null(_saved);
         });
     }
 
     [Fact]
-    public void Cancelar_EstiloDaRoda_AvisaGeralENaoAlteraCurrent()
+    public void Cancelar_EstiloDaRoda_AvisaAparenciaENaoAlteraCurrent()
     {
         RunSta(() =>
         {
@@ -181,10 +206,44 @@ public sealed class SettingsDraftTests : IDisposable
 
             window.Close();
 
-            Assert.NotNull(shown);
-            Assert.Contains("Geral", shown);
+            Assert.StartsWith("Configurações não salvas: Aparência.", shown);
             Assert.False(window.IsVisible);
             Assert.Equal("Standard", settings.WheelPreset);
+            Assert.Null(_saved);
+        });
+    }
+
+    [Fact]
+    public void Cancelar_Idioma_AvisaAparenciaENaoMudaCurrent()
+    {
+        RunSta(() =>
+        {
+            AppSettings settings = SettingsService.Current;
+            Assert.Equal("pt-BR", settings.Language);
+
+            SettingsWindow window = OpenSettings();
+            var language = Find<ComboBox>(window, "CmbLanguage");
+            var hint = Find<TextBlock>(window, "LanguageRestartHint");
+            Assert.Equal(Visibility.Collapsed, hint.Visibility);
+
+            language.SelectedIndex = 1;   // English (United States)
+            Pump(50);
+
+            Assert.Equal(Visibility.Visible, hint.Visibility);
+            Assert.Equal("Alterações não salvas: Aparência", Find<TextBlock>(window, "SaveStatus").Text);
+
+            string? shown = null;
+            OnShown(w =>
+            {
+                shown = VisibleText(w, "Configurações não salvas");
+                Click(ButtonsOf(w).Single(b => (string)b.Content == "Descartar"));
+            });
+
+            window.Close();
+
+            Assert.StartsWith("Configurações não salvas: Aparência.", shown);
+            Assert.False(window.IsVisible);
+            Assert.Equal("pt-BR", settings.Language);
             Assert.Null(_saved);
         });
     }
@@ -316,6 +375,35 @@ public sealed class SettingsDraftTests : IDisposable
 
             // O objeto antigo permanece intacto.
             Assert.Equal(originalFavorites.Count, settings.FavoriteApps.Count);
+        });
+    }
+
+    [Fact]
+    public void Salvar_Idioma_PersisteEMostraAvisoDeReinicio()
+    {
+        RunSta(() =>
+        {
+            SettingsWindow window = OpenSettings();
+            var language = Find<ComboBox>(window, "CmbLanguage");
+            language.SelectedIndex = 1;   // English (United States)
+            Pump(50);
+
+            Assert.Equal(Visibility.Visible, Find<TextBlock>(window, "LanguageRestartHint").Visibility);
+
+            string? message = null;
+            OnShown(w =>
+            {
+                message = VisibleText(w, Loc.Get("Settings.RestartRequired"));
+                Click(ButtonsOf(w).Single(b => (string)b.Content == "OK"));
+            });
+
+            Click(Find<Button>(window, "BtnSave"));
+
+            AppSettings saved = Assert.IsType<AppSettings>(_saved);
+            Assert.Equal("en-US", saved.Language);
+            Assert.Same(saved, SettingsService.Current);
+            Assert.False(window.IsVisible);
+            Assert.Equal(Loc.Get("Settings.RestartRequired"), message);
         });
     }
 

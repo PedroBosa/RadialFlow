@@ -47,6 +47,7 @@ public partial class SettingsWindow : Window
         SliderDwell.Value = Math.Clamp(current.DwellMilliseconds, RadialMenuWindow.MinDwellMilliseconds, RadialMenuWindow.MaxDwellMilliseconds);
         FillAccentChoices(current.Accent);
         FillWheelPresets(current.WheelPreset);
+        FillLanguages(current.Language);
 
         AboutVersion.Text = $"Versão {AppInfo.Version} · Menu radial contextual para Windows";
         LogPath.Text = AppLog.FilePath;
@@ -86,6 +87,7 @@ public partial class SettingsWindow : Window
         int DwellMilliseconds,
         string Accent,
         string WheelPreset,
+        string Language,
         IReadOnlyList<(string ProcessName, string Description)> Blacklist,
         IReadOnlyList<(string Name, string ExecutablePath, string Arguments, string Glyph)> FavoriteApps);
 
@@ -96,6 +98,7 @@ public partial class SettingsWindow : Window
         (int)SliderDwell.Value,
         _accentKey,
         _wheelPreset.Key,
+        _language,
         _blacklistItems.Select(e => (e.ProcessName, e.Description)).ToArray(),
         _favoriteItems.Select(a => (a.Name, a.ExecutablePath, a.Arguments, a.Glyph)).ToArray());
 
@@ -110,18 +113,23 @@ public partial class SettingsWindow : Window
             if (now.StartWithWindows != baseline.StartWithWindows ||
                 now.BlockExclusiveFullscreen != baseline.BlockExclusiveFullscreen ||
                 now.DeadzonePixels != baseline.DeadzonePixels ||
-                now.DwellMilliseconds != baseline.DwellMilliseconds ||
-                !string.Equals(now.Accent, baseline.Accent, StringComparison.Ordinal) ||
-                !string.Equals(now.WheelPreset, baseline.WheelPreset, StringComparison.Ordinal))
+                now.DwellMilliseconds != baseline.DwellMilliseconds)
             {
-                changed.Add("Geral");
+                changed.Add(Loc.Get("Settings.General"));
             }
 
-            if (!now.FavoriteApps.SequenceEqual(baseline.FavoriteApps)) changed.Add("Apps Favoritos");
-            if (!now.Blacklist.SequenceEqual(baseline.Blacklist)) changed.Add("Blacklist");
+            if (!string.Equals(now.Accent, baseline.Accent, StringComparison.Ordinal) ||
+                !string.Equals(now.WheelPreset, baseline.WheelPreset, StringComparison.Ordinal) ||
+                !string.Equals(now.Language, baseline.Language, StringComparison.Ordinal))
+            {
+                changed.Add(Loc.Get("Settings.Appearance"));
+            }
+
+            if (!now.Blacklist.SequenceEqual(baseline.Blacklist)) changed.Add(Loc.Get("Settings.Blacklist"));
+            if (!now.FavoriteApps.SequenceEqual(baseline.FavoriteApps)) changed.Add(Loc.Get("Settings.Favorites"));
         }
 
-        if (_menusDirty) changed.Add("Menus");
+        if (_menusDirty) changed.Add(Loc.Get("Settings.Menus"));
         return changed;
     }
 
@@ -151,8 +159,8 @@ public partial class SettingsWindow : Window
         bool dirty = changed.Count > 0;
         StatusDot.Visibility = dirty ? Visibility.Visible : Visibility.Collapsed;
         SaveStatus.Text = dirty
-            ? $"Alterações não salvas: {string.Join(", ", changed)}"
-            : "Tudo salvo";
+            ? Loc.Format("Settings.Unsaved", string.Join(", ", changed))
+            : Loc.Get("Settings.AllSaved");
     }
 
     private void BtnOpenLogs_Click(object sender, RoutedEventArgs e) => TrayIconService.OpenLogsFolder();
@@ -234,6 +242,32 @@ public partial class SettingsWindow : Window
         _wheelPreset = preset;
         WheelPresetHint.Text = preset.Description;
         UpdateDirtyIndicator();
+    }
+
+    private string _language = Loc.DefaultLanguage;
+
+    private void FillLanguages(string? saved)
+    {
+        _language = Loc.Normalize(saved);
+        CmbLanguage.ItemsSource = Loc.Languages;
+        CmbLanguage.SelectedItem = Loc.Languages.FirstOrDefault(l => l.Key == _language);
+        UpdateLanguageRestartHint();
+    }
+
+    private void Language_Changed(object sender, SelectionChangedEventArgs e)
+    {
+        if (CmbLanguage.SelectedItem is not LanguageOption option) return;
+
+        _language = option.Key;
+        UpdateLanguageRestartHint();
+        UpdateDirtyIndicator();
+    }
+
+    /// <summary>Só quando a escolha difere do que está salvo: o idioma novo só entra no próximo início.</summary>
+    private void UpdateLanguageRestartHint()
+    {
+        bool changed = !string.Equals(_language, Loc.Normalize(SettingsService.Current.Language), StringComparison.Ordinal);
+        LanguageRestartHint.Visibility = changed ? Visibility.Visible : Visibility.Collapsed;
     }
 
     private void BtnAddBlacklist_Click(object sender, RoutedEventArgs e)
@@ -335,6 +369,7 @@ public partial class SettingsWindow : Window
             DwellMilliseconds = (int)SliderDwell.Value,
             Accent = _accentKey,
             WheelPreset = _wheelPreset.Key,
+            Language = _language,
             Blacklist = _blacklistItems
                 .Select(e => new ForegroundBlacklist.BlacklistEntry(e.ProcessName, e.Description))
                 .ToList(),
@@ -343,6 +378,9 @@ public partial class SettingsWindow : Window
                 .ToList(),
         };
         ApplyMenusTo(settings);
+
+        bool languageChanged = _nonMenuBaseline is { } baseline &&
+            !string.Equals(settings.Language, baseline.Language, StringComparison.Ordinal);
 
         if (!SettingsService.TrySave(settings, out string? error))
         {
@@ -357,6 +395,10 @@ public partial class SettingsWindow : Window
 
         _menusDirty = false;
         _nonMenuBaseline = CaptureNonMenuSnapshot();   // salvo: fechar sem aviso de descarte
+
+        if (languageChanged)
+            Dialogs.Message(this, Loc.Get("Settings.Language"), Loc.Get("Settings.RestartRequired"), DialogIcon.Info);
+
         Close();
     }
 

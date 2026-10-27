@@ -151,7 +151,7 @@ public sealed class WindowsTests : IDisposable
     {
         RunSta(() =>
         {
-            SettingsWindow window = OpenSettings();
+            SettingsWindow window = OpenSettings(height: 520);
             ScrollViewer scroll = Find<ScrollViewer>(window, "GeneralScroll");
 
             Assert.True(scroll.ExtentHeight > scroll.ViewportHeight, "o conteúdo deveria ser maior que a área visível");
@@ -166,13 +166,17 @@ public sealed class WindowsTests : IDisposable
     }
 
     [Fact]
-    public void Configuracoes_AbaGeral_ChegaAoUltimoCartao()
+    public void Configuracoes_AbaAparencia_ChegaAoUltimoCartao()
     {
         RunSta(() =>
         {
-            SettingsWindow window = OpenSettings();
-            ScrollViewer scroll = Find<ScrollViewer>(window, "GeneralScroll");
-            Panel chips = Find<Panel>(window, "AccentChips");   // o último cartão (Aparência)
+            SettingsWindow window = OpenSettings(height: 520);
+            var tabs = Find<TabControl>(window, "MainTabs");
+            tabs.SelectedItem = tabs.Items.Cast<TabItem>().Single(t => (string)t.Header == "Aparência");
+            Pump(300);
+
+            ScrollViewer scroll = Find<ScrollViewer>(window, "AppearanceScroll");
+            ComboBox language = Find<ComboBox>(window, "CmbLanguage");   // último cartão
 
             scroll.ScrollToEnd();
             Pump(200);
@@ -180,8 +184,8 @@ public sealed class WindowsTests : IDisposable
             Assert.Equal(scroll.ScrollableHeight, scroll.VerticalOffset, precision: 1);
 
             // O último cartão fica totalmente dentro da área visível depois de rolar até o fim.
-            Rect inViewport = chips.TransformToAncestor(scroll).TransformBounds(new Rect(0, 0, chips.ActualWidth, chips.ActualHeight));
-            Assert.True(inViewport.Top >= 0 && inViewport.Bottom <= scroll.ViewportHeight + 1, $"chips em {inViewport} / viewport {scroll.ViewportHeight}");
+            Rect inViewport = language.TransformToAncestor(scroll).TransformBounds(new Rect(0, 0, language.ActualWidth, language.ActualHeight));
+            Assert.True(inViewport.Top >= 0 && inViewport.Bottom <= scroll.ViewportHeight + 1, $"idioma em {inViewport} / viewport {scroll.ViewportHeight}");
 
             window.Close();
         });
@@ -192,7 +196,7 @@ public sealed class WindowsTests : IDisposable
     {
         RunSta(() =>
         {
-            SettingsWindow window = OpenSettings();
+            SettingsWindow window = OpenSettings(height: 520);
             ScrollViewer scroll = Find<ScrollViewer>(window, "GeneralScroll");
             Slider slider = Find<Slider>(window, "SliderDeadzone");   // sob o cursor da rodinha
 
@@ -235,7 +239,8 @@ public sealed class WindowsTests : IDisposable
             SettingsService.OverrideCurrentForTests(settings);
 
             SettingsWindow window = OpenSettings();
-            Find<TabControl>(window, "MainTabs").SelectedIndex = 1;
+            var tabs = Find<TabControl>(window, "MainTabs");
+            tabs.SelectedItem = tabs.Items.Cast<TabItem>().Single(t => (string)t.Header == "Blacklist");
             Pump(300);
 
             Button add = Find<Button>(window, "BtnAddBlacklist");
