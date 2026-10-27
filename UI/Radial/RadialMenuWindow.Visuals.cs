@@ -41,6 +41,9 @@ public partial class RadialMenuWindow
     private const double HubRadius = 40;            // metade do CenterHub (80 x 80) no XAML
     internal const double BackDwellRadius = (HubRadius + RingInner) / 2;   // no meio do vão entre o miolo e as fatias
 
+    /// <summary>Raio (DIP) a partir do qual um clique na roda aberta pelo atalho conta como "fora".</summary>
+    internal const double HoverOuterRadius = RingOuter * HoverPop + 14;
+
     /// <summary>Comprimento do traço do "voltar" em múltiplos da espessura (unidade do StrokeDashArray), com folga.</summary>
     private static readonly double BackDwellDash = 2 * Math.PI * BackDwellRadius / DwellArcThickness + 1;
 

@@ -6,6 +6,7 @@ using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
+using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
 using RadialFlow.Config;
@@ -425,6 +426,179 @@ public sealed class SettingsDraftTests : IDisposable
             AppSettings saved = Assert.IsType<AppSettings>(_saved);
             Assert.Equal("HighContrast", saved.WheelPreset);
             Assert.Same(saved, SettingsService.Current);
+            Assert.False(window.IsVisible);
+        });
+    }
+
+    // ------------------------------------------------------------------
+    // Atalho global
+    // ------------------------------------------------------------------
+
+    [Fact]
+    public void Salvar_AtalhoGravado_PersisteNaFormaCanonica()
+    {
+        RunSta(() =>
+        {
+            SettingsWindow window = OpenSettings();
+            Click(Find<Button>(window, "BtnRecordHotkey"));
+            Assert.True(window.IsRecordingHotkey);
+
+            Assert.True(window.CaptureHotkey(Key.K, ModifierKeys.Control | ModifierKeys.Alt));
+            Assert.False(window.IsRecordingHotkey);
+            Assert.Equal("Ctrl+Alt+K", window.HotkeyText);
+            Assert.Equal("Ctrl+Alt+K", Find<TextBlock>(window, "HotkeyDisplay").Text);
+            Assert.Equal("Alterações não salvas: Geral", Find<TextBlock>(window, "SaveStatus").Text);
+
+            Dialogs.BeforeShow = _ => throw new InvalidOperationException("Salvar com sucesso não deve pedir confirmação.");
+            Click(Find<Button>(window, "BtnSave"));
+
+            AppSettings saved = Assert.IsType<AppSettings>(_saved);
+            Assert.Equal("Ctrl+Alt+K", saved.Hotkey);
+            Assert.Same(saved, SettingsService.Current);
+            Assert.False(window.IsVisible);
+        });
+    }
+
+    [Fact]
+    public void Gravacao_SemModificador_MostraAvisoEMantemAGravacao()
+    {
+        RunSta(() =>
+        {
+            SettingsWindow window = OpenSettings();
+            Click(Find<Button>(window, "BtnRecordHotkey"));
+
+            Assert.True(window.CaptureHotkey(Key.K, ModifierKeys.None));
+
+            Assert.True(window.IsRecordingHotkey);
+            Assert.Equal("", window.HotkeyText);
+            var status = Find<TextBlock>(window, "HotkeyStatus");
+            Assert.Equal(Visibility.Visible, status.Visibility);
+            Assert.Equal(Loc.Get("Settings.General.HotkeyNeedModifier"), status.Text);
+            Assert.Equal(Loc.Get("Settings.General.HotkeyRecording"), Find<TextBlock>(window, "HotkeyDisplay").Text);
+
+            window.Close();   // nada foi alterado: fecha sem aviso
+            Assert.False(window.IsVisible);
+        });
+    }
+
+    [Fact]
+    public void Gravacao_EscCancelaSemTrocarOAtalho()
+    {
+        RunSta(() =>
+        {
+            SettingsWindow window = OpenSettings();
+            Click(Find<Button>(window, "BtnRecordHotkey"));
+
+            Assert.True(window.CaptureHotkey(Key.Escape, ModifierKeys.None));
+
+            Assert.False(window.IsRecordingHotkey);
+            Assert.Equal("", window.HotkeyText);
+            Assert.Equal(Loc.Get("Settings.General.HotkeyNone"), Find<TextBlock>(window, "HotkeyDisplay").Text);
+            window.Close();
+        });
+    }
+
+    [Fact]
+    public void Gravacao_CancelaAoTrocarDeAba()
+    {
+        RunSta(() =>
+        {
+            SettingsWindow window = OpenSettings();
+            Click(Find<Button>(window, "BtnRecordHotkey"));
+            Assert.True(window.IsRecordingHotkey);
+
+            Find<TabControl>(window, "MainTabs").SelectedIndex = 1;
+            Pump(50);
+
+            Assert.False(window.IsRecordingHotkey);
+            window.Close();
+        });
+    }
+
+    [Fact]
+    public void Cancelar_AtalhoAlterado_AvisaGeralENaoAlteraCurrent()
+    {
+        RunSta(() =>
+        {
+            AppSettings settings = SettingsService.Current;
+            Assert.Equal("", settings.Hotkey);
+
+            SettingsWindow window = OpenSettings();
+            Click(Find<Button>(window, "BtnRecordHotkey"));
+            Assert.True(window.CaptureHotkey(Key.K, ModifierKeys.Control | ModifierKeys.Alt));
+
+            string? shown = null;
+            OnShown(w =>
+            {
+                shown = VisibleText(w, "Configurações não salvas");
+                Click(ButtonsOf(w).Single(b => (string)b.Content == "Descartar"));
+            });
+
+            window.Close();
+
+            Assert.StartsWith("Configurações não salvas: Geral.", shown);
+            Assert.False(window.IsVisible);
+            Assert.Equal("", settings.Hotkey);
+            Assert.Null(_saved);
+        });
+    }
+
+    [Fact]
+    public void LimparAtalho_SalvaVazio()
+    {
+        RunSta(() =>
+        {
+            AppSettings settings = AppSettings.CreateDefault();
+            settings.Hotkey = "Ctrl+Alt+K";
+            SettingsService.OverrideCurrentForTests(settings);
+
+            SettingsWindow window = OpenSettings();
+            Assert.Equal("Ctrl+Alt+K", Find<TextBlock>(window, "HotkeyDisplay").Text);
+
+            Click(Find<Button>(window, "BtnClearHotkey"));
+            Assert.Equal(Loc.Get("Settings.General.HotkeyNone"), Find<TextBlock>(window, "HotkeyDisplay").Text);
+
+            Dialogs.BeforeShow = _ => throw new InvalidOperationException("Salvar com sucesso não deve pedir confirmação.");
+            Click(Find<Button>(window, "BtnSave"));
+
+            Assert.Equal("", Assert.IsType<AppSettings>(_saved).Hotkey);
+            Assert.False(window.IsVisible);
+        });
+    }
+
+    [Fact]
+    public void Salvar_AlteracaoNaoRelacionada_PreservaOAtalho()
+    {
+        RunSta(() =>
+        {
+            AppSettings settings = AppSettings.CreateDefault();
+            settings.Hotkey = "Ctrl+Alt+K";
+            SettingsService.OverrideCurrentForTests(settings);
+
+            SettingsWindow window = OpenSettings();
+            Find<Slider>(window, "SliderDeadzone").Value = 33;
+
+            Dialogs.BeforeShow = _ => throw new InvalidOperationException("Salvar com sucesso não deve pedir confirmação.");
+            Click(Find<Button>(window, "BtnSave"));
+
+            Assert.Equal("Ctrl+Alt+K", Assert.IsType<AppSettings>(_saved).Hotkey);
+        });
+    }
+
+    [Fact]
+    public void AtalhoInvalidoNoArquivo_EhMostradoComoDesativado()
+    {
+        RunSta(() =>
+        {
+            AppSettings settings = AppSettings.CreateDefault();
+            settings.Hotkey = "Ctrl+Alt";   // só modificadores: inválido
+            SettingsService.OverrideCurrentForTests(settings);
+
+            SettingsWindow window = OpenSettings();
+
+            Assert.Equal("", window.HotkeyText);
+            Assert.Equal(Loc.Get("Settings.General.HotkeyNone"), Find<TextBlock>(window, "HotkeyDisplay").Text);
+            window.Close();   // nada foi alterado: fecha sem aviso
             Assert.False(window.IsVisible);
         });
     }

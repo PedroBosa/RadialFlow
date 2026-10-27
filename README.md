@@ -37,6 +37,11 @@ no sentido horário; o submenu abre na hora e uma ação é executada), as **set
 abre o submenu ou executa a opção destacada e **Esc** volta ao menu anterior ou fecha a roda. A seleção usa o mesmo
 destaque do mouse, que retoma o controle assim que se move. Os atalhos valem só enquanto a roda está na tela.
 
+Se preferir não arrastar, dá para abrir a roda por um **atalho global**, como `Ctrl+Alt+Space` (grave o seu em
+**Configurações → Geral**). A roda aparece no cursor e se escolhe a opção com um **clique**; o miolo volta um nível
+e um clique fora do anel fecha. O botão direito, o **Esc** ou o próprio atalho fecham sem escolher. O atalho funciona
+também nos programas da Blacklist e em tela cheia, desde que o RadialFlow não esteja pausado.
+
 ## Instalar
 
 1. Baixe o `RadialFlow-1.3.0-Setup.exe` na página **Releases** deste repositório.
@@ -82,7 +87,7 @@ Get-FileHash .\RadialFlow-1.3.0-Setup.exe
 Clique no ícone do RadialFlow perto do relógio.
 
 - **Geral**: iniciar com o Windows, pausar em jogos e vídeos em tela cheia, quanto é preciso arrastar para a roda
-  abrir, quanto tempo esperar para as opções extras aparecerem.
+  abrir, quanto tempo esperar para as opções extras aparecerem e o atalho global que abre a roda.
 - **Aparência**: cor de destaque, estilo da roda e idioma da interface — português, inglês ou espanhol. A troca de
   idioma vale no próximo início.
 - **Blacklist**: programas em que a roda nunca abre (útil em programas 3D e jogos, que usam o botão direito).
@@ -221,6 +226,10 @@ Sem `--scope machine`, o winget instala o FFmpeg na sua pasta de usuário, e o R
 **A roda não abre.** Veja se o ícone está perto do relógio e se não está pausado (cinza). A roda também não abre em
 jogos e vídeos em tela cheia, nem nos programas da Blacklist. E é preciso arrastar um pouco: um clique parado abre o
 menu normal do Windows.
+
+**O atalho global não funciona.** Outro programa pode já estar usando a combinação: as Configurações mostram o aviso
+ao gravá-la e não salvam enquanto o conflito existir. O atalho também fica desligado com o RadialFlow pausado. Se a
+combinação tiver sido tomada por outro programa depois de salva, grave outra; o RadialFlow avisa na aba **Geral**.
 
 **A opção Converter não aparece, ou não tem o formato que eu queria.** Falta o programa que faz essa conversão (veja a
 tabela em [Converter arquivos](#converter-arquivos)). Instale-o em **Configurações → Conversores**. Se você mesmo o

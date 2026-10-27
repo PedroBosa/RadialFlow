@@ -127,6 +127,11 @@ internal sealed class SettingsStore(string directory, string fileName = "setting
         loaded.WheelPreset = UI.WheelPreset.Normalize(loaded.WheelPreset);
         loaded.Language = Loc.Normalize(loaded.Language);
 
+        string rawHotkey = loaded.Hotkey ?? "";
+        loaded.Hotkey = HotkeyGesture.Normalize(rawHotkey);
+        if (loaded.Hotkey.Length == 0 && rawHotkey.Trim().Length > 0)
+            AppLog.Warning("Settings", "O atalho global gravado no arquivo não é válido; ele foi desativado.");
+
         CustomMenuNormalizer.Normalize(loaded.CustomProfiles);
 
         loaded.Blacklist = NormalizeBlacklist(loaded.Blacklist);

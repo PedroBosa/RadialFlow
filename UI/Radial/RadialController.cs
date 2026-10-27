@@ -8,6 +8,11 @@
 //   DragCompleted -> fecha a roda e executa a fatia sob o cursor
 //   SliceActivated (teclado) -> a roda já se fechou; executa a fatia escolhida
 //
+// ATALHO GLOBAL: RegisterHotKey (GlobalHotkeyService) abre a mesma roda no cursor.
+// Como a janela não recebe input, o hook do mouse entra em HotkeyMode e entrega
+// movimento/cliques: esquerdo escolhe, direito cancela. A pausa da bandeja
+// desliga o atalho.
+//
 // THREADS: os eventos do hook chegam na thread do HOOK (dedicada). Os handlers
 // só enfileiram no Dispatcher e voltam. Os campos tocados pelas duas threads
 // (_lastPoint, _movePending) usam Volatile/Interlocked.
@@ -16,6 +21,7 @@
 // ============================================================================
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
@@ -30,16 +36,38 @@ namespace RadialFlow.UI;
 public sealed class RadialController : IDisposable
 {
     private readonly MouseHookService _hook = new();
+    private readonly GlobalHotkeyService _hotkeys = new();
     private readonly RadialMenuWindow _wheel = new();
     private readonly ForegroundBlacklist _blacklist;
     private readonly Dispatcher _ui = Dispatcher.CurrentDispatcher;
     private WheelPreset _preset = WheelPreset.Standard;
+    private HotkeyRegistrationError _hotkeyError;
+    private bool _hotkeyWheelOpen;
 
-    /// <summary>Pausa manual (bandeja).</summary>
+    /// <summary>Pausa manual (bandeja). Também desliga o atalho global.</summary>
     public bool IsPaused
     {
         get => _blacklist.IsPaused;
-        set => _blacklist.IsPaused = value;
+        set
+        {
+            if (_blacklist.IsPaused == value) return;
+
+            _blacklist.IsPaused = value;
+
+            if (value)
+            {
+                _generation++;   // cancela uma preparação da roda pelo atalho em andamento
+                _hotkeyWheelOpen = false;
+                _hook.HotkeyMode = false;
+                _wheel.Cancel();
+                _hotkeyError = _hotkeys.SetEnabled(false);
+            }
+            else
+            {
+                // Durante a gravação a combinação continua solta; EndHotkeyCapture religa depois.
+                _hotkeyError = _hotkeys.SetEnabled(!_hotkeyCaptureActive);
+            }
+        }
     }
 
     public void ApplySettings(AppSettings settings)
@@ -51,6 +79,52 @@ public sealed class RadialController : IDisposable
         _wheel.Preset = _preset;
         _blacklist.BlockExclusiveFullscreen = settings.BlockExclusiveFullscreen;
         _blacklist.UpdateEntries(settings.Blacklist);
+
+        _hotkeys.SetEnabled(!IsPaused);
+        _hotkeyError = _hotkeys.TrySet(settings.Hotkey, out _);
+        if (_hotkeyError is HotkeyRegistrationError.AlreadyInUse or HotkeyRegistrationError.Unavailable)
+            AppLog.Warning("Hotkey", $"O atalho global não pôde ser ativado ({_hotkeyError}).");
+    }
+
+    /// <summary>Estado do registro do atalho (Configurações mostram um aviso quando não é None).</summary>
+    internal HotkeyRegistrationError HotkeyError => _hotkeyError;
+
+    internal bool IsHotkeyRegistered => _hotkeys.IsRegistered;
+
+    internal string Hotkey => _hotkeys.Hotkey;
+
+    /// <summary>
+    /// Troca o atalho imediatamente (antes de salvar o arquivo). Em falha, o atalho anterior é restaurado.
+    /// </summary>
+    internal HotkeyRegistrationError TrySetHotkey(string? hotkey, out string normalized)
+    {
+        _hotkeyError = _hotkeys.TrySet(hotkey, out normalized);
+        return _hotkeyError;
+    }
+
+    private bool _hotkeyCaptureActive;
+
+    /// <summary>
+    /// Gravação nas Configurações: solta a combinação atual para que ela própria possa ser capturada
+    /// (com o atalho registrado, o Windows entrega WM_HOTKEY e a tecla nem chega à janela).
+    /// </summary>
+    internal void BeginHotkeyCapture()
+    {
+        if (_hotkeyCaptureActive || _disposed) return;
+
+        _hotkeyCaptureActive = true;
+        _hotkeyError = _hotkeys.SetEnabled(false);
+    }
+
+    /// <summary>Fim da gravação: volta a valer o atalho desejado, respeitando a pausa da bandeja.</summary>
+    internal void EndHotkeyCapture()
+    {
+        if (!_hotkeyCaptureActive) return;
+
+        _hotkeyCaptureActive = false;
+        if (_disposed) return;
+
+        _hotkeyError = _hotkeys.SetEnabled(!IsPaused);
     }
 
     // Compartilhados entre a thread do hook e a UI.
@@ -79,10 +153,16 @@ public sealed class RadialController : IDisposable
         _wheel.Prewarm();
         _wheel.EnableKeyboardNavigation();
         _wheel.SliceActivated += OnSliceActivated;
+        _wheel.Hidden += OnWheelHidden;
 
         _hook.DragStarted += OnDragStarted;
         _hook.DragMoved += OnDragMoved;
         _hook.DragCompleted += OnDragCompleted;
+        _hook.PointerMoved += OnDragMoved;   // mesmo coalescido do arrasto: só atualiza o destaque
+        _hook.HotkeyClicked += OnHotkeyClicked;
+        _hook.HotkeyCancelled += OnHotkeyCancelled;
+
+        _hotkeys.Pressed += OnGlobalHotkey;
 
         _hook.Start();         // sobe a thread dedicada do hook
         _blacklist.Start();    // SetWinEventHook: precisa do message loop da UI
@@ -153,6 +233,113 @@ public sealed class RadialController : IDisposable
         }
     }
 
+    // ------------------------------------------------------------------
+    // Atalho global (thread de UI)
+    // ------------------------------------------------------------------
+
+    private void OnGlobalHotkey()
+    {
+        try
+        {
+            ToggleHotkeyWheel();
+        }
+        catch (Exception ex)
+        {
+            AppLog.Error("Hotkey", "Falha ao alternar a roda pelo atalho", ex);
+        }
+    }
+
+    private void ToggleHotkeyWheel()
+    {
+        if (_disposed) return;
+
+        if (_hotkeyWheelOpen)
+        {
+            _wheel.Cancel();   // Hidden limpa _hotkeyWheelOpen e HotkeyMode
+            return;
+        }
+
+        // Não abre por cima de um gesto em andamento nem de uma roda que já está na tela.
+        if (_hook.IsGestureActive || _wheel.IsVisible || IsPaused) return;
+        if (!RadialMenuWindow.TryGetCursorPosition(out int x, out int y)) return;
+
+        _ = BeginHotkeyAsync(x, y);
+    }
+
+    private void OnHotkeyClicked(MouseHookService.POINT pt)
+    {
+        int x = pt.X, y = pt.Y;
+        _ui.BeginInvoke(DispatcherPriority.Send, new Action(() => HandleHotkeyClick(x, y)));
+    }
+
+    private void HandleHotkeyClick(int x, int y)
+    {
+        if (_disposed || !_hotkeyWheelOpen) return;
+
+        var (slice, stayedOpen) = _wheel.HandleHotkeyClick(x, y);
+        if (!stayedOpen) _hotkeyWheelOpen = false;   // HideWheel também limpa pelo evento Hidden
+        if (slice is not null) ExecuteSlice(slice);
+    }
+
+    private void OnHotkeyCancelled()
+    {
+        _ui.BeginInvoke(DispatcherPriority.Send, new Action(() =>
+        {
+            if (!_disposed && _hotkeyWheelOpen) _wheel.Cancel();
+        }));
+    }
+
+    private void OnWheelHidden()
+    {
+        _hotkeyWheelOpen = false;
+        _hook.HotkeyMode = false;
+    }
+
+    private async Task BeginHotkeyAsync(int x, int y)
+    {
+        if (_disposed) return;
+        int generation = ++_generation;
+
+        try
+        {
+            (int cx, int cy) = RadialMenuWindow.PlaceOnScreen(x, y, _preset.Scale);
+
+            var content = await BuildWheelContentAsync(x, y, cx, cy, generation);
+            if (content is null) return;
+
+            // A preparação é assíncrona: um gesto pode ter começado (ou a pausa sido ligada) nesse meio-tempo.
+            if (_hook.IsGestureActive || _wheel.IsVisible || IsPaused) return;
+
+            // Do clique em diante o hook assume: a janela é NOACTIVATE e não recebe input.
+            _hook.HotkeyMode = true;
+            _wheel.Present(cx, cy, content.Value.Slices, content.Value.Backdrop, fromHotkey: true);
+
+            if (!_wheel.IsVisible)
+            {
+                _hook.HotkeyMode = false;   // menos de duas fatias para este contexto
+                return;
+            }
+
+            _hotkeyWheelOpen = true;
+
+            if (cx != x || cy != y)
+            {
+                // Perto da borda: a roda fica no centro ajustado e o cursor vai junto, para não
+                // nascer em cima de uma fatia que o usuário não escolheu.
+                RadialMenuWindow.MoveCursor(cx, cy);
+                x = cx;
+                y = cy;
+            }
+
+            _wheel.UpdateCursor(x, y);
+        }
+        catch (Exception ex)
+        {
+            _hook.HotkeyMode = false;
+            AppLog.Error("Hotkey", "Falha ao abrir a roda pelo atalho", ex);
+        }
+    }
+
     private async Task BeginGestureAsync(int x, int y)
     {
         if (_disposed) return;
@@ -163,25 +350,11 @@ public sealed class RadialController : IDisposable
             // Perto de uma borda a roda é deslocada para caber na tela. O fundo de vidro é capturado nesse centro
             // FINAL, em paralelo com a detecção de contexto (que leva dezenas de ms): não soma atraso.
             (int cx, int cy) = RadialMenuWindow.PlaceOnScreen(x, y, _preset.Scale);
-            int sizePx = (int)Math.Round(RadialMenuWindow.SizeDip * _preset.Scale * RadialMenuWindow.GetMonitorScale(cx, cy));
-            Task<System.Windows.Media.Imaging.BitmapSource?> backdropTask = _preset.UsesHighContrast
-                ? Task.FromResult<System.Windows.Media.Imaging.BitmapSource?>(null)
-                : Task.Run(() => FrostedBackdrop.Create(cx, cy, sizePx));
 
-            var context = await ContextDetector.DetectAsync(x, y);   // o contexto é o do ponto ORIGINAL do gesto
-            if (generation != _generation || _disposed) return;   // botão já foi solto
+            var content = await BuildWheelContentAsync(x, y, cx, cy, generation);
+            if (content is null) return;   // botão já foi solto ou o controller foi descartado
 
-            // Monta as fatias fora da UI: consulta disco/ferramentas (File.Exists, etc.).
-            var slices = await Task.Run(() => SliceFactory.Build(context));
-            if (generation != _generation || _disposed) return;
-
-            // Normalmente já está pronto. Se atrasar, a roda aparece sem o vidro (tinta mais opaca) em vez de esperar.
-            System.Windows.Media.Imaging.BitmapSource? backdrop = await Task.WhenAny(backdropTask, Task.Delay(80)) == backdropTask
-                ? await backdropTask
-                : null;
-            if (generation != _generation || _disposed) return;
-
-            _wheel.Present(cx, cy, slices, backdrop);
+            _wheel.Present(cx, cy, content.Value.Slices, content.Value.Backdrop);
 
             if (cx != x || cy != y)
             {
@@ -198,6 +371,33 @@ public sealed class RadialController : IDisposable
         {
             AppLog.Error("Controller", $"Falha ao iniciar o gesto", ex);
         }
+    }
+
+    /// <summary>
+    /// Detecta o contexto e monta fatias + fundo desfocado. Devolve null se o gesto foi cancelado
+    /// (<paramref name="generation"/> mudou) ou o controller foi descartado nesse meio-tempo.
+    /// </summary>
+    private async Task<(IReadOnlyList<RadialSlice> Slices, System.Windows.Media.Imaging.BitmapSource? Backdrop)?>
+        BuildWheelContentAsync(int x, int y, int cx, int cy, int generation)
+    {
+        int sizePx = (int)Math.Round(RadialMenuWindow.SizeDip * _preset.Scale * RadialMenuWindow.GetMonitorScale(cx, cy));
+        Task<System.Windows.Media.Imaging.BitmapSource?> backdropTask = _preset.UsesHighContrast
+            ? Task.FromResult<System.Windows.Media.Imaging.BitmapSource?>(null)
+            : Task.Run(() => FrostedBackdrop.Create(cx, cy, sizePx));
+
+        var context = await ContextDetector.DetectAsync(x, y);   // o contexto é o do ponto ORIGINAL do gesto
+        if (generation != _generation || _disposed) return null;
+
+        // Monta as fatias fora da UI: consulta disco/ferramentas (File.Exists, etc.).
+        var slices = await Task.Run(() => SliceFactory.Build(context));
+        if (generation != _generation || _disposed) return null;
+
+        // Normalmente já está pronto. Se atrasar, a roda aparece sem o vidro (tinta mais opaca) em vez de esperar.
+        System.Windows.Media.Imaging.BitmapSource? backdrop =
+            await Task.WhenAny(backdropTask, Task.Delay(80)) == backdropTask ? await backdropTask : null;
+        if (generation != _generation || _disposed) return null;
+
+        return (slices, backdrop);
     }
 
     private void FlushMove()
@@ -220,21 +420,31 @@ public sealed class RadialController : IDisposable
     private static (int X, int Y) Unpack(long v) => ((int)(v >> 32), (int)(v & 0xFFFFFFFF));
 
     /// <summary>
-    /// Ordem: WinEvent (UnhookWinEvent) → hook do mouse (UnhookWindowsHookEx, Join da thread) →
-    /// janela da roda. Chamar na thread de UI; idempotente.
+    /// Ordem: WinEvent (UnhookWinEvent) → atalho global (UnregisterHotKey) → hook do mouse
+    /// (UnhookWindowsHookEx, Join da thread) → janela da roda. Chamar na thread de UI; idempotente.
     /// </summary>
     public void Dispose()
     {
         if (_disposed) return;
         _disposed = true;
 
+        _hotkeyWheelOpen = false;
+        _hook.HotkeyMode = false;
+
         _blacklist.Dispose();
+        _hotkeys.Dispose();
         _hook.Dispose();    // encerra a thread do hook (Join)
 
         _hook.DragStarted -= OnDragStarted;
         _hook.DragMoved -= OnDragMoved;
         _hook.DragCompleted -= OnDragCompleted;
+        _hook.PointerMoved -= OnDragMoved;
+        _hook.HotkeyClicked -= OnHotkeyClicked;
+        _hook.HotkeyCancelled -= OnHotkeyCancelled;
+        _hotkeys.Pressed -= OnGlobalHotkey;
+
         _wheel.SliceActivated -= OnSliceActivated;
+        _wheel.Hidden -= OnWheelHidden;
 
         _wheel.Close();
     }

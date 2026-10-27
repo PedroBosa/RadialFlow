@@ -44,6 +44,7 @@ public partial class RadialMenuWindow : Window
     private int _originX, _originY;
     private int _cursorX, _cursorY;
     private int _hover = -1;
+    private bool _openedByHotkey;
 
     private readonly DispatcherTimer _dwellTimer;
     private readonly DispatcherTimer _backDwellTimer;
@@ -128,15 +129,25 @@ public partial class RadialMenuWindow : Window
     // API pública
     // ------------------------------------------------------------------
 
+    /// <summary>Disparado sempre que a roda some (fatia executada, cancelamento ou atalho desligado).</summary>
+    internal event Action? Hidden;
+
+    /// <summary>Roda aberta pelo atalho global: os cliques chegam pelo hook, não pela janela.</summary>
+    internal bool OpenedByHotkey => _openedByHotkey;
+
     /// <param name="backdrop">Fundo já desfocado (<see cref="FrostedBackdrop"/>), no tamanho da roda; null usa tinta mais opaca.</param>
+    /// <param name="fromHotkey">
+    /// Aberta pelo atalho: cliques fora do anel fecham a roda e a dica inicial explica o clique.
+    /// </param>
     public void Present(int originX, int originY, IReadOnlyList<RadialSlice> slices,
-        System.Windows.Media.Imaging.BitmapSource? backdrop = null)
+        System.Windows.Media.Imaging.BitmapSource? backdrop = null, bool fromHotkey = false)
     {
         if (slices.Count < RadialGeometry.MinSlices) return;
 
         _navHistory.Clear();
         ResetKeyboardState();
         _currentSlices = RadialSlicePaging.Paginate(slices);
+        _openedByHotkey = fromHotkey;
 
         _originX = originX;
         _originY = originY;
@@ -155,7 +166,8 @@ public partial class RadialMenuWindow : Window
         ApplyBackdrop(preset.UsesHighContrast ? null : backdrop);   // alto contraste não usa o fundo desfocado
         BuildSegments();
         ShowHub(null);
-        HideHint();
+        if (fromHotkey) ShowHint(Loc.Get("Wheel.HotkeyHint"));
+        else HideHint();
 
         int px = (int)Math.Round(SizeDip * _layoutScale * _scale);
         SetWindowPos(_hwnd, HWND_TOPMOST, originX - px / 2, originY - px / 2, px, px, SWP_NOACTIVATE);
@@ -218,6 +230,59 @@ public partial class RadialMenuWindow : Window
         if (IsVisible) HideWheel();
     }
 
+    /// <summary>
+    /// Clique com a roda aberta pelo atalho (o clique chega pelo hook; a janela não recebe input).
+    /// Centro volta um nível (ou fecha no menu principal); fora do anel fecha; fatia com submenu abre;
+    /// fatia de ação fecha e devolve a fatia para o controller executar.
+    /// </summary>
+    internal (RadialSlice? Slice, bool StayedOpen) HandleHotkeyClick(int screenX, int screenY)
+    {
+        if (!IsVisible) return (null, false);
+
+        _cursorX = screenX;
+        _cursorY = screenY;
+
+        double dx = screenX - _originX;
+        double dy = screenY - _originY;
+        double distanceSquared = dx * dx + dy * dy;
+        double neutral = RingInner * _layoutScale * _scale;
+
+        if (distanceSquared < neutral * neutral)
+        {
+            if (_navHistory.Count > 0)
+            {
+                ReturnToParentMenu();
+                return (null, true);
+            }
+
+            HideWheel();
+            return (null, false);
+        }
+
+        if (IsOutsideHotkeyWheel(distanceSquared))
+        {
+            HideWheel();
+            return (null, false);
+        }
+
+        int index = RadialGeometry.HitTest(dx, dy, neutral, _currentSlices.Count);
+        if (index < 0 || index >= _currentSlices.Count)
+        {
+            HideWheel();
+            return (null, false);
+        }
+
+        RadialSlice slice = _currentSlices[index];
+        if (slice.SubSlices is { Count: >= 2 })
+        {
+            EnterSubmenu(slice, index);
+            return (null, true);
+        }
+
+        HideWheel();
+        return (slice, false);
+    }
+
     private void HideWheel()
     {
         _dwellTimer.Stop();
@@ -233,8 +298,10 @@ public partial class RadialMenuWindow : Window
 
         Hide();
         _hover = -1;
+        _openedByHotkey = false;
         ResetKeyboardState();
         _navHistory.Clear();
+        Hidden?.Invoke();
     }
 
     // ------------------------------------------------------------------
@@ -245,12 +312,23 @@ public partial class RadialMenuWindow : Window
     {
         double dx = screenX - _originX;
         double dy = screenY - _originY;
+        double distanceSquared = dx * dx + dy * dy;
         double neutral = RingInner * _layoutScale * _scale;
 
         // Zona neutra central (repouso / cancelar / voltar).
-        if (dx * dx + dy * dy < neutral * neutral) return -1;
+        if (distanceSquared < neutral * neutral) return -1;
+
+        // No gesto, arrastar além do anel continua valendo (o dedo pode passar do desenho).
+        // Pelo atalho não há gesto: fora do anel é um clique de cancelar.
+        if (_openedByHotkey && IsOutsideHotkeyWheel(distanceSquared)) return -1;
 
         return RadialGeometry.HitTest(dx, dy, neutral, _currentSlices.Count);
+    }
+
+    private bool IsOutsideHotkeyWheel(double distanceSquared)
+    {
+        double outer = HoverOuterRadius * _layoutScale * _scale;
+        return distanceSquared > outer * outer;
     }
 
     // ------------------------------------------------------------------
@@ -279,11 +357,13 @@ public partial class RadialMenuWindow : Window
             ShowHint(fromKeyboard
                 ? KeyboardHint(slice, hasSub)
                 : hasSub
-                    ? (string.IsNullOrEmpty(slice.Description) ? Loc.Get("Wheel.HoldForOptions") : $"{slice.Description} · {Loc.Get("Wheel.HoldToSeeOptions")}")
+                    ? (string.IsNullOrEmpty(slice.Description)
+                        ? Loc.Get(_openedByHotkey ? "Wheel.ClickForOptions" : "Wheel.HoldForOptions")
+                        : $"{slice.Description} · {Loc.Get(_openedByHotkey ? "Wheel.ClickToSeeOptions" : "Wheel.HoldToSeeOptions")}")
                     : slice.Description);
 
-            // Pelo teclado o submenu abre no Enter: nada de espera nem de traço de tempo.
-            if (hasSub && !fromKeyboard)
+            // Pelo teclado o submenu abre no Enter; pelo atalho, no clique. Só o gesto espera.
+            if (hasSub && !fromKeyboard && !_openedByHotkey)
             {
                 _dwellTargetIndex = index;
                 StartDwellProgress(_segments[index], DwellDuration);
@@ -292,16 +372,21 @@ public partial class RadialMenuWindow : Window
         }
         else if (_navHistory.Count > 0)
         {
-            // No centro, dentro de um submenu: segurar volta ao menu anterior.
             ShowHub(null);   // seta "voltar"
-            ShowHint(Loc.Get("Wheel.HoldCenterToBack"));
-            StartBackDwellProgress(DwellDuration);   // o círculo fecha exatamente quando volta
-            _backDwellTimer.Start();
+            ShowHint(Loc.Get(_openedByHotkey ? "Wheel.HotkeyHintSubmenu" : "Wheel.HoldCenterToBack"));
+
+            // No gesto, segurar no centro volta ao menu anterior. Pelo atalho o miolo volta com um clique.
+            if (!_openedByHotkey)
+            {
+                StartBackDwellProgress(DwellDuration);   // o círculo fecha exatamente quando volta
+                _backDwellTimer.Start();
+            }
         }
         else
         {
             ShowHub(null);   // marca em repouso
-            HideHint();
+            if (_openedByHotkey) ShowHint(Loc.Get("Wheel.HotkeyHint"));
+            else HideHint();
         }
     }
 
@@ -456,6 +541,21 @@ public partial class RadialMenuWindow : Window
     /// <summary>Leva o cursor para (x, y). Usado quando a roda foi deslocada para caber na tela.</summary>
     internal static void MoveCursor(int x, int y) => SetCursorPos(x, y);
 
+    /// <summary>Posição atual do cursor em pixels físicos (o atalho abre a roda onde o mouse está).</summary>
+    internal static bool TryGetCursorPosition(out int x, out int y)
+    {
+        if (GetCursorPos(out NativePoint pt))
+        {
+            x = pt.X;
+            y = pt.Y;
+            return true;
+        }
+
+        x = 0;
+        y = 0;
+        return false;
+    }
+
     /// <summary>Área útil (sem a barra de tarefas) do monitor que contém o ponto, em pixels físicos.</summary>
     internal static (int Left, int Top, int Right, int Bottom) GetWorkArea(int x, int y)
     {
@@ -512,6 +612,10 @@ public partial class RadialMenuWindow : Window
     [DllImport("user32.dll")]
     [return: MarshalAs(UnmanagedType.Bool)]
     private static extern bool SetCursorPos(int x, int y);
+
+    [DllImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool GetCursorPos(out NativePoint pt);
 
     [DllImport("user32.dll", CharSet = CharSet.Unicode)]
     private static extern int GetWindowLong(IntPtr hWnd, int nIndex);

@@ -23,6 +23,14 @@
 //   RMB Up    -> Dragging: DragCompleted e engole (sem menu nativo).
 //                Pending : reinjeta Down+Up (SendInput com assinatura) => o
 //                          menu nativo aparece normalmente.
+//
+// MODO ATALHO (HotkeyMode): enquanto a roda aberta por um atalho global está na
+// tela, a janela não recebe input (WS_EX_NOACTIVATE + IsHitTestVisible=False).
+// O hook então entrega o cursor (PointerMoved), engole o clique esquerdo
+// (HotkeyClicked no soltar) e usa o botão direito como cancelar. Os "up"
+// pendentes continuam engolidos mesmo depois de o modo terminar.
+// O modo fica FORA do gate Enabled: o atalho explícito funciona em apps da
+// blacklist. A pausa manual (bandeja) desliga o atalho e fecha a roda.
 // ============================================================================
 
 using System;
@@ -71,6 +79,26 @@ public sealed unsafe class MouseHookService : IDisposable
 
     private volatile bool _enabled = true;
 
+    /// <summary>
+    /// Roda aberta pelo atalho global: o hook entrega o cursor e consome os cliques.
+    /// Não depende de <see cref="Enabled"/> (o atalho vale em apps da blacklist).
+    /// </summary>
+    public bool HotkeyMode
+    {
+        get => _hotkeyMode;
+        set => _hotkeyMode = value;
+    }
+
+    private volatile bool _hotkeyMode;
+
+    /// <summary>
+    /// True entre o botão direito descer e subir (mesmo antes da zona morta). O controller usa isso
+    /// para não abrir a roda pelo atalho no meio de um gesto.
+    /// </summary>
+    public bool IsGestureActive => _gestureActive;
+
+    private volatile bool _gestureActive;
+
     // ------------------------------------------------------------------
     // Eventos (disparados na thread do hook; coordenadas em pixels físicos)
     // ------------------------------------------------------------------
@@ -78,6 +106,15 @@ public sealed unsafe class MouseHookService : IDisposable
     public event Action<POINT>? DragStarted;
     public event Action<POINT>? DragMoved;
     public event Action<POINT>? DragCompleted;
+
+    /// <summary>Cursor andando com a roda do atalho aberta.</summary>
+    public event Action<POINT>? PointerMoved;
+
+    /// <summary>Clique esquerdo solto com a roda do atalho aberta (o down e o up já foram engolidos).</summary>
+    public event Action<POINT>? HotkeyClicked;
+
+    /// <summary>Botão direito com a roda do atalho aberta: cancelar.</summary>
+    public event Action? HotkeyCancelled;
 
     // ------------------------------------------------------------------
     // Estado (somente a thread do hook toca nestes campos)
@@ -88,6 +125,11 @@ public sealed unsafe class MouseHookService : IDisposable
     private GestureState _state = GestureState.Idle;
     private POINT _origin;
     private IntPtr _hookId = IntPtr.Zero;
+
+    // "Up" de um botão cujo "down" foi engolido: engole também o "up", mesmo que o modo
+    // já tenha terminado nesse meio-tempo (senão o app de baixo receberia um clique órfão).
+    private bool _swallowLeftUp;
+    private bool _swallowRightUp;
 
     // CRÍTICO: delegate em campo, senão o GC o coleta e o app crasha.
     private readonly LowLevelMouseProc _proc;
@@ -246,6 +288,7 @@ public sealed unsafe class MouseHookService : IDisposable
                 _hookId = IntPtr.Zero;
             }
             _state = GestureState.Idle;
+            _gestureActive = false;
         }
     }
 
@@ -290,6 +333,7 @@ public sealed unsafe class MouseHookService : IDisposable
         catch (Exception ex)
         {
             _state = GestureState.Idle;
+            _gestureActive = false;
             AppLog.Error("Hook", $"Callback falhou", ex);
         }
 
@@ -300,49 +344,89 @@ public sealed unsafe class MouseHookService : IDisposable
     private bool HandleMouseEvent(IntPtr wParam, IntPtr lParam)
     {
         var data = (MSLLHOOKSTRUCT*)lParam;
+        return HandleMouseEvent(unchecked((int)wParam.ToInt64()), ref *data);
+    }
 
+    private bool HandleMouseEvent(int message, ref MSLLHOOKSTRUCT data)
+    {
         // Eventos que nós mesmos injetamos (replay do clique) passam direto.
-        if (data->dwExtraInfo == ReplaySignature) return false;
+        if (data.dwExtraInfo == ReplaySignature) return false;
 
-        switch (unchecked((int)wParam.ToInt64()))
+        switch (message)
         {
+            case WM_LBUTTONDOWN:
+                if (!HotkeyMode) return false;
+
+                _swallowLeftUp = true;
+                return true;
+
+            case WM_LBUTTONUP:
+                if (!_swallowLeftUp) return false;
+
+                _swallowLeftUp = false;
+                if (HotkeyMode) Raise(HotkeyClicked, data.pt);
+                return true;
+
             case WM_RBUTTONDOWN:
+                if (HotkeyMode)
+                {
+                    // Botão direito com a roda do atalho aberta: cancela (o up também é engolido).
+                    _swallowRightUp = true;
+                    Raise(HotkeyCancelled);
+                    return true;
+                }
+
                 if (!Enabled) return false;   // app em blacklist / pausado: passa direto
 
-                _origin = data->pt;
+                _origin = data.pt;
                 _state = GestureState.Pending;
+                _gestureActive = true;
                 return true;
 
             case WM_MOUSEMOVE:
+                if (HotkeyMode)
+                {
+                    Raise(PointerMoved, data.pt);
+                    return false;
+                }
+
                 if (_state == GestureState.Pending)
                 {
-                    int dx = data->pt.X - _origin.X;
-                    int dy = data->pt.Y - _origin.Y;
+                    int dx = data.pt.X - _origin.X;
+                    int dy = data.pt.Y - _origin.Y;
 
                     if (dx * dx + dy * dy > Volatile.Read(ref _deadzoneSquared))
                     {
                         _state = GestureState.Dragging;
                         Raise(DragStarted, _origin);
-                        Raise(DragMoved, data->pt);
+                        Raise(DragMoved, data.pt);
                     }
                 }
                 else if (_state == GestureState.Dragging)
                 {
-                    Raise(DragMoved, data->pt);
+                    Raise(DragMoved, data.pt);
                 }
                 return false;
 
             case WM_RBUTTONUP:
+                if (_swallowRightUp)
+                {
+                    _swallowRightUp = false;
+                    return true;
+                }
+
                 if (_state == GestureState.Dragging)
                 {
                     _state = GestureState.Idle;
-                    Raise(DragCompleted, data->pt);
+                    _gestureActive = false;
+                    Raise(DragCompleted, data.pt);
                     return true;   // sem menu nativo
                 }
 
                 if (_state == GestureState.Pending)
                 {
                     _state = GestureState.Idle;
+                    _gestureActive = false;
                     if (SendInput(2, _replayBuffer, _inputSize) != 2)
                         AppLog.Warning("Hook", $"Falha ao reinjetar o clique direito (erro {Marshal.GetLastWin32Error()}).");
                     return true;
@@ -353,10 +437,23 @@ public sealed unsafe class MouseHookService : IDisposable
         return false;
     }
 
+    /// <summary>Só para testes: processa um evento como se viesse do hook (sem passar pelo Win32).</summary>
+    internal bool HandleEventForTests(int message, POINT point)
+    {
+        var data = new MSLLHOOKSTRUCT { pt = point };
+        return HandleMouseEvent(message, ref data);
+    }
+
     /// <summary>Uma exceção em handler dentro de callback nativo derrubaria o processo.</summary>
     private static void Raise(Action<POINT>? handler, POINT point)
     {
         try { handler?.Invoke(point); }
+        catch (Exception ex) { AppLog.Error("Hook", $"Handler falhou", ex); }
+    }
+
+    private static void Raise(Action? handler)
+    {
+        try { handler?.Invoke(); }
         catch (Exception ex) { AppLog.Error("Hook", $"Handler falhou", ex); }
     }
 
@@ -382,10 +479,12 @@ public sealed unsafe class MouseHookService : IDisposable
     // P/Invoke
     // ------------------------------------------------------------------
 
-    private const int WH_MOUSE_LL = 14;
-    private const int WM_MOUSEMOVE = 0x0200;
-    private const int WM_RBUTTONDOWN = 0x0204;
-    private const int WM_RBUTTONUP = 0x0205;
+    internal const int WH_MOUSE_LL = 14;
+    internal const int WM_MOUSEMOVE = 0x0200;
+    internal const int WM_LBUTTONDOWN = 0x0201;
+    internal const int WM_LBUTTONUP = 0x0202;
+    internal const int WM_RBUTTONDOWN = 0x0204;
+    internal const int WM_RBUTTONUP = 0x0205;
 
     private const uint WM_USER = 0x0400;
     private const uint WM_QUIT = 0x0012;

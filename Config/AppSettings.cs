@@ -92,6 +92,12 @@ public sealed class AppSettings
     /// </summary>
     public string Language { get; set; } = RadialFlow.Infrastructure.Loc.DefaultLanguage;
 
+    /// <summary>
+    /// Atalho global que abre a roda, na forma canônica ("Ctrl+Alt+Space"). Vazio (padrão) = desativado.
+    /// Guardado como texto: um valor inválido no arquivo desativa o atalho sem invalidar o resto.
+    /// </summary>
+    public string Hotkey { get; set; } = "";
+
     /// <summary>Lista de processos em blacklist (jogos, apps 3D, CAD).</summary>
     public List<ForegroundBlacklist.BlacklistEntry> Blacklist { get; set; } = new();
 

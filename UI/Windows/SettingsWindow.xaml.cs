@@ -13,6 +13,7 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Automation;
 using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Media;
 using Microsoft.Win32;
 using RadialFlow.Config;
@@ -48,6 +49,7 @@ public partial class SettingsWindow : Window
         FillAccentChoices(current.Accent);
         FillWheelPresets(current.WheelPreset);
         FillLanguages(current.Language);
+        FillHotkey(current.Hotkey);
 
         AboutVersion.Text = Loc.Format("About.VersionFormat", AppInfo.Version);
         LogPath.Text = AppLog.FilePath;
@@ -69,6 +71,11 @@ public partial class SettingsWindow : Window
         InitializeConvertersTab();
         InitializeMenusTab();
 
+        MainTabs.SelectionChanged += (_, _) =>
+        {
+            if (_recordingHotkey) StopRecordingHotkey();
+        };
+
         _nonMenuBaseline = CaptureNonMenuSnapshot();
         _ready = true;
         UpdateDirtyIndicator();
@@ -76,6 +83,8 @@ public partial class SettingsWindow : Window
 
     private NonMenuSnapshot? _nonMenuBaseline;
     private bool _ready;
+    private string _hotkey = "";
+    private bool _recordingHotkey;
 
     /// <summary>Valores não-menu na abertura; o fechamento compara com eles para avisar sobre descarte.</summary>
     private sealed record NonMenuSnapshot(
@@ -86,6 +95,7 @@ public partial class SettingsWindow : Window
         string Accent,
         string WheelPreset,
         string Language,
+        string Hotkey,
         IReadOnlyList<(string ProcessName, string Description)> Blacklist,
         IReadOnlyList<(string Name, string ExecutablePath, string Arguments, string Glyph)> FavoriteApps);
 
@@ -97,6 +107,7 @@ public partial class SettingsWindow : Window
         _accentKey,
         _wheelPreset.Key,
         _language,
+        _hotkey,
         _blacklistItems.Select(e => (e.ProcessName, e.Description)).ToArray(),
         _favoriteItems.Select(a => (a.Name, a.ExecutablePath, a.Arguments, a.Glyph)).ToArray());
 
@@ -111,7 +122,8 @@ public partial class SettingsWindow : Window
             if (now.StartWithWindows != baseline.StartWithWindows ||
                 now.BlockExclusiveFullscreen != baseline.BlockExclusiveFullscreen ||
                 now.DeadzonePixels != baseline.DeadzonePixels ||
-                now.DwellMilliseconds != baseline.DwellMilliseconds)
+                now.DwellMilliseconds != baseline.DwellMilliseconds ||
+                !string.Equals(now.Hotkey, baseline.Hotkey, StringComparison.Ordinal))
             {
                 changed.Add(Loc.Get("Settings.General"));
             }
@@ -355,8 +367,140 @@ public partial class SettingsWindow : Window
         }
     }
 
+    // ------------------------------------------------------------------
+    // Atalho global
+    // ------------------------------------------------------------------
+
+    private void FillHotkey(string? hotkey)
+    {
+        _hotkey = HotkeyGesture.Normalize(hotkey);
+        UpdateHotkeyDisplay();
+        UpdateHotkeyStatus();
+    }
+
+    internal string HotkeyText => _hotkey;
+    internal bool IsRecordingHotkey => _recordingHotkey;
+
+    private void BtnRecordHotkey_Click(object sender, RoutedEventArgs e)
+    {
+        if (_recordingHotkey) StopRecordingHotkey();
+        else StartRecordingHotkey();
+    }
+
+    private void StartRecordingHotkey()
+    {
+        _recordingHotkey = true;
+        _controller?.BeginHotkeyCapture();
+        BtnRecordHotkey.Content = Loc.Get("Settings.General.HotkeyRecording");
+        HotkeyDisplay.Text = Loc.Get("Settings.General.HotkeyRecording");
+        ShowHotkeyStatus(Loc.Get("Settings.General.HotkeyRecordingHint"), isError: false);
+        BtnRecordHotkey.Focus();
+    }
+
+    private void StopRecordingHotkey()
+    {
+        if (!_recordingHotkey) return;
+
+        _recordingHotkey = false;
+        _controller?.EndHotkeyCapture();
+        BtnRecordHotkey.Content = Loc.Get("Settings.General.HotkeyRecord");
+        UpdateHotkeyDisplay();
+        UpdateHotkeyStatus();
+    }
+
+    private void BtnClearHotkey_Click(object sender, RoutedEventArgs e)
+    {
+        StopRecordingHotkey();
+        if (_hotkey.Length == 0) return;
+
+        _hotkey = "";
+        UpdateHotkeyDisplay();
+        UpdateHotkeyStatus();
+        UpdateDirtyIndicator();
+    }
+
+    private void Window_Deactivated(object? sender, EventArgs e)
+    {
+        if (_recordingHotkey) StopRecordingHotkey();
+    }
+
+    private void Window_PreviewKeyDown(object sender, KeyEventArgs e)
+    {
+        if (!_recordingHotkey) return;
+
+        Key key = e.Key == Key.System ? e.SystemKey : e.Key;
+        if (key == Key.System) key = Key.LeftAlt;   // Alt sozinho chega como Key.System sem SystemKey
+        e.Handled = CaptureHotkey(key, Keyboard.Modifiers);
+    }
+
+    /// <summary>Processa uma tecla durante a gravação. Devolve true quando a tecla foi consumida.</summary>
+    internal bool CaptureHotkey(Key key, ModifierKeys modifiers)
+    {
+        if (!_recordingHotkey) return false;
+
+        switch (HotkeyCapture.TryCapture(key, modifiers, out HotkeyGesture gesture))
+        {
+            case HotkeyCaptureResult.Captured:
+                _hotkey = gesture.ToString();
+                StopRecordingHotkey();
+                UpdateDirtyIndicator();
+                return true;
+
+            case HotkeyCaptureResult.ModifierOnly:
+                string preview = HotkeyCapture.DescribeModifiers(modifiers);
+                HotkeyDisplay.Text = preview.Length > 0 ? preview + "+…" : Loc.Get("Settings.General.HotkeyRecording");
+                return true;
+
+            case HotkeyCaptureResult.MissingModifier:
+                ShowHotkeyStatus(Loc.Get("Settings.General.HotkeyNeedModifier"), isError: true);
+                return true;
+
+            case HotkeyCaptureResult.Unsupported:
+                ShowHotkeyStatus(Loc.Get("Settings.General.HotkeyUnsupported"), isError: true);
+                return true;
+
+            case HotkeyCaptureResult.Cancelled:
+                StopRecordingHotkey();
+                return true;
+
+            default:
+                return true;
+        }
+    }
+
+    private void UpdateHotkeyDisplay() =>
+        HotkeyDisplay.Text = _hotkey.Length > 0 ? _hotkey : Loc.Get("Settings.General.HotkeyNone");
+
+    private void UpdateHotkeyStatus()
+    {
+        if (_hotkey.Length > 0 && _controller is { } controller &&
+            controller.HotkeyError != HotkeyRegistrationError.None)
+        {
+            ShowHotkeyStatus(HotkeyErrorText(controller.HotkeyError), isError: true);
+            return;
+        }
+
+        HotkeyStatus.Visibility = Visibility.Collapsed;
+    }
+
+    private void ShowHotkeyStatus(string text, bool isError)
+    {
+        HotkeyStatus.Text = text;
+        HotkeyStatus.Foreground = (Brush)FindResource(isError ? "WarningBrush" : "TextDimBrush");
+        HotkeyStatus.Visibility = Visibility.Visible;
+    }
+
+    private static string HotkeyErrorText(HotkeyRegistrationError error) => error switch
+    {
+        HotkeyRegistrationError.AlreadyInUse => Loc.Get("Settings.General.HotkeyInUse"),
+        HotkeyRegistrationError.Invalid => Loc.Get("Settings.General.HotkeyInvalid"),
+        _ => Loc.Get("Settings.General.HotkeyUnavailable")
+    };
+
     private void BtnSave_Click(object sender, RoutedEventArgs e)
     {
+        if (_recordingHotkey) StopRecordingHotkey();   // a combinação ainda em gravação não vale como rascunho
+
         string? menuError = ValidateMenus();
         if (menuError is not null)
         {
@@ -374,6 +518,7 @@ public partial class SettingsWindow : Window
             Accent = _accentKey,
             WheelPreset = _wheelPreset.Key,
             Language = _language,
+            Hotkey = _hotkey,
             Blacklist = _blacklistItems
                 .Select(e => new ForegroundBlacklist.BlacklistEntry(e.ProcessName, e.Description))
                 .ToList(),
@@ -383,11 +528,44 @@ public partial class SettingsWindow : Window
         };
         ApplyMenusTo(settings);
 
+        string normalizedHotkey = HotkeyGesture.Normalize(settings.Hotkey);
+        if (settings.Hotkey.Length > 0 && normalizedHotkey.Length == 0)
+        {
+            ShowHotkeyStatus(Loc.Get("Settings.General.HotkeyInvalid"), isError: true);
+            Dialogs.Message(this, Loc.Get("Settings.General.HotkeyErrorTitle"),
+                Loc.Get("Settings.General.HotkeyInvalid"), DialogIcon.Warning);
+            return;
+        }
+        settings.Hotkey = normalizedHotkey;
+
+        bool hotkeyChanged = _nonMenuBaseline is { } hotkeyBaseline &&
+            !string.Equals(settings.Hotkey, hotkeyBaseline.Hotkey, StringComparison.Ordinal);
+        string previousHotkey = _controller?.Hotkey ?? "";
+
+        // Registra o atalho ANTES de gravar: conflito com outro programa não pode virar um arquivo
+        // que só falha no próximo início. Sem mudança, um conflito pré-existente não bloqueia o Save.
+        if (hotkeyChanged && _controller is not null)
+        {
+            HotkeyRegistrationError hotkeyError = _controller.TrySetHotkey(settings.Hotkey, out string normalized);
+            if (hotkeyError != HotkeyRegistrationError.None)
+            {
+                ShowHotkeyStatus(HotkeyErrorText(hotkeyError), isError: true);
+                Dialogs.Message(this, Loc.Get("Settings.General.HotkeyErrorTitle"),
+                    HotkeyErrorText(hotkeyError), DialogIcon.Warning);
+                return;
+            }
+            settings.Hotkey = normalized;
+        }
+
         bool languageChanged = _nonMenuBaseline is { } baseline &&
             !string.Equals(settings.Language, baseline.Language, StringComparison.Ordinal);
 
         if (!SettingsService.TrySave(settings, out string? error))
         {
+            // O atalho novo já estava registrado; devolve o anterior para o app não ficar diferente do arquivo.
+            if (hotkeyChanged && _controller is not null)
+                _controller.TrySetHotkey(previousHotkey, out _);
+
             Dialogs.Message(this, Loc.Get("Settings.SaveFailedTitle"),
                 error ?? Loc.Get("Settings.SaveFailed"), DialogIcon.Error);
             return;

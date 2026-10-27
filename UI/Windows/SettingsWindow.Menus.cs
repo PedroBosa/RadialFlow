@@ -1055,6 +1055,9 @@ public partial class SettingsWindow
 
     protected override void OnClosing(CancelEventArgs e)
     {
+        // A gravação do atalho prende a combinação: precisa terminar mesmo se o fechamento for cancelado.
+        if (_recordingHotkey) StopRecordingHotkey();
+
         // Aplica a última edição pendente antes do aviso; o timer não sobrevive ao fechamento.
         if (_previewTimer?.IsEnabled == true)
         {

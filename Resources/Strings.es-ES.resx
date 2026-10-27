@@ -78,6 +78,20 @@
   <data name="Settings.General.Dwell" xml:space="preserve"><value>Tiempo para abrir opciones</value></data>
   <data name="Settings.General.DwellHint" xml:space="preserve"><value>Cuánto tiempo debe permanecer el cursor sobre una porción con más opciones (como Convertir) para que aparezcan. Una línea en el borde de la porción indica cuándo se abrirá.</value></data>
   <data name="Settings.General.DwellAutomation" xml:space="preserve"><value>Tiempo para abrir opciones, en milisegundos</value></data>
+  <data name="Settings.General.HotkeySection" xml:space="preserve"><value>ATAJO GLOBAL</value></data>
+  <data name="Settings.General.Hotkey" xml:space="preserve"><value>Abrir la rueda con el teclado</value></data>
+  <data name="Settings.General.HotkeyHint" xml:space="preserve"><value>Funciona en cualquier programa, con la rueda cerrada. La pausa desde la bandeja también apaga el atajo.</value></data>
+  <data name="Settings.General.HotkeyNone" xml:space="preserve"><value>Ninguno</value></data>
+  <data name="Settings.General.HotkeyRecord" xml:space="preserve"><value>Grabar atajo</value></data>
+  <data name="Settings.General.HotkeyRecording" xml:space="preserve"><value>Pulsa las teclas…</value></data>
+  <data name="Settings.General.HotkeyRecordingHint" xml:space="preserve"><value>Pulsa la combinación que quieras. Esc cancela.</value></data>
+  <data name="Settings.General.HotkeyClear" xml:space="preserve"><value>Quitar</value></data>
+  <data name="Settings.General.HotkeyNeedModifier" xml:space="preserve"><value>Usa al menos un modificador: Ctrl, Alt, Shift o Win.</value></data>
+  <data name="Settings.General.HotkeyUnsupported" xml:space="preserve"><value>Esta tecla no se puede usar. Usa letras, números, F1–F24 o teclas de navegación.</value></data>
+  <data name="Settings.General.HotkeyInUse" xml:space="preserve"><value>Otro programa o Windows ya usa esta combinación. Elige otra.</value></data>
+  <data name="Settings.General.HotkeyUnavailable" xml:space="preserve"><value>No se pudo registrar el atajo ahora. Inténtalo de nuevo.</value></data>
+  <data name="Settings.General.HotkeyInvalid" xml:space="preserve"><value>La combinación no es válida. Graba el atajo de nuevo.</value></data>
+  <data name="Settings.General.HotkeyErrorTitle" xml:space="preserve"><value>Atajo global</value></data>
   <data name="Settings.Appearance.Accent" xml:space="preserve"><value>Color de acento</value></data>
   <data name="Settings.Appearance.AccentHint" xml:space="preserve"><value>Color de la porción bajo el cursor y de los botones. El claro u oscuro sigue el tema de Windows.</value></data>
   <data name="Settings.Appearance.Selected" xml:space="preserve"><value>Seleccionado:</value></data>
@@ -595,9 +609,13 @@
   <data name="Wheel.Desc.Format" xml:space="preserve"><value>Negrita (Ctrl+B)</value></data>
   <data name="Wheel.Desc.Clear" xml:space="preserve"><value>Borrar todo el texto del campo</value></data>
   <data name="Wheel.Desc.OpenApp" xml:space="preserve"><value>Abrir {0}</value></data>
+  <data name="Wheel.ClickForOptions" xml:space="preserve"><value>Haz clic para ver las opciones</value></data>
+  <data name="Wheel.ClickToSeeOptions" xml:space="preserve"><value>haz clic para ver las opciones</value></data>
   <data name="Wheel.HoldForOptions" xml:space="preserve"><value>Mantén para ver las opciones</value></data>
   <data name="Wheel.HoldToSeeOptions" xml:space="preserve"><value>mantén para ver las opciones</value></data>
   <data name="Wheel.HoldCenterToBack" xml:space="preserve"><value>Mantén en el centro para volver</value></data>
+  <data name="Wheel.HotkeyHint" xml:space="preserve"><value>Haz clic en una opción · clic derecho o Esc cierra</value></data>
+  <data name="Wheel.HotkeyHintSubmenu" xml:space="preserve"><value>Haz clic en el centro para volver · fuera del anillo cierra</value></data>
   <data name="Wheel.EnterOpensOptions" xml:space="preserve"><value>Enter abre las opciones</value></data>
   <data name="Wheel.EnterRuns" xml:space="preserve"><value>Enter ejecuta</value></data>
   <data name="Wheel.Preset.Standard.Label" xml:space="preserve"><value>Predeterminado</value></data>

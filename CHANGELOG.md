@@ -2,6 +2,21 @@
 
 Cada versão, da mais nova para a mais antiga. O número da versão está em `RadialFlow.csproj`.
 
+## Não lançado
+
+### Novo
+
+- **Atalho global para abrir a roda.** Em **Configurações → Geral**, grave uma combinação como `Ctrl+Alt+Space`.
+  A roda abre no cursor e se escolhe a opção com um **clique**: o miolo volta um nível, um clique fora do anel
+  fecha e o botão direito, o **Esc** ou o próprio atalho fecham sem escolher. O atalho vale também nos programas da
+  Blacklist e em tela cheia; a pausa da bandeja o desliga.
+  - A combinação é validada no **momento de salvar**: texto inválido ou combinação já usada por outro programa é
+    recusado com um aviso, e o atalho anterior continua valendo — nada é gravado para falhar só no próximo início.
+  - Durante a gravação, a combinação atual é solta temporariamente, então dá para regravar o mesmo atalho. Conflitos
+    aparecem no próprio cartão e o arquivo só é gravado quando o registro é aceito.
+  - O atalho é só um gatilho local (`RegisterHotKey`), com uma janela receptora invisível; ele não instala nenhum
+    hook de teclado nem lê teclas fora da combinação registrada.
+
 ## 1.3.0 — 27/10/2026
 
 ### Novo

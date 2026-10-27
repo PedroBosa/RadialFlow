@@ -78,6 +78,20 @@
   <data name="Settings.General.Dwell" xml:space="preserve"><value>Time to open options</value></data>
   <data name="Settings.General.DwellHint" xml:space="preserve"><value>How long the cursor must stay over a slice with more options (such as Convert) for them to appear. A line on the slice edge shows when it will open.</value></data>
   <data name="Settings.General.DwellAutomation" xml:space="preserve"><value>Time to open options, in milliseconds</value></data>
+  <data name="Settings.General.HotkeySection" xml:space="preserve"><value>GLOBAL HOTKEY</value></data>
+  <data name="Settings.General.Hotkey" xml:space="preserve"><value>Open the wheel from the keyboard</value></data>
+  <data name="Settings.General.HotkeyHint" xml:space="preserve"><value>Works in any program, with the wheel closed. Pausing from the tray also turns the hotkey off.</value></data>
+  <data name="Settings.General.HotkeyNone" xml:space="preserve"><value>None</value></data>
+  <data name="Settings.General.HotkeyRecord" xml:space="preserve"><value>Record hotkey</value></data>
+  <data name="Settings.General.HotkeyRecording" xml:space="preserve"><value>Press the keys…</value></data>
+  <data name="Settings.General.HotkeyRecordingHint" xml:space="preserve"><value>Press the combination you want. Esc cancels.</value></data>
+  <data name="Settings.General.HotkeyClear" xml:space="preserve"><value>Remove</value></data>
+  <data name="Settings.General.HotkeyNeedModifier" xml:space="preserve"><value>Use at least one modifier: Ctrl, Alt, Shift or Win.</value></data>
+  <data name="Settings.General.HotkeyUnsupported" xml:space="preserve"><value>This key can't be used. Use letters, numbers, F1–F24 or navigation keys.</value></data>
+  <data name="Settings.General.HotkeyInUse" xml:space="preserve"><value>Another program or Windows already uses this combination. Choose another one.</value></data>
+  <data name="Settings.General.HotkeyUnavailable" xml:space="preserve"><value>The hotkey couldn't be registered right now. Try again.</value></data>
+  <data name="Settings.General.HotkeyInvalid" xml:space="preserve"><value>The combination isn't valid. Record the hotkey again.</value></data>
+  <data name="Settings.General.HotkeyErrorTitle" xml:space="preserve"><value>Global hotkey</value></data>
   <data name="Settings.Appearance.Accent" xml:space="preserve"><value>Accent color</value></data>
   <data name="Settings.Appearance.AccentHint" xml:space="preserve"><value>Color of the slice under the cursor and of the buttons. Light or dark follows the Windows theme.</value></data>
   <data name="Settings.Appearance.Selected" xml:space="preserve"><value>Selected:</value></data>
@@ -595,9 +609,13 @@
   <data name="Wheel.Desc.Format" xml:space="preserve"><value>Bold (Ctrl+B)</value></data>
   <data name="Wheel.Desc.Clear" xml:space="preserve"><value>Erase all the text in the field</value></data>
   <data name="Wheel.Desc.OpenApp" xml:space="preserve"><value>Open {0}</value></data>
+  <data name="Wheel.ClickForOptions" xml:space="preserve"><value>Click to see the options</value></data>
+  <data name="Wheel.ClickToSeeOptions" xml:space="preserve"><value>click to see the options</value></data>
   <data name="Wheel.HoldForOptions" xml:space="preserve"><value>Hold to see the options</value></data>
   <data name="Wheel.HoldToSeeOptions" xml:space="preserve"><value>hold to see the options</value></data>
   <data name="Wheel.HoldCenterToBack" xml:space="preserve"><value>Hold in the center to go back</value></data>
+  <data name="Wheel.HotkeyHint" xml:space="preserve"><value>Click an option · right-click or Esc closes</value></data>
+  <data name="Wheel.HotkeyHintSubmenu" xml:space="preserve"><value>Click the center to go back · outside the ring closes</value></data>
   <data name="Wheel.EnterOpensOptions" xml:space="preserve"><value>Enter opens the options</value></data>
   <data name="Wheel.EnterRuns" xml:space="preserve"><value>Enter runs it</value></data>
   <data name="Wheel.Preset.Standard.Label" xml:space="preserve"><value>Standard</value></data>

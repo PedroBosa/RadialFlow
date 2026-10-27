@@ -72,6 +72,36 @@ public sealed class SettingsStoreTests : IDisposable
     }
 
     [Fact]
+    public void SaveELoad_PreservaAtalhoGlobalNaFormaCanonica()
+    {
+        SettingsStore store = Create();
+        var settings = Custom();
+        settings.Hotkey = "ctrl+alt+space";
+
+        store.Save(settings);
+
+        Assert.Equal("Ctrl+Alt+Space", store.Load().Settings.Hotkey);
+    }
+
+    [Fact]
+    public void Normalize_AtalhoInvalidoEhDesativadoSemQuebrarOResto()
+    {
+        var settings = new AppSettings { Hotkey = "F5", DeadzonePixels = 22 };
+
+        AppSettings normalized = SettingsStore.Normalize(settings);
+
+        Assert.Equal("", normalized.Hotkey);
+        Assert.Equal(22, normalized.DeadzonePixels);
+    }
+
+    [Fact]
+    public void Normalize_AtalhoNuloOuEmBrancoViraVazio()
+    {
+        Assert.Equal("", SettingsStore.Normalize(new AppSettings { Hotkey = null! }).Hotkey);
+        Assert.Equal("", SettingsStore.Normalize(new AppSettings { Hotkey = "   " }).Hotkey);
+    }
+
+    [Fact]
     public void Save_GravaEmUtf8SemBomECriaAPasta()
     {
         SettingsStore store = Create();

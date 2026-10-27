@@ -9,7 +9,8 @@
         Background="{DynamicResource SurfaceBrush}"
         Foreground="{DynamicResource TextBrush}"
         FontFamily="Segoe UI Variable Text, Segoe UI"
-        TextOptions.TextFormattingMode="Ideal" UseLayoutRounding="True">
+        TextOptions.TextFormattingMode="Ideal" UseLayoutRounding="True"
+        PreviewKeyDown="Window_PreviewKeyDown" Deactivated="Window_Deactivated">
 
     <!-- Estilos e cores: Theme/Controls.xaml + UiTheme (instalados no construtor, antes do InitializeComponent). -->
     <Window.Resources>
@@ -306,6 +307,39 @@
                                         <TextBlock Text="200 ms" Style="{StaticResource EndpointText}"/>
                                         <TextBlock Text="2000 ms" Style="{StaticResource EndpointText}" HorizontalAlignment="Right"/>
                                     </Grid>
+                                </StackPanel>
+                            </Border>
+
+                            <TextBlock Text="{loc:Loc Settings.General.HotkeySection}" Style="{StaticResource SectionLabel}"/>
+                            <Border Style="{StaticResource Card}">
+                                <StackPanel>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel Margin="0,0,18,0">
+                                            <TextBlock Text="{loc:Loc Settings.General.Hotkey}" Style="{StaticResource CardTitle}"/>
+                                            <TextBlock Text="{loc:Loc Settings.General.HotkeyHint}"
+                                                       Style="{StaticResource CardHint}"/>
+                                        </StackPanel>
+                                        <Border Grid.Column="1" Style="{StaticResource ValueBadge}" VerticalAlignment="Top">
+                                            <TextBlock x:Name="HotkeyDisplay" Style="{StaticResource ValueText}"
+                                                       Text="{loc:Loc Settings.General.HotkeyNone}"/>
+                                        </Border>
+                                    </Grid>
+
+                                    <StackPanel Orientation="Horizontal" Margin="0,14,0,0">
+                                        <Button x:Name="BtnRecordHotkey" Content="{loc:Loc Settings.General.HotkeyRecord}"
+                                                Click="BtnRecordHotkey_Click" Margin="0,0,8,0"
+                                                AutomationProperties.Name="{loc:Loc Settings.General.HotkeyRecord}"/>
+                                        <Button x:Name="BtnClearHotkey" Content="{loc:Loc Settings.General.HotkeyClear}"
+                                                Click="BtnClearHotkey_Click"
+                                                AutomationProperties.Name="{loc:Loc Settings.General.HotkeyClear}"/>
+                                    </StackPanel>
+
+                                    <TextBlock x:Name="HotkeyStatus" Style="{StaticResource CardHint}"
+                                               Margin="0,8,0,0" Visibility="Collapsed"/>
                                 </StackPanel>
                             </Border>
                         </StackPanel>

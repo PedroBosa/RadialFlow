@@ -78,6 +78,20 @@
   <data name="Settings.General.Dwell" xml:space="preserve"><value>Tempo para abrir opções</value></data>
   <data name="Settings.General.DwellHint" xml:space="preserve"><value>Quanto tempo o cursor precisa ficar sobre uma fatia com mais opções (como Converter) para elas aparecerem. Um traço na borda da fatia mostra quando vai abrir.</value></data>
   <data name="Settings.General.DwellAutomation" xml:space="preserve"><value>Tempo para abrir opções, em milissegundos</value></data>
+  <data name="Settings.General.HotkeySection" xml:space="preserve"><value>ATALHO GLOBAL</value></data>
+  <data name="Settings.General.Hotkey" xml:space="preserve"><value>Abrir a roda pelo teclado</value></data>
+  <data name="Settings.General.HotkeyHint" xml:space="preserve"><value>Funciona em qualquer programa, com a roda fechada. A pausa pela bandeja também desliga o atalho.</value></data>
+  <data name="Settings.General.HotkeyNone" xml:space="preserve"><value>Nenhum</value></data>
+  <data name="Settings.General.HotkeyRecord" xml:space="preserve"><value>Gravar atalho</value></data>
+  <data name="Settings.General.HotkeyRecording" xml:space="preserve"><value>Pressione as teclas…</value></data>
+  <data name="Settings.General.HotkeyRecordingHint" xml:space="preserve"><value>Pressione a combinação desejada. Esc cancela.</value></data>
+  <data name="Settings.General.HotkeyClear" xml:space="preserve"><value>Remover</value></data>
+  <data name="Settings.General.HotkeyNeedModifier" xml:space="preserve"><value>Use pelo menos um modificador: Ctrl, Alt, Shift ou Win.</value></data>
+  <data name="Settings.General.HotkeyUnsupported" xml:space="preserve"><value>Esta tecla não pode ser usada. Use letras, números, F1–F24 ou teclas de navegação.</value></data>
+  <data name="Settings.General.HotkeyInUse" xml:space="preserve"><value>Outro programa ou o Windows já usa esta combinação. Escolha outra.</value></data>
+  <data name="Settings.General.HotkeyUnavailable" xml:space="preserve"><value>Não foi possível registrar o atalho agora. Tente novamente.</value></data>
+  <data name="Settings.General.HotkeyInvalid" xml:space="preserve"><value>A combinação não é válida. Grave o atalho novamente.</value></data>
+  <data name="Settings.General.HotkeyErrorTitle" xml:space="preserve"><value>Atalho global</value></data>
   <data name="Settings.Appearance.Accent" xml:space="preserve"><value>Cor de destaque</value></data>
   <data name="Settings.Appearance.AccentHint" xml:space="preserve"><value>Cor da fatia sob o cursor e dos botões. O claro ou escuro segue o tema do Windows.</value></data>
   <data name="Settings.Appearance.Selected" xml:space="preserve"><value>Selecionada:</value></data>
@@ -595,9 +609,13 @@
   <data name="Wheel.Desc.Format" xml:space="preserve"><value>Negrito (Ctrl+B)</value></data>
   <data name="Wheel.Desc.Clear" xml:space="preserve"><value>Apagar todo o texto do campo</value></data>
   <data name="Wheel.Desc.OpenApp" xml:space="preserve"><value>Abrir {0}</value></data>
+  <data name="Wheel.ClickForOptions" xml:space="preserve"><value>Clique para ver as opções</value></data>
+  <data name="Wheel.ClickToSeeOptions" xml:space="preserve"><value>clique para ver as opções</value></data>
   <data name="Wheel.HoldForOptions" xml:space="preserve"><value>Segure para ver as opções</value></data>
   <data name="Wheel.HoldToSeeOptions" xml:space="preserve"><value>segure para ver as opções</value></data>
   <data name="Wheel.HoldCenterToBack" xml:space="preserve"><value>Segure no centro para voltar</value></data>
+  <data name="Wheel.HotkeyHint" xml:space="preserve"><value>Clique numa opção · botão direito ou Esc fecha</value></data>
+  <data name="Wheel.HotkeyHintSubmenu" xml:space="preserve"><value>Clique no centro para voltar · fora do anel fecha</value></data>
   <data name="Wheel.EnterOpensOptions" xml:space="preserve"><value>Enter abre as opções</value></data>
   <data name="Wheel.EnterRuns" xml:space="preserve"><value>Enter executa</value></data>
   <data name="Wheel.Preset.Standard.Label" xml:space="preserve"><value>Padrão</value></data>

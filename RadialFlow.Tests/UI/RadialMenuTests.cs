@@ -9,6 +9,7 @@ using System.Windows.Media;
 using System.Windows.Shapes;
 using System.Windows.Threading;
 using RadialFlow.Config;
+using RadialFlow.Infrastructure;
 using RadialFlow.UI;
 using Xunit;
 
@@ -702,6 +703,252 @@ public sealed class RadialMenuTests
 
             Assert.True(wheel.IsKeyboardSelectionActive);
             Assert.Equal(2, wheel.KeyboardSelection);   // sem seleção, Previous escolhe a última
+            wheel.Close();
+        });
+    }
+
+    // ------------------------------------------------------------------
+    // Atalho global: a janela não recebe input, os cliques chegam pelo hook
+    // ------------------------------------------------------------------
+
+    private static RadialMenuWindow CreateHotkeyWheel(int dwellMilliseconds = 650)
+    {
+        var formats = new List<RadialSlice> { Slice("PNG"), Slice("JPG"), Slice("WEBP") };
+        var wheel = new RadialMenuWindow { DwellMilliseconds = dwellMilliseconds };
+        wheel.Prewarm();
+        wheel.Present(OriginX, OriginY, [Slice("Comprimir"), Slice("Converter", formats), Slice("Renomear")],
+            fromHotkey: true);
+        Pump(300);
+        return wheel;
+    }
+
+    private static double WheelScale => RadialMenuWindow.GetMonitorScale(OriginX, OriginY);
+
+    /// <summary>Ponto a 150 px do centro no ângulo da fatia (o ângulo decide a fatia; o raio só precisa passar do miolo).</summary>
+    private static (int X, int Y) OnSlice(int index, int count)
+    {
+        double radians = RadialGeometry.CenterAngle(index, count) * Math.PI / 180;
+        int radius = (int)Math.Round(150 * WheelScale);
+        return (OriginX + (int)(radius * Math.Cos(radians)), OriginY + (int)(radius * Math.Sin(radians)));
+    }
+
+    private static int OutsideHotkeyWheel => (int)Math.Ceiling(RadialMenuWindow.HoverOuterRadius * WheelScale) + 10;
+
+    [Fact]
+    public void Atalho_DicaInicialExplicaOClique()
+    {
+        RunSta(() =>
+        {
+            RadialMenuWindow wheel = CreateHotkeyWheel();
+
+            Assert.True(wheel.OpenedByHotkey);
+            Assert.Equal(Loc.Get("Wheel.HotkeyHint"), wheel.HintText.Text);
+
+            wheel.Close();
+        });
+    }
+
+    [Fact]
+    public void Atalho_CliqueEmFatiaDeAcao_FechaEExecuta()
+    {
+        RunSta(() =>
+        {
+            RadialMenuWindow wheel = CreateHotkeyWheel();
+            var (x, y) = OnSlice(0, 3);   // Comprimir, no topo
+
+            var (slice, stayedOpen) = wheel.HandleHotkeyClick(x, y);
+
+            Assert.Equal("Comprimir", slice?.Label);
+            Assert.False(stayedOpen);
+            Assert.False(wheel.IsVisible);
+            Assert.False(wheel.OpenedByHotkey);
+            wheel.Close();
+        });
+    }
+
+    [Fact]
+    public void Atalho_CliqueEmFatiaComSubmenu_AbreEMantemAberta()
+    {
+        RunSta(() =>
+        {
+            RadialMenuWindow wheel = CreateHotkeyWheel();
+            var (cx, cy) = OnSlice(1, 3);   // Converter
+
+            var (opened, stayedOpen) = wheel.HandleHotkeyClick(cx, cy);
+
+            Assert.Null(opened);
+            Assert.True(stayedOpen);
+            Assert.True(IsSubmenu(wheel));
+            Assert.True(wheel.IsVisible);
+
+            var (px, py) = OnSlice(0, 3);   // PNG, no submenu
+            var (chosen, closed) = wheel.HandleHotkeyClick(px, py);
+
+            Assert.Equal("PNG", chosen?.Label);
+            Assert.False(closed);
+            Assert.False(wheel.IsVisible);
+            wheel.Close();
+        });
+    }
+
+    [Fact]
+    public void Atalho_CliqueNoCentro_VoltaDoSubmenuEDepoisFecha()
+    {
+        RunSta(() =>
+        {
+            RadialMenuWindow wheel = CreateHotkeyWheel();
+            var (cx, cy) = OnSlice(1, 3);
+            wheel.HandleHotkeyClick(cx, cy);
+            Assert.True(IsSubmenu(wheel));
+
+            var (backSlice, backOpen) = wheel.HandleHotkeyClick(OriginX, OriginY);
+            Assert.Null(backSlice);
+            Assert.True(backOpen);
+            Assert.False(IsSubmenu(wheel));   // um nível acima
+            Assert.True(wheel.IsVisible);
+
+            var (closingSlice, closingOpen) = wheel.HandleHotkeyClick(OriginX, OriginY);
+            Assert.Null(closingSlice);
+            Assert.False(closingOpen);
+            Assert.False(wheel.IsVisible);    // no menu principal, o centro fecha
+
+            wheel.Close();
+        });
+    }
+
+    [Fact]
+    public void Atalho_CliqueForaDoAnel_FechaSemEscolher()
+    {
+        RunSta(() =>
+        {
+            RadialMenuWindow wheel = CreateHotkeyWheel();
+
+            var (slice, stayedOpen) = wheel.HandleHotkeyClick(OriginX + OutsideHotkeyWheel, OriginY);
+
+            Assert.Null(slice);
+            Assert.False(stayedOpen);
+            Assert.False(wheel.IsVisible);
+            wheel.Close();
+        });
+    }
+
+    [Fact]
+    public void Atalho_ForaDoAnelNaoDestaca_MasOGestoContinuaSemLimite()
+    {
+        RunSta(() =>
+        {
+            RadialMenuWindow hotkey = CreateHotkeyWheel();
+            int outside = OriginX + OutsideHotkeyWheel;
+
+            Assert.Equal(-1, hotkey.HitTestForTests(outside, OriginY));
+            hotkey.Close();
+
+            // Pelo gesto, arrastar além do desenho mantém a fatia (o dedo pode passar do anel).
+            RadialMenuWindow gesture = CreateWheel(dwellMilliseconds: 650);
+            Assert.InRange(gesture.HitTestForTests(outside, OriginY), 0, 2);
+            gesture.Close();
+        });
+    }
+
+    [Fact]
+    public void Atalho_HoverNoCentroDoSubmenu_ExplicaComoVoltar()
+    {
+        RunSta(() =>
+        {
+            RadialMenuWindow wheel = CreateHotkeyWheel();
+            var (cx, cy) = OnSlice(1, 3);
+            wheel.UpdateCursor(cx, cy);
+            wheel.HandleHotkeyClick(cx, cy);   // abre o submenu com o cursor sobre ele
+            Assert.True(IsSubmenu(wheel));
+
+            wheel.UpdateCursor(OriginX, OriginY);
+            Pump(100);
+
+            Assert.Equal(Loc.Get("Wheel.HotkeyHintSubmenu"), wheel.HintText.Text);
+            wheel.Close();
+        });
+    }
+
+    [Fact]
+    public void Atalho_PairarSobreSubmenu_NaoAbreSozinho_EDicaFalaEmClique()
+    {
+        RunSta(() =>
+        {
+            RadialMenuWindow wheel = CreateHotkeyWheel(dwellMilliseconds: 150);
+            var (cx, cy) = OnSlice(1, 3);   // Converter, com submenu
+
+            wheel.UpdateCursor(cx, cy);
+            Pump(700);   // muito além do tempo configurado
+
+            Assert.False(IsSubmenu(wheel));   // pelo atalho quem abre o submenu é o clique
+            Assert.Contains(Loc.Get("Wheel.ClickToSeeOptions"), wheel.HintText.Text);
+            Assert.True(wheel.IsVisible);
+
+            var (_, stayedOpen) = wheel.HandleHotkeyClick(cx, cy);
+            Assert.True(stayedOpen);
+            Assert.True(IsSubmenu(wheel));
+            wheel.Close();
+        });
+    }
+
+    [Fact]
+    public void Atalho_FatiaSemDescricao_DicaCurtaFalaEmClique()
+    {
+        RunSta(() =>
+        {
+            var formats = new List<RadialSlice> { Slice("PNG"), Slice("JPG"), Slice("WEBP") };
+            var wheel = new RadialMenuWindow { DwellMilliseconds = 650 };
+            wheel.Prewarm();
+            wheel.Present(OriginX, OriginY,
+                [Slice("Comprimir"), new RadialSlice("Converter", "\uE8AB", null, formats), Slice("Renomear")],
+                fromHotkey: true);
+            Pump(300);
+
+            var (hx, hy) = OnSlice(1, 3);
+            wheel.UpdateCursor(hx, hy);
+
+            Assert.Equal(Loc.Get("Wheel.ClickForOptions"), wheel.HintText.Text);
+            wheel.Close();
+        });
+    }
+
+    [Fact]
+    public void Atalho_CentroDoSubmenu_NaoVoltaSozinho_VoltaNoClique()
+    {
+        RunSta(() =>
+        {
+            RadialMenuWindow wheel = CreateHotkeyWheel(dwellMilliseconds: 150);
+            var (cx, cy) = OnSlice(1, 3);
+            wheel.HandleHotkeyClick(cx, cy);
+            Assert.True(IsSubmenu(wheel));
+
+            wheel.UpdateCursor(OriginX, OriginY);
+            Pump(700);   // sem contagem: na roda por atalho não existe "segurar"
+
+            Assert.True(IsSubmenu(wheel));
+            Assert.False(wheel.IsBackDwellVisible);
+
+            var (slice, stayedOpen) = wheel.HandleHotkeyClick(OriginX, OriginY);
+            Assert.Null(slice);
+            Assert.True(stayedOpen);
+            Assert.False(IsSubmenu(wheel));
+            wheel.Close();
+        });
+    }
+
+    [Fact]
+    public void Hidden_DisparaUmaVezAoFechar()
+    {
+        RunSta(() =>
+        {
+            RadialMenuWindow wheel = CreateHotkeyWheel();
+            int hidden = 0;
+            wheel.Hidden += () => hidden++;
+
+            wheel.Cancel();
+            wheel.Cancel();   // já fechada: não repete
+
+            Assert.Equal(1, hidden);
             wheel.Close();
         });
     }
