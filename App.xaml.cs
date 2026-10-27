@@ -53,6 +53,10 @@ public sealed partial class App : Application, IDisposable
             // Carrega configurações persistentes
             var settings = SettingsService.Load();
 
+            // Idioma antes de qualquer janela: a escolha vale por toda esta execução.
+            Loc.SetLanguage(settings.Language);
+            Loc.ApplyToCurrentThread();
+
             _radial = new RadialController();
             _radial.ApplySettings(settings);
             _radial.Start();

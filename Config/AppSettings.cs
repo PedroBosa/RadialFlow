@@ -86,6 +86,12 @@ public sealed class AppSettings
     /// </summary>
     public string WheelPreset { get; set; } = RadialFlow.UI.WheelPreset.DefaultKey;
 
+    /// <summary>
+    /// Idioma da interface: "pt-BR" (padrão), "en-US" ou "es-ES". Gravado como texto: um valor desconhecido
+    /// cai no padrão sem invalidar o resto. A escolha passa a valer no próximo início do aplicativo.
+    /// </summary>
+    public string Language { get; set; } = RadialFlow.Infrastructure.Loc.DefaultLanguage;
+
     /// <summary>Lista de processos em blacklist (jogos, apps 3D, CAD).</summary>
     public List<ForegroundBlacklist.BlacklistEntry> Blacklist { get; set; } = new();
 

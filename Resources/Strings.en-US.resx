@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+
+  <data name="Common.OK" xml:space="preserve"><value>OK</value></data>
+  <data name="Common.Cancel" xml:space="preserve"><value>Cancel</value></data>
+  <data name="Common.Yes" xml:space="preserve"><value>Yes</value></data>
+  <data name="Common.No" xml:space="preserve"><value>No</value></data>
+  <data name="Common.Add" xml:space="preserve"><value>Add</value></data>
+  <data name="Common.Save" xml:space="preserve"><value>Save</value></data>
+  <data name="Common.Close" xml:space="preserve"><value>Close</value></data>
+  <data name="Common.Remove" xml:space="preserve"><value>Remove</value></data>
+  <data name="Common.Restore" xml:space="preserve"><value>Restore</value></data>
+  <data name="Common.Browse" xml:space="preserve"><value>Browse…</value></data>
+  <data name="Common.More" xml:space="preserve"><value>More…</value></data>
+  <data name="Common.MoreOptions" xml:space="preserve"><value>More {0} options</value></data>
+  <data name="Common.MoreOneOption" xml:space="preserve"><value>1 more option</value></data>
+  <data name="Common.ProgramsCountOne" xml:space="preserve"><value>1 program</value></data>
+  <data name="Common.ProgramsCountMany" xml:space="preserve"><value>{0} programs</value></data>
+  <data name="Common.ShortcutsCountOne" xml:space="preserve"><value>1 shortcut</value></data>
+  <data name="Common.ShortcutsCountMany" xml:space="preserve"><value>{0} shortcuts</value></data>
+  <data name="Common.ItemsCountOne" xml:space="preserve"><value>1 item</value></data>
+  <data name="Common.ItemsCountMany" xml:space="preserve"><value>{0} items</value></data>
+  <data name="Common.Optional" xml:space="preserve"><value>optional</value></data>
+  <data name="Common.Name" xml:space="preserve"><value>Name</value></data>
+  <data name="Common.Description" xml:space="preserve"><value>Description</value></data>
+  <data name="Common.Arguments" xml:space="preserve"><value>Arguments</value></data>
+  <data name="Common.Path" xml:space="preserve"><value>Path</value></data>
+  <data name="Common.Type" xml:space="preserve"><value>Type</value></data>
+  <data name="Common.None" xml:space="preserve"><value>None</value></data>
+  <data name="Common.Rename" xml:space="preserve"><value>Rename</value></data>
+  <data name="Common.Edit" xml:space="preserve"><value>Edit</value></data>
+  <data name="Common.Delete" xml:space="preserve"><value>Delete</value></data>
+  <data name="Common.Import" xml:space="preserve"><value>Import</value></data>
+  <data name="Common.Export" xml:space="preserve"><value>Export</value></data>
+
+  <data name="Settings.General" xml:space="preserve"><value>General</value></data>
+  <data name="Settings.Appearance" xml:space="preserve"><value>Appearance</value></data>
+  <data name="Settings.Blacklist" xml:space="preserve"><value>Blacklist</value></data>
+  <data name="Settings.Favorites" xml:space="preserve"><value>Favorite Apps</value></data>
+  <data name="Settings.Menus" xml:space="preserve"><value>Menus</value></data>
+  <data name="Settings.Converters" xml:space="preserve"><value>Converters</value></data>
+  <data name="Settings.About" xml:space="preserve"><value>About</value></data>
+  <data name="Settings.Language" xml:space="preserve"><value>Language</value></data>
+  <data name="Settings.LanguageDescription" xml:space="preserve"><value>Language of the RadialFlow interface. Each option is shown in its own language.</value></data>
+  <data name="Settings.LanguageHint" xml:space="preserve"><value>Applied when RadialFlow restarts.</value></data>
+  <data name="Settings.RestartRequired" xml:space="preserve"><value>The new language will be applied when RadialFlow restarts.</value></data>
+  <data name="Settings.WindowTitle" xml:space="preserve"><value>RadialFlow — Settings</value></data>
+  <data name="Settings.SidebarTitle" xml:space="preserve"><value>Settings</value></data>
+  <data name="Settings.SidebarFooter" xml:space="preserve"><value>Radial menu for Windows</value></data>
+  <data name="Settings.GeneralSubtitle" xml:space="preserve"><value>Startup and gesture. Changes are applied after saving.</value></data>
+  <data name="Settings.AppearanceSubtitle" xml:space="preserve"><value>Color, wheel style and language. Changes are applied after saving.</value></data>
+  <data name="Settings.AllSaved" xml:space="preserve"><value>Everything saved</value></data>
+  <data name="Settings.Unsaved" xml:space="preserve"><value>Unsaved changes: {0}</value></data>
+</root>

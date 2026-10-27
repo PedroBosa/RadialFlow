@@ -60,6 +60,18 @@ public sealed class SettingsStoreTests : IDisposable
     }
 
     [Fact]
+    public void SaveELoad_PreservaIdioma()
+    {
+        SettingsStore store = Create();
+        var settings = Custom();
+        settings.Language = "es-ES";
+
+        store.Save(settings);
+
+        Assert.Equal("es-ES", store.Load().Settings.Language);
+    }
+
+    [Fact]
     public void Save_GravaEmUtf8SemBomECriaAPasta()
     {
         SettingsStore store = Create();
@@ -244,6 +256,7 @@ public sealed class SettingsStoreTests : IDisposable
         Assert.Equal(19, loaded.DeadzonePixels);
         Assert.Equal(650, loaded.DwellMilliseconds);
         Assert.Equal("Blue", loaded.Accent);
+        Assert.Equal("pt-BR", loaded.Language);
         Assert.NotNull(loaded.Blacklist);
         Assert.NotNull(loaded.FavoriteApps);
     }
@@ -273,6 +286,22 @@ public sealed class SettingsStoreTests : IDisposable
     public void Normalize_TempoFicaNosLimites(int stored, int expected)
     {
         Assert.Equal(expected, SettingsStore.Normalize(new AppSettings { DwellMilliseconds = stored }).DwellMilliseconds);
+    }
+
+    [Theory]
+    [InlineData(null, "pt-BR")]
+    [InlineData("", "pt-BR")]
+    [InlineData("   ", "pt-BR")]
+    [InlineData("fr-FR", "pt-BR")]
+    [InlineData("en", "en-US")]
+    [InlineData("EN-us", "en-US")]
+    [InlineData("es-MX", "es-ES")]
+    [InlineData("pt-PT", "pt-BR")]
+    public void Normalize_Idioma_UsaChaveSuportada(string? stored, string expected)
+    {
+        var settings = new AppSettings { Language = stored! };
+
+        Assert.Equal(expected, SettingsStore.Normalize(settings).Language);
     }
 
     [Fact]
@@ -405,12 +434,13 @@ public sealed class SettingsStoreTests : IDisposable
     {
         SettingsStore store = Create();
         Directory.CreateDirectory(_temp.Combine("cfg"));
-        File.WriteAllText(store.FilePath, """{ "Blacklist": null, "FavoriteApps": null, "Accent": null }""");
+        File.WriteAllText(store.FilePath, """{ "Blacklist": null, "FavoriteApps": null, "Accent": null, "Language": null }""");
 
         var loaded = store.Load().Settings;
 
         Assert.Empty(loaded.Blacklist);
         Assert.Empty(loaded.FavoriteApps);
         Assert.Equal("Blue", loaded.Accent);
+        Assert.Equal("pt-BR", loaded.Language);
     }
 }

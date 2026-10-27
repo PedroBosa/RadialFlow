@@ -120,6 +120,7 @@ internal sealed class SettingsStore(string directory, string fileName = "setting
         loaded.CustomProfiles ??= new List<CustomMenuProfile>();
         loaded.Accent ??= "Blue";
         loaded.WheelPreset = UI.WheelPreset.Normalize(loaded.WheelPreset);
+        loaded.Language = Loc.Normalize(loaded.Language);
 
         CustomMenuNormalizer.Normalize(loaded.CustomProfiles);
 
