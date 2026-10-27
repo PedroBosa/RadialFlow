@@ -25,6 +25,11 @@ coverage/
 *.log
 *.tmp
 
+# Crash dumps e rastreamento do Windows
+*.dmp
+*.wer
+*.etl
+
 # Sistema
 Thumbs.db
 Desktop.ini

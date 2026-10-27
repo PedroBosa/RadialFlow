@@ -32,18 +32,8 @@
   <data name="Common.ShortcutsCountMany" xml:space="preserve"><value>{0} atajos</value></data>
   <data name="Common.ItemsCountOne" xml:space="preserve"><value>1 elemento</value></data>
   <data name="Common.ItemsCountMany" xml:space="preserve"><value>{0} elementos</value></data>
-  <data name="Common.Optional" xml:space="preserve"><value>opcional</value></data>
-  <data name="Common.Name" xml:space="preserve"><value>Nombre</value></data>
   <data name="Common.Description" xml:space="preserve"><value>Descripción</value></data>
-  <data name="Common.Arguments" xml:space="preserve"><value>Argumentos</value></data>
-  <data name="Common.Path" xml:space="preserve"><value>Ruta</value></data>
-  <data name="Common.Type" xml:space="preserve"><value>Tipo</value></data>
-  <data name="Common.None" xml:space="preserve"><value>Ninguno</value></data>
   <data name="Common.Rename" xml:space="preserve"><value>Cambiar nombre</value></data>
-  <data name="Common.Edit" xml:space="preserve"><value>Editar</value></data>
-  <data name="Common.Delete" xml:space="preserve"><value>Eliminar</value></data>
-  <data name="Common.Import" xml:space="preserve"><value>Importar</value></data>
-  <data name="Common.Export" xml:space="preserve"><value>Exportar</value></data>
 
   <data name="Settings.General" xml:space="preserve"><value>General</value></data>
   <data name="Settings.Appearance" xml:space="preserve"><value>Apariencia</value></data>
