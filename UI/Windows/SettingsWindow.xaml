@@ -91,10 +91,7 @@
             <Setter Property="Background" Value="{DynamicResource CardBorderBrush}"/>
             <Setter Property="Margin" Value="0,14,0,14"/>
         </Style>
-        <Style x:Key="ValueBadge" TargetType="Border">
-            <Setter Property="Background" Value="{DynamicResource ControlBrush}"/>
-            <Setter Property="CornerRadius" Value="6"/>
-            <Setter Property="Padding" Value="9,2"/>
+        <Style x:Key="ValueBadge" TargetType="Border" BasedOn="{StaticResource ValuePill}">
             <Setter Property="MinWidth" Value="64"/>
         </Style>
         <Style x:Key="EndpointText" TargetType="TextBlock">
@@ -113,7 +110,9 @@
                     <ControlTemplate TargetType="TabItem">
                         <Grid Height="42" Margin="0,1">
                             <Border x:Name="bd" Background="Transparent" BorderBrush="Transparent"
-                                    BorderThickness="1" CornerRadius="8"/>
+                                    BorderThickness="1" CornerRadius="10"/>
+                            <Border x:Name="gloss" Height="1" Margin="10,1,10,0" VerticalAlignment="Top"
+                                    Background="{DynamicResource GlossBrush}" Opacity="0" IsHitTestVisible="False"/>
                             <Border x:Name="marker" Width="3" Height="18" CornerRadius="1.5" HorizontalAlignment="Left"
                                     Background="{DynamicResource AccentBrush}" Opacity="0"/>
                             <StackPanel Orientation="Horizontal" Margin="13,0,10,0" VerticalAlignment="Center">
@@ -131,10 +130,11 @@
                                 <Setter Property="Foreground" Value="{DynamicResource TextBrush}"/>
                             </Trigger>
                             <Trigger Property="IsSelected" Value="True">
-                                <Setter TargetName="bd" Property="Background" Value="{DynamicResource CardBrush}"/>
-                                <Setter TargetName="bd" Property="BorderBrush" Value="{DynamicResource CardBorderBrush}"/>
+                                <Setter TargetName="bd" Property="Background" Value="{DynamicResource AccentSoftBrush}"/>
+                                <Setter TargetName="bd" Property="BorderBrush" Value="{DynamicResource AccentLineBrush}"/>
+                                <Setter TargetName="gloss" Property="Opacity" Value="0.8"/>
                                 <Setter TargetName="marker" Property="Opacity" Value="1"/>
-                                <Setter Property="Foreground" Value="{DynamicResource AccentTextBrush}"/>
+                                <Setter Property="Foreground" Value="{DynamicResource AccentOnSoftBrush}"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -156,9 +156,12 @@
                                     BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="0,0,1,0">
                                 <DockPanel>
                                     <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="22,22,22,18">
-                                        <Grid Width="32" Height="32" Margin="0,0,12,0" VerticalAlignment="Center">
-                                            <Ellipse Fill="{DynamicResource AccentBrush}"/>
-                                            <Ellipse Width="13" Height="13" Stroke="{DynamicResource AccentInkBrush}" StrokeThickness="2.5"/>
+                                        <Grid Width="34" Height="34" Margin="0,0,12,0" VerticalAlignment="Center">
+                                            <Ellipse Fill="{DynamicResource AccentSoftBrush}"
+                                                     Stroke="{DynamicResource AccentLineBrush}" StrokeThickness="1"/>
+                                            <Ellipse Width="15" Height="15" Stroke="{DynamicResource AccentTextBrush}"
+                                                     StrokeThickness="2.5"/>
+                                            <Ellipse Width="3.5" Height="3.5" Fill="{DynamicResource AccentTextBrush}"/>
                                         </Grid>
                                         <StackPanel VerticalAlignment="Center">
                                             <TextBlock Text="RadialFlow" FontSize="16" FontWeight="Bold"
@@ -182,7 +185,7 @@
                                 </DockPanel>
                             </Border>
 
-                            <ContentPresenter Grid.Column="1" ContentSource="SelectedContent"/>
+                            <ContentPresenter x:Name="PART_SelectedContentHost" Grid.Column="1" ContentSource="SelectedContent"/>
                         </Grid>
                     </ControlTemplate>
                 </Setter.Value>
@@ -216,7 +219,7 @@
                                   HorizontalScrollBarVisibility="Disabled" PanningMode="VerticalOnly">
                         <StackPanel Margin="32,4,20,20">
 
-                            <TextBlock Text="{loc:Loc Settings.General.StartupSection}" Style="{StaticResource SectionLabel}" Margin="3,0,0,7"/>
+                            <ContentControl Content="{loc:Loc Settings.General.StartupSection}" Style="{StaticResource SectionHeader}" Margin="3,0,0,7"/>
                             <Border Style="{StaticResource Card}">
                                 <StackPanel>
                                     <Grid>
@@ -255,7 +258,7 @@
                                 </StackPanel>
                             </Border>
 
-                            <TextBlock Text="{loc:Loc Settings.General.GestureSection}" Style="{StaticResource SectionLabel}"/>
+                            <ContentControl Content="{loc:Loc Settings.General.GestureSection}" Style="{StaticResource SectionHeader}"/>
                             <Border Style="{StaticResource Card}">
                                 <StackPanel>
                                     <Grid>
@@ -310,7 +313,7 @@
                                 </StackPanel>
                             </Border>
 
-                            <TextBlock Text="{loc:Loc Settings.General.HotkeySection}" Style="{StaticResource SectionLabel}"/>
+                            <ContentControl Content="{loc:Loc Settings.General.HotkeySection}" Style="{StaticResource SectionHeader}"/>
                             <Border Style="{StaticResource Card}">
                                 <StackPanel>
                                     <Grid>
@@ -468,9 +471,9 @@
 
                             <StackPanel x:Name="PnlNoBlacklist" VerticalAlignment="Center" HorizontalAlignment="Center"
                                         IsHitTestVisible="False" Margin="16" Visibility="Collapsed">
-                                <TextBlock Text="&#xE72E;" FontFamily="{StaticResource IconFont}" FontSize="26"
-                                           Foreground="{DynamicResource TextDimBrush}" HorizontalAlignment="Center"
-                                           Opacity="0.8"/>
+                                <Border Style="{StaticResource IconBadge}" HorizontalAlignment="Center">
+                                    <TextBlock Style="{StaticResource IconGlyph}" Text="&#xE72E;"/>
+                                </Border>
                                 <TextBlock Text="{loc:Loc Settings.Blacklist.EmptyTitle}" FontSize="13.5" FontWeight="SemiBold"
                                            HorizontalAlignment="Center" Margin="0,8,0,0"/>
                                 <TextBlock Text="{loc:Loc Settings.Blacklist.EmptyHint}"
@@ -560,9 +563,9 @@
 
                             <StackPanel x:Name="PnlNoFavorites" VerticalAlignment="Center" HorizontalAlignment="Center"
                                         IsHitTestVisible="False" Margin="16" Visibility="Collapsed">
-                                <TextBlock Text="&#xE734;" FontFamily="{StaticResource IconFont}" FontSize="26"
-                                           Foreground="{DynamicResource TextDimBrush}" HorizontalAlignment="Center"
-                                           Opacity="0.8"/>
+                                <Border Style="{StaticResource IconBadge}" HorizontalAlignment="Center">
+                                    <TextBlock Style="{StaticResource IconGlyph}" Text="&#xE734;"/>
+                                </Border>
                                 <TextBlock Text="{loc:Loc Settings.Favorites.EmptyTitle}" FontSize="13.5" FontWeight="SemiBold"
                                            HorizontalAlignment="Center" Margin="0,8,0,0"/>
                                 <TextBlock Text="{loc:Loc Settings.Favorites.EmptyHint}"
@@ -745,8 +748,11 @@
                                                     <ColumnDefinition Width="Auto"/>
                                                 </Grid.ColumnDefinitions>
                                                 <TextBlock Text="{loc:Loc Menus.Priority}" Style="{StaticResource FieldLabel}" Margin="0,0,0,5"/>
-                                                <TextBlock x:Name="TxtPriorityValue" Grid.Column="1" Style="{StaticResource ValueText}"
-                                                           MinWidth="36" Text="0"/>
+                                                <Border Grid.Column="1" Style="{StaticResource ValuePill}" MinWidth="48"
+                                                        VerticalAlignment="Top">
+                                                    <TextBlock x:Name="TxtPriorityValue" Style="{StaticResource ValueText}"
+                                                               MinWidth="36" Text="0"/>
+                                                </Border>
                                             </Grid>
                                             <TextBlock Text="{loc:Loc Menus.PriorityHint}"
                                                        Style="{StaticResource FieldHint}" Margin="0,0,0,4"/>
@@ -856,9 +862,10 @@
 
                                                     <StackPanel x:Name="PnlNoItems" VerticalAlignment="Center" HorizontalAlignment="Center"
                                                                 IsHitTestVisible="False" Margin="6">
-                                                        <TextBlock Text="&#xE710;" FontFamily="{StaticResource IconFont}" FontSize="20"
-                                                                   Foreground="{DynamicResource TextDimBrush}" HorizontalAlignment="Center"
-                                                                   Opacity="0.8"/>
+                                                        <Border Style="{StaticResource IconBadge}" Width="36" Height="36" CornerRadius="18"
+                                                                HorizontalAlignment="Center">
+                                                            <TextBlock Style="{StaticResource IconGlyph}" Text="&#xE710;" FontSize="16"/>
+                                                        </Border>
                                                         <TextBlock Text="{loc:Loc Menus.NoItems}" FontSize="12" FontWeight="SemiBold"
                                                                    HorizontalAlignment="Center" Margin="0,5,0,0"/>
                                                         <TextBlock Text="{loc:Loc Menus.NoItemsHint}" Style="{StaticResource CardHint}"
@@ -869,7 +876,7 @@
 
                                             <Grid Grid.Column="2">
                                                 <StackPanel x:Name="PnlItemEditor">
-                                                    <TextBlock Text="{loc:Loc Menus.AppearanceSection}" Style="{StaticResource SectionLabel}" Margin="2,0,0,4"/>
+                                                    <ContentControl Content="{loc:Loc Menus.AppearanceSection}" Style="{StaticResource SectionHeader}" Margin="2,0,0,4"/>
                                                     <StackPanel>
                                                         <TextBlock Text="{loc:Loc Common.Label}" Style="{StaticResource FieldLabel}" Margin="0,0,0,5"/>
                                                         <TextBox x:Name="TxtItemLabel" MaxLength="24" TextChanged="ItemField_Changed"
@@ -896,7 +903,7 @@
 
                                                     <Border Style="{StaticResource Divider}" Margin="0,12,0,10"/>
 
-                                                    <TextBlock Text="{loc:Loc Menus.ActionSection}" Style="{StaticResource SectionLabel}" Margin="2,0,0,4"/>
+                                                    <ContentControl Content="{loc:Loc Menus.ActionSection}" Style="{StaticResource SectionHeader}" Margin="2,0,0,4"/>
                                                     <TextBlock Text="{loc:Loc Menus.ItemKind}" Style="{StaticResource FieldLabel}" Margin="0,0,0,5"/>
                                                     <ComboBox x:Name="CmbItemKind" SelectionChanged="CmbItemKind_SelectionChanged"/>
 
@@ -957,7 +964,7 @@
                                                     </Border>
 
                                                     <StackPanel x:Name="PnlItemSubmenu" Visibility="Collapsed">
-                                                        <TextBlock Text="{loc:Loc Menus.SubmenuSection}" Style="{StaticResource SectionLabel}" Margin="2,12,0,4"/>
+                                                        <ContentControl Content="{loc:Loc Menus.SubmenuSection}" Style="{StaticResource SectionHeader}" Margin="2,12,0,4"/>
                                                         <Border Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource CardBorderBrush}"
                                                                 BorderThickness="1" CornerRadius="10" Padding="12,10">
                                                             <StackPanel>
@@ -984,7 +991,7 @@
                                                     </StackPanel>
 
                                                     <StackPanel x:Name="PnlItemRoutine" Visibility="Collapsed">
-                                                        <TextBlock Text="{loc:Loc Menus.RoutineSection}" Style="{StaticResource SectionLabel}" Margin="2,12,0,4"/>
+                                                        <ContentControl Content="{loc:Loc Menus.RoutineSection}" Style="{StaticResource SectionHeader}" Margin="2,12,0,4"/>
                                                         <Border Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource CardBorderBrush}"
                                                                 BorderThickness="1" CornerRadius="10" Padding="12,10">
                                                             <StackPanel>
@@ -1014,13 +1021,14 @@
                                                     </StackPanel>
                                                 </StackPanel>
 
-                                                <Border x:Name="PnlNoItemSelected" Background="{DynamicResource SurfaceBrush}"
-                                                        BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1"
-                                                        CornerRadius="10" Padding="20" Visibility="Collapsed">
+                                                <Border x:Name="PnlNoItemSelected" Background="{DynamicResource CardSurfaceBrush}"
+                                                        BorderBrush="{DynamicResource CardEdgeBrush}" BorderThickness="1"
+                                                        CornerRadius="14" Padding="20" Visibility="Collapsed">
                                                     <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" MaxWidth="240">
-                                                        <TextBlock Text="&#xE70F;" FontFamily="{StaticResource IconFont}" FontSize="24"
-                                                                   Foreground="{DynamicResource TextDimBrush}" HorizontalAlignment="Center"
-                                                                   Opacity="0.8"/>
+                                                        <Border Style="{StaticResource IconBadge}" Width="44" Height="44" CornerRadius="22"
+                                                                HorizontalAlignment="Center">
+                                                            <TextBlock Style="{StaticResource IconGlyph}" Text="&#xE70F;" FontSize="19"/>
+                                                        </Border>
                                                         <TextBlock Text="{loc:Loc Menus.NoItemSelected}" FontSize="13" FontWeight="SemiBold"
                                                                    HorizontalAlignment="Center" Margin="0,8,0,0"/>
                                                         <TextBlock Text="{loc:Loc Menus.NoItemSelectedHint}"
@@ -1094,8 +1102,10 @@
                         <Border x:Name="PnlNoProfileSelected" Grid.Column="2" Style="{StaticResource Card}"
                                 Padding="24,40" MaxWidth="460" HorizontalAlignment="Center" VerticalAlignment="Center">
                             <StackPanel HorizontalAlignment="Center">
-                                <TextBlock Text="&#xE8FD;" FontFamily="{StaticResource IconFont}" FontSize="30"
-                                           Foreground="{DynamicResource AccentTextBrush}" HorizontalAlignment="Center"/>
+                                <Border Style="{StaticResource IconBadge}" Width="48" Height="48" CornerRadius="24"
+                                        HorizontalAlignment="Center">
+                                    <TextBlock Style="{StaticResource IconGlyph}" Text="&#xE8FD;" FontSize="21"/>
+                                </Border>
                                 <TextBlock Text="{loc:Loc Menus.NoProfileSelected}" FontSize="15" FontWeight="SemiBold"
                                            HorizontalAlignment="Center" Margin="0,10,0,0"/>
                                 <TextBlock Text="{loc:Loc Menus.NoProfileSelectedHint}"
@@ -1108,7 +1118,9 @@
                         <Border Style="{StaticResource Card}" Margin="0" Padding="36,34" MaxWidth="560"
                                 HorizontalAlignment="Center" VerticalAlignment="Center">
                             <StackPanel HorizontalAlignment="Center">
-                                <Border Width="56" Height="56" CornerRadius="28" Background="{DynamicResource AccentSoftBrush}">
+                                <Border Width="56" Height="56" CornerRadius="28"
+                                        Background="{DynamicResource AccentSoftBrush}"
+                                        BorderBrush="{DynamicResource AccentLineBrush}" BorderThickness="1">
                                     <TextBlock Text="&#xE8FD;" FontFamily="{StaticResource IconFont}" FontSize="24"
                                                Foreground="{DynamicResource AccentTextBrush}"
                                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
@@ -1151,7 +1163,7 @@
 
                     <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                         <StackPanel Margin="32,4,20,20">
-                            <TextBlock Text="{loc:Loc Converters.AvailableSection}" Style="{StaticResource SectionLabel}" Margin="3,0,0,7"/>
+                            <ContentControl Content="{loc:Loc Converters.AvailableSection}" Style="{StaticResource SectionHeader}" Margin="3,0,0,7"/>
                             <StackPanel x:Name="ConverterList"/>
 
                             <Border Style="{StaticResource Card}">
@@ -1204,8 +1216,10 @@
                                         <ColumnDefinition Width="*"/>
                                     </Grid.ColumnDefinitions>
                                     <Grid Width="46" Height="46" Margin="0,0,16,0" VerticalAlignment="Center">
-                                        <Ellipse Fill="{DynamicResource AccentBrush}"/>
-                                        <Ellipse Width="18" Height="18" Stroke="{DynamicResource AccentInkBrush}" StrokeThickness="3"/>
+                                        <Ellipse Fill="{DynamicResource AccentSoftBrush}"
+                                                 Stroke="{DynamicResource AccentLineBrush}" StrokeThickness="1"/>
+                                        <Ellipse Width="20" Height="20" Stroke="{DynamicResource AccentTextBrush}" StrokeThickness="3"/>
+                                        <Ellipse Width="4.5" Height="4.5" Fill="{DynamicResource AccentTextBrush}"/>
                                     </Grid>
                                     <StackPanel Grid.Column="1" VerticalAlignment="Center">
                                         <TextBlock x:Name="AboutTitle" Text="RadialFlow" FontSize="21" FontWeight="Bold"

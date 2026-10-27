@@ -40,6 +40,7 @@ internal sealed record UiPalette(
     Color AccentInk,      // texto sobre o destaque
     Color AccentText,     // destaque usado COMO TEXTO (garante contraste sobre Card)
     Color AccentSoft,     // véu do destaque (item selecionado)
+    Color AccentOnSoft,   // destaque como TEXTO sobre o véu (garante contraste sobre AccentSoft)
     Color AccentLine,     // contorno suave do destaque
     Color AccentHalo,     // anel de foco/seleção
     Color AccentGlow,     // brilho do botão principal
@@ -54,8 +55,18 @@ internal sealed record UiPalette(
 
         static Color Alpha(Color color, byte alpha) => Color.FromArgb(alpha, color.R, color.G, color.B);
 
+        static Color Over(Color veil, Color background)
+        {
+            double alpha = veil.A / 255.0;
+            return Color.FromRgb(
+                (byte)Math.Round(veil.R * alpha + background.R * (1 - alpha)),
+                (byte)Math.Round(veil.G * alpha + background.G * (1 - alpha)),
+                (byte)Math.Round(veil.B * alpha + background.B * (1 - alpha)));
+        }
+
         Color surface = light ? Color.FromRgb(0xF2, 0xF4, 0xF8) : Color.FromRgb(0x12, 0x15, 0x1D);
         Color card = light ? Colors.White : Color.FromRgb(0x1A, 0x1F, 0x2B);
+        Color cardTop = light ? Colors.White : Color.FromRgb(0x20, 0x27, 0x37);
 
         // O destaque como TEXTO (valores dos sliders, links): ajustado até ter contraste AA sobre o cartão.
         Color accentText = ColorMath.EnsureContrast(theme.Glow, card, RadialTheme.MinTextContrast);
@@ -66,13 +77,16 @@ internal sealed record UiPalette(
 
         Color accentSoft = Color.FromArgb(light ? (byte)0x26 : (byte)0x3A, theme.Glow.R, theme.Glow.G, theme.Glow.B);
 
+        // O véu fica mais claro no topo do cartão: é o pior caso para texto sobre ele.
+        Color accentOnSoft = ColorMath.EnsureContrast(theme.Glow, Over(accentSoft, cardTop), RadialTheme.MinTextContrast);
+
         return new UiPalette(
             IsLight: light,
             Surface: surface,
             SurfaceAlt: light ? Color.FromRgb(0xE8, 0xEC, 0xF3) : Color.FromRgb(0x16, 0x1A, 0x24),
             Card: card,
             CardBorder: light ? Color.FromRgb(0xDD, 0xE2, 0xEC) : Color.FromRgb(0x2A, 0x31, 0x42),
-            CardTop: light ? Colors.White : Color.FromRgb(0x20, 0x27, 0x37),
+            CardTop: cardTop,
             CardEdge: Color.FromArgb(light ? (byte)0xF2 : (byte)0x2E, 0xFF, 0xFF, 0xFF),
             Text: light ? Color.FromRgb(0x1B, 0x22, 0x30) : Color.FromRgb(0xF3, 0xF6, 0xFB),
             TextDim: light ? Color.FromRgb(0x5B, 0x65, 0x78) : Color.FromRgb(0xA9, 0xB3, 0xC6),
@@ -86,6 +100,7 @@ internal sealed record UiPalette(
             AccentInk: theme.HoverInk,
             AccentText: accentText,
             AccentSoft: accentSoft,
+            AccentOnSoft: accentOnSoft,
             AccentLine: Alpha(theme.Glow, light ? (byte)0x4D : (byte)0x61),
             AccentHalo: Alpha(theme.Glow, light ? (byte)0x1A : (byte)0x26),
             AccentGlow: Alpha(theme.Glow, light ? (byte)0x4D : (byte)0x8C),
@@ -116,6 +131,7 @@ internal sealed record UiPalette(
         yield return ("AccentInk", AccentInk);
         yield return ("AccentText", AccentText);
         yield return ("AccentSoft", AccentSoft);
+        yield return ("AccentOnSoft", AccentOnSoft);
         yield return ("AccentLine", AccentLine);
         yield return ("AccentHalo", AccentHalo);
         yield return ("AccentGlow", AccentGlow);

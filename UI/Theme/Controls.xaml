@@ -28,7 +28,7 @@
     <Style x:Key="ValueText" TargetType="TextBlock">
         <Setter Property="FontSize" Value="13"/>
         <Setter Property="FontWeight" Value="SemiBold"/>
-        <Setter Property="Foreground" Value="{DynamicResource AccentTextBrush}"/>
+        <Setter Property="Foreground" Value="{DynamicResource AccentOnSoftBrush}"/>
         <Setter Property="VerticalAlignment" Value="Center"/>
         <Setter Property="TextAlignment" Value="Right"/>
     </Style>
@@ -71,6 +71,26 @@
         <Setter Property="Padding" Value="10,3"/>
         <Setter Property="MinWidth" Value="52"/>
         <Setter Property="VerticalAlignment" Value="Center"/>
+    </Style>
+
+    <!-- Cabeçalho de seção: ponto de destaque, como os marcadores da roda. -->
+    <Style x:Key="SectionHeader" TargetType="ContentControl">
+        <Setter Property="Focusable" Value="False"/>
+        <Setter Property="IsTabStop" Value="False"/>
+        <Setter Property="Margin" Value="3,10,0,7"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ContentControl">
+                    <StackPanel Orientation="Horizontal">
+                        <Ellipse Width="5" Height="5" Margin="0,0,7,0" VerticalAlignment="Center"
+                                 Fill="{DynamicResource AccentTextBrush}"/>
+                        <ContentPresenter ContentSource="Content" VerticalAlignment="Center"
+                                          TextElement.FontSize="10.5" TextElement.FontWeight="SemiBold"
+                                          TextElement.Foreground="{DynamicResource TextDimBrush}"/>
+                    </StackPanel>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
     </Style>
 
     <!-- ================= Botões ================= -->
@@ -531,7 +551,7 @@
                                 CornerRadius="10" Padding="3" Margin="0,0,0,14">
                             <TabPanel IsItemsHost="True"/>
                         </Border>
-                        <ContentPresenter Grid.Row="1" ContentSource="SelectedContent"/>
+                        <ContentPresenter x:Name="PART_SelectedContentHost" Grid.Row="1" ContentSource="SelectedContent"/>
                     </Grid>
                 </ControlTemplate>
             </Setter.Value>
@@ -547,7 +567,8 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="TabItem">
-                    <Border x:Name="bd" Background="Transparent" CornerRadius="8" Padding="16,7" Margin="1,0">
+                    <Border x:Name="bd" Background="Transparent" BorderBrush="Transparent" BorderThickness="1"
+                            CornerRadius="9" Padding="16,7" Margin="1,0">
                         <ContentPresenter ContentSource="Header" HorizontalAlignment="Center" VerticalAlignment="Center"
                                           TextElement.Foreground="{TemplateBinding Foreground}"/>
                     </Border>
@@ -557,8 +578,9 @@
                             <Setter Property="Foreground" Value="{DynamicResource TextBrush}"/>
                         </Trigger>
                         <Trigger Property="IsSelected" Value="True">
-                            <Setter TargetName="bd" Property="Background" Value="{DynamicResource CardBrush}"/>
-                            <Setter Property="Foreground" Value="{DynamicResource AccentTextBrush}"/>
+                            <Setter TargetName="bd" Property="Background" Value="{DynamicResource AccentSoftBrush}"/>
+                            <Setter TargetName="bd" Property="BorderBrush" Value="{DynamicResource AccentLineBrush}"/>
+                            <Setter Property="Foreground" Value="{DynamicResource AccentOnSoftBrush}"/>
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>

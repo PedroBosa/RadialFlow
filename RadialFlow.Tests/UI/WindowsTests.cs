@@ -271,6 +271,60 @@ public sealed class WindowsTests : IDisposable
         });
     }
 
+    // ------------------------------------------------------------------
+    // Contrato de template das abas (automação)
+    // ------------------------------------------------------------------
+
+    [Fact]
+    public void Configuracoes_TemplateExpoeOConteudoDaAbaSelecionada()
+    {
+        RunSta(() =>
+        {
+            SettingsWindow window = OpenSettings();
+            var tabs = Find<TabControl>(window, "MainTabs");
+            tabs.ApplyTemplate();
+
+            var host = tabs.Template.FindName("PART_SelectedContentHost", tabs) as ContentPresenter;
+            Assert.NotNull(host);
+            Assert.Same(tabs.SelectedContent, host!.Content);
+
+            tabs.SelectedItem = tabs.Items.Cast<TabItem>().Single(t => (string)t.Header == "Aparência");
+            Pump(100);
+            Assert.Same(tabs.SelectedContent, host.Content);
+            window.Close();
+        });
+    }
+
+    [Fact]
+    public void Abas_TemplateCompartilhado_TambemExpoeOConteudoSelecionado()
+    {
+        RunSta(() =>
+        {
+            var window = new Window
+            {
+                Left = -20000, Top = 100, Width = 320, Height = 240, ShowInTaskbar = false,
+                WindowStartupLocation = WindowStartupLocation.Manual
+            };
+            UiTheme.Install(window);
+
+            var tabs = new TabControl();
+            tabs.Items.Add(new TabItem { Header = "Um", Content = new Border() });
+            tabs.Items.Add(new TabItem { Header = "Dois", Content = new Border() });
+            window.Content = tabs;
+            window.Show();
+            Pump(100);
+
+            var host = tabs.Template.FindName("PART_SelectedContentHost", tabs) as ContentPresenter;
+            Assert.NotNull(host);
+            Assert.Same(tabs.SelectedContent, host!.Content);
+
+            tabs.SelectedIndex = 1;
+            Pump(50);
+            Assert.Same(tabs.SelectedContent, host.Content);
+            window.Close();
+        });
+    }
+
     [Fact]
     public void Tema_RefreshTrocaAsCoresDaJanelaAberta()
     {
@@ -297,13 +351,25 @@ public sealed class WindowsTests : IDisposable
     [MemberData(nameof(LightAndDark))]
     public void Paleta_TextoTemContrasteSobreCadaSuperficie(bool light)
     {
+        static Color Over(Color veil, Color background)
+        {
+            double alpha = veil.A / 255.0;
+            return Color.FromRgb(
+                (byte)Math.Round(veil.R * alpha + background.R * (1 - alpha)),
+                (byte)Math.Round(veil.G * alpha + background.G * (1 - alpha)),
+                (byte)Math.Round(veil.B * alpha + background.B * (1 - alpha)));
+        }
+
         foreach (var (key, _, color) in RadialTheme.AccentChoices)
         {
             UiPalette p = UiPalette.Create(RadialTheme.Create(light, color ?? Color.FromRgb(0x00, 0x78, 0xD4)));
+            Color softOnCard = Over(p.AccentSoft, p.CardTop);
 
             Assert.True(ColorMath.Contrast(p.Text, p.Surface) >= 7, $"{key}: texto/janela");
             Assert.True(ColorMath.Contrast(p.Text, p.Card) >= 7, $"{key}: texto/cartão");
             Assert.True(ColorMath.Contrast(p.Text, p.CardTop) >= 7, $"{key}: texto/topo do cartão");
+            Assert.True(ColorMath.Contrast(p.Text, softOnCard) >= 7, $"{key}: texto/item selecionado");
+            Assert.True(ColorMath.Contrast(p.AccentOnSoft, softOnCard) >= RadialTheme.MinTextContrast, $"{key}: destaque/pílula");
             Assert.True(ColorMath.Contrast(p.TextDim, p.Card) >= RadialTheme.MinTextContrast, $"{key}: texto secundário/cartão");
             Assert.True(ColorMath.Contrast(p.TextDim, p.Surface) >= RadialTheme.MinTextContrast, $"{key}: texto secundário/janela");
             Assert.True(ColorMath.Contrast(p.AccentText, p.Card) >= RadialTheme.MinTextContrast, $"{key}: valor em destaque/cartão");

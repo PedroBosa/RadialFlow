@@ -24,12 +24,6 @@
             <Setter Property="FontSize" Value="11.5"/>
             <Setter Property="Margin" Value="0,3,0,0"/>
         </Style>
-        <Style x:Key="SectionLabel" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="10.5"/>
-            <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="Foreground" Value="{DynamicResource TextDimBrush}"/>
-            <Setter Property="Margin" Value="0,0,0,6"/>
-        </Style>
     </Window.Resources>
 
     <Grid>
@@ -47,12 +41,9 @@
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
-                <Grid Width="38" Height="38" Margin="0,0,14,0" VerticalAlignment="Center">
-                    <Ellipse Fill="{DynamicResource AccentBrush}"/>
-                    <TextBlock Text="&#xE768;" FontFamily="{StaticResource IconFont}" FontSize="18"
-                               Foreground="{DynamicResource AccentInkBrush}"
-                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                </Grid>
+                <Border Style="{StaticResource IconBadge}" Margin="0,0,14,0">
+                    <TextBlock Style="{StaticResource IconGlyph}" Text="&#xE768;"/>
+                </Border>
                 <StackPanel Grid.Column="1" VerticalAlignment="Center">
                     <TextBlock Text="{loc:Loc Routine.Title}" FontSize="16" FontWeight="SemiBold"/>
                     <TextBlock x:Name="TxtSubtitle" Text="{loc:Loc Routine.Subtitle}"
@@ -77,8 +68,8 @@
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
-                        <TextBlock Text="{loc:Loc Routine.Sequence}" Style="{StaticResource SectionLabel}"
-                                   VerticalAlignment="Center" Margin="0,0,0,6"/>
+                        <ContentControl Content="{loc:Loc Routine.Sequence}" Style="{StaticResource SectionHeader}"
+                                        VerticalAlignment="Center" Margin="0,0,0,6"/>
                         <Border Grid.Column="1" Background="{DynamicResource ControlBrush}" CornerRadius="8"
                                 Padding="7,1" Margin="6,0,0,6">
                             <TextBlock x:Name="TxtStepCount" Text="{loc:Loc Menus.RoutineCountZero}" FontSize="11" FontWeight="SemiBold"
@@ -138,9 +129,10 @@
 
                         <StackPanel x:Name="PnlNoSteps" VerticalAlignment="Center" HorizontalAlignment="Center"
                                     IsHitTestVisible="False" Margin="6" Visibility="Collapsed">
-                            <TextBlock Text="&#xE768;" FontFamily="{StaticResource IconFont}" FontSize="20"
-                                       Foreground="{DynamicResource TextDimBrush}" HorizontalAlignment="Center"
-                                       Opacity="0.8"/>
+                            <Border Style="{StaticResource IconBadge}" Width="36" Height="36" CornerRadius="18"
+                                    HorizontalAlignment="Center">
+                                <TextBlock Style="{StaticResource IconGlyph}" Text="&#xE768;" FontSize="16"/>
+                            </Border>
                             <TextBlock Text="{loc:Loc Routine.EmptyTitle}" FontSize="12" FontWeight="SemiBold"
                                        HorizontalAlignment="Center" Margin="0,5,0,0"/>
                             <TextBlock Text="{loc:Loc Routine.EmptyHint}" Style="{StaticResource CardHint}"
@@ -156,7 +148,7 @@
                               Padding="0,0,4,0">
                     <Border x:Name="BdStepEditor" Style="{StaticResource Card}" Margin="0" Padding="18,14">
                         <StackPanel x:Name="PnlStepEditor">
-                            <TextBlock Text="{loc:Loc Routine.StepSection}" Style="{StaticResource SectionLabel}"/>
+                            <ContentControl Content="{loc:Loc Routine.StepSection}" Style="{StaticResource SectionHeader}"/>
                             <TextBlock x:Name="TxtStepKind" FontSize="14" FontWeight="SemiBold"/>
                             <TextBlock Text="{loc:Loc Routine.StepHint}"
                                        Style="{StaticResource FieldHint}" TextWrapping="Wrap"/>
@@ -186,13 +178,14 @@
                     </Border>
                 </ScrollViewer>
 
-                <Border x:Name="PnlNoStepSelected" Background="{DynamicResource CardBrush}"
-                        BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1"
-                        CornerRadius="12" Padding="20" Visibility="Collapsed">
+                <Border x:Name="PnlNoStepSelected" Background="{DynamicResource CardSurfaceBrush}"
+                        BorderBrush="{DynamicResource CardEdgeBrush}" BorderThickness="1"
+                        CornerRadius="14" Padding="20" Visibility="Collapsed">
                     <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" MaxWidth="260">
-                        <TextBlock Text="&#xE768;" FontFamily="{StaticResource IconFont}" FontSize="24"
-                                   Foreground="{DynamicResource TextDimBrush}" HorizontalAlignment="Center"
-                                   Opacity="0.8"/>
+                        <Border Style="{StaticResource IconBadge}" Width="44" Height="44" CornerRadius="22"
+                                HorizontalAlignment="Center">
+                            <TextBlock Style="{StaticResource IconGlyph}" Text="&#xE768;" FontSize="19"/>
+                        </Border>
                         <TextBlock Text="{loc:Loc Routine.NoSelection}" FontSize="13" FontWeight="SemiBold"
                                    HorizontalAlignment="Center" Margin="0,8,0,0"/>
                         <TextBlock Text="{loc:Loc Routine.NoSelectionHint}"

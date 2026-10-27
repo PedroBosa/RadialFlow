@@ -24,12 +24,6 @@
             <Setter Property="FontSize" Value="11.5"/>
             <Setter Property="Margin" Value="0,3,0,0"/>
         </Style>
-        <Style x:Key="SectionLabel" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="10.5"/>
-            <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="Foreground" Value="{DynamicResource TextDimBrush}"/>
-            <Setter Property="Margin" Value="0,0,0,6"/>
-        </Style>
     </Window.Resources>
 
     <Grid>
@@ -47,12 +41,9 @@
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
-                <Grid Width="38" Height="38" Margin="0,0,14,0" VerticalAlignment="Center">
-                    <Ellipse Fill="{DynamicResource AccentBrush}"/>
-                    <TextBlock Text="&#xE8A9;" FontFamily="{StaticResource IconFont}" FontSize="18"
-                               Foreground="{DynamicResource AccentInkBrush}"
-                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                </Grid>
+                <Border Style="{StaticResource IconBadge}" Margin="0,0,14,0">
+                    <TextBlock Style="{StaticResource IconGlyph}" Text="&#xE8A9;"/>
+                </Border>
                 <StackPanel Grid.Column="1" VerticalAlignment="Center">
                     <TextBlock Text="{loc:Loc Submenu.Title}" FontSize="16" FontWeight="SemiBold"/>
                     <TextBlock x:Name="TxtSubtitle" Text="{loc:Loc Submenu.Subtitle}"
@@ -77,8 +68,8 @@
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
-                        <TextBlock Text="{loc:Loc Submenu.OptionsTitle}" Style="{StaticResource SectionLabel}"
-                                   VerticalAlignment="Center" Margin="0,0,0,6"/>
+                        <ContentControl Content="{loc:Loc Submenu.OptionsTitle}" Style="{StaticResource SectionHeader}"
+                                        VerticalAlignment="Center" Margin="0,0,0,6"/>
                         <Border Grid.Column="1" Background="{DynamicResource ControlBrush}" CornerRadius="8"
                                 Padding="7,1" Margin="6,0,0,6">
                             <TextBlock x:Name="TxtOptionCount" Text="{loc:Loc Menus.SubmenuCountZero}" FontSize="11" FontWeight="SemiBold"
@@ -143,9 +134,10 @@
 
                         <StackPanel x:Name="PnlNoOptions" VerticalAlignment="Center" HorizontalAlignment="Center"
                                     IsHitTestVisible="False" Margin="6" Visibility="Collapsed">
-                            <TextBlock Text="&#xE710;" FontFamily="{StaticResource IconFont}" FontSize="20"
-                                       Foreground="{DynamicResource TextDimBrush}" HorizontalAlignment="Center"
-                                       Opacity="0.8"/>
+                            <Border Style="{StaticResource IconBadge}" Width="36" Height="36" CornerRadius="18"
+                                    HorizontalAlignment="Center">
+                                <TextBlock Style="{StaticResource IconGlyph}" Text="&#xE710;" FontSize="16"/>
+                            </Border>
                             <TextBlock Text="{loc:Loc Submenu.EmptyTitle}" FontSize="12" FontWeight="SemiBold"
                                        HorizontalAlignment="Center" Margin="0,5,0,0"/>
                             <TextBlock Text="{loc:Loc Submenu.EmptyHint}" Style="{StaticResource CardHint}"
@@ -161,7 +153,7 @@
                               HorizontalScrollBarVisibility="Disabled" Padding="0,0,4,0">
                     <Border x:Name="BdOptionEditor" Style="{StaticResource Card}" Margin="0" Padding="18,14">
                         <StackPanel x:Name="PnlOptionEditor">
-                            <TextBlock Text="{loc:Loc Menus.AppearanceSection}" Style="{StaticResource SectionLabel}"/>
+                            <ContentControl Content="{loc:Loc Menus.AppearanceSection}" Style="{StaticResource SectionHeader}"/>
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*"/>
@@ -195,7 +187,7 @@
 
                             <Border Height="1" Background="{DynamicResource CardBorderBrush}" Margin="0,12,0,10"/>
 
-                            <TextBlock Text="{loc:Loc Menus.ActionSection}" Style="{StaticResource SectionLabel}"/>
+                            <ContentControl Content="{loc:Loc Menus.ActionSection}" Style="{StaticResource SectionHeader}"/>
                             <TextBlock Text="{loc:Loc Submenu.KindLabel}" Style="{StaticResource FieldLabel}" Margin="0,0,0,5"/>
                             <ComboBox x:Name="CmbOptionKind" SelectionChanged="CmbOptionKind_SelectionChanged"/>
 
@@ -259,13 +251,14 @@
                     </Border>
                 </ScrollViewer>
 
-                <Border x:Name="PnlNoOptionSelected" Background="{DynamicResource CardBrush}"
-                        BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1"
-                        CornerRadius="12" Padding="20" Visibility="Collapsed">
+                <Border x:Name="PnlNoOptionSelected" Background="{DynamicResource CardSurfaceBrush}"
+                        BorderBrush="{DynamicResource CardEdgeBrush}" BorderThickness="1"
+                        CornerRadius="14" Padding="20" Visibility="Collapsed">
                     <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" MaxWidth="260">
-                        <TextBlock Text="&#xE8A9;" FontFamily="{StaticResource IconFont}" FontSize="24"
-                                   Foreground="{DynamicResource TextDimBrush}" HorizontalAlignment="Center"
-                                   Opacity="0.8"/>
+                        <Border Style="{StaticResource IconBadge}" Width="44" Height="44" CornerRadius="22"
+                                HorizontalAlignment="Center">
+                            <TextBlock Style="{StaticResource IconGlyph}" Text="&#xE8A9;" FontSize="19"/>
+                        </Border>
                         <TextBlock Text="{loc:Loc Submenu.NoSelection}" FontSize="13" FontWeight="SemiBold"
                                    HorizontalAlignment="Center" Margin="0,8,0,0"/>
                         <TextBlock Text="{loc:Loc Submenu.NoSelectionHint}"
