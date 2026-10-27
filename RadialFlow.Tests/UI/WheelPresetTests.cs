@@ -28,6 +28,18 @@ public sealed class WheelPresetTests
     }
 
     [Fact]
+    public void Rotulos_SaoPublicos_ParaOBindingDoComboBox()
+    {
+        foreach (string name in new[] { nameof(WheelPreset.Label), nameof(WheelPreset.Description) })
+        {
+            var property = typeof(WheelPreset).GetProperty(name);
+            Assert.NotNull(property);
+            Assert.True(property!.GetMethod!.IsPublic,
+                $"{name} precisa ser pública para o DisplayMemberPath do WPF.");
+        }
+    }
+
+    [Fact]
     public void Catalogo_TemTamanhosDiferentesEUmAltoContraste()
     {
         Assert.Equal(1.0, WheelPreset.Standard.Scale);

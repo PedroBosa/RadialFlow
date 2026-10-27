@@ -192,6 +192,7 @@ public sealed class SettingsDraftTests : IDisposable
 
             SettingsWindow window = OpenSettings();
             var presets = Find<ComboBox>(window, "CmbWheelPreset");
+            Assert.Equal("Label", presets.DisplayMemberPath);
             Assert.Equal(WheelPreset.All.Count, presets.Items.Count);
             Assert.Same(WheelPreset.Standard, presets.SelectedItem);
 
