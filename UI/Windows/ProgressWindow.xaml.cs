@@ -55,6 +55,7 @@ public partial class ProgressWindow : Window, IProgress<ProgressReport>
     {
         UiTheme.Install(this);   // estilos e cores: antes do XAML, que usa DynamicResource
         InitializeComponent();
+        GlassSurface.Attach(this, GlassImageHost, GlassTint);
         Icon = AppIconRenderer.WindowIcon;
         _token = _cts.Token;
         _ui = Dispatcher;
@@ -109,7 +110,7 @@ public partial class ProgressWindow : Window, IProgress<ProgressReport>
             _finalized = true;
             _completed = true;
             PrgBar.SetResourceReference(System.Windows.Controls.Control.ForegroundProperty, "DangerBrush");
-            TxtPercent.SetResourceReference(System.Windows.Controls.TextBlock.ForegroundProperty, "DangerBrush");
+            TxtPercent.SetResourceReference(System.Windows.Controls.TextBlock.ForegroundProperty, "DangerOnGlassBrush");
             IconGlyph.Text = "\uE783";   // ícone de erro
             IconDisc.SetResourceReference(System.Windows.Shapes.Shape.FillProperty, "DangerBrush");
             IconGlyph.SetResourceReference(System.Windows.Controls.TextBlock.ForegroundProperty, "SurfaceBrush");
@@ -136,7 +137,7 @@ public partial class ProgressWindow : Window, IProgress<ProgressReport>
                 warning ? "WarningBrush" : "AccentBrush");
             TxtPercent.Text = warning ? Loc.Get("Progress.Warning") : "100%";
             TxtPercent.SetResourceReference(System.Windows.Controls.TextBlock.ForegroundProperty,
-                warning ? "WarningBrush" : "AccentTextBrush");
+                warning ? "WarningOnGlassBrush" : "AccentOnGlassBrush");
             IconGlyph.Text = warning ? "\uE7BA" : "\uE73E";
             IconDisc.SetResourceReference(System.Windows.Shapes.Shape.FillProperty,
                 warning ? "WarningBrush" : "AccentBrush");

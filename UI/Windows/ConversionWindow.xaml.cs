@@ -28,6 +28,7 @@ public partial class ConversionWindow : Window
         UiTheme.Install(this);   // estilos e cores: antes do XAML, que usa DynamicResource
         UiTheme.StyleTitleBar(this);
         InitializeComponent();
+        GlassSurface.Attach(this, GlassImageHost, GlassTint);
         Icon = AppIconRenderer.WindowIcon;
         _sourcePaths = sourcePaths;
 

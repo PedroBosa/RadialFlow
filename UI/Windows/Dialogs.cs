@@ -44,7 +44,7 @@ internal static class Dialogs
         if (cancelIndex < 0) cancelIndex = buttons.Length - 1;
         defaultIndex = Math.Clamp(defaultIndex, 0, buttons.Length - 1);
 
-        Window window = CreateWindow(owner, title);
+        Window window = CreateWindow(owner, title, out ContentControl body);
         int result = cancelIndex;
 
         var content = new StackPanel { Margin = new Thickness(26, 24, 26, 22) };
@@ -61,7 +61,7 @@ internal static class Dialogs
         }
 
         content.Children.Add(row);
-        window.Content = content;
+        body.Content = content;
         BeforeShow?.Invoke(window);
         window.ShowDialog();
         return result;
@@ -104,7 +104,7 @@ internal static class Dialogs
         int selectLength, string? secondLabel, string? secondInitial,
         Func<string, string?>? validateOne, Func<string, string, string?>? validateTwo, string okText)
     {
-        Window window = CreateWindow(owner, title);
+        Window window = CreateWindow(owner, title, out ContentControl body);
         (string, string)? result = null;
 
         var content = new StackPanel { Margin = new Thickness(26, 24, 26, 22) };
@@ -113,7 +113,7 @@ internal static class Dialogs
         TextBox? second = secondLabel is null ? null : AddField(window, content, secondLabel, secondInitial ?? "");
 
         var error = new TextBlock { FontSize = 12.5, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 12, 0, 0), Visibility = Visibility.Collapsed };
-        error.SetResourceReference(TextBlock.ForegroundProperty, "DangerBrush");
+        error.SetResourceReference(TextBlock.ForegroundProperty, "DangerOnGlassBrush");
         content.Children.Add(error);
 
         var ok = new Button { Content = okText, MinWidth = 104, IsDefault = true, Style = (Style)window.FindResource("PrimaryButton") };
@@ -143,7 +143,7 @@ internal static class Dialogs
             Children = { ok, cancel }
         });
 
-        window.Content = content;
+        body.Content = content;
         window.ContentRendered += (_, _) =>
         {
             first.Focus();
@@ -209,7 +209,7 @@ internal static class Dialogs
         return grid;
     }
 
-    private static Window CreateWindow(Window? owner, string title)
+    private static Window CreateWindow(Window? owner, string title, out ContentControl body)
     {
         bool hasOwner = owner is { IsLoaded: true };
 
@@ -234,6 +234,21 @@ internal static class Dialogs
         UiTheme.StyleTitleBar(window);
         window.SetResourceReference(Control.BackgroundProperty, "SurfaceBrush");
         window.SetResourceReference(Control.ForegroundProperty, "TextBrush");
+
+        // Conteúdo nativo (título e moldura) fica fora do vidro: só a área do cliente recebe o desfoque.
+        var imageHost = new Border { IsHitTestVisible = false };
+        RenderOptions.SetBitmapScalingMode(imageHost, BitmapScalingMode.HighQuality);
+        var tintHost = new Border { IsHitTestVisible = false };
+        tintHost.SetResourceReference(Border.BackgroundProperty, "SurfaceBrush");
+        body = new ContentControl();
+
+        var root = new Grid();
+        root.Children.Add(imageHost);
+        root.Children.Add(tintHost);
+        root.Children.Add(body);
+        window.Content = root;
+
+        GlassSurface.Attach(window, imageHost, tintHost);
         return window;
     }
 }

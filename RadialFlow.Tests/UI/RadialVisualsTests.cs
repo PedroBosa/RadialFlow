@@ -445,4 +445,36 @@ public sealed class RadialVisualsTests
         Assert.Null(ScreenSnapshot.Capture(0, 0, 0));
         Assert.Null(ScreenSnapshot.Capture(0, 0, 100_000));
     }
+
+    [Fact]
+    public void Captura_RecorteComDimensoesInvalidas_DevolveNull()
+    {
+        Assert.Null(ScreenSnapshot.CaptureRect(0, 0, 0, 10));
+        Assert.Null(ScreenSnapshot.CaptureRect(0, 0, 10, 0));
+        Assert.Null(ScreenSnapshot.CaptureRect(0, 0, -10, 10));
+        Assert.Null(ScreenSnapshot.CaptureRect(0, 0, 8193, 10));
+        Assert.Null(FrostedBackdrop.CreateRect(0, 0, 0, 0));
+    }
+
+    [Theory]
+    [InlineData(false, true, true)]
+    [InlineData(true, true, false)]
+    [InlineData(false, false, false)]
+    [InlineData(true, false, false)]
+    public void Vidro_SoEhUsavelSemAltoContrasteEDentroDoMonitor(bool highContrast, bool inside, bool expected) =>
+        Assert.Equal(expected, GlassSurface.IsUsable(highContrast, inside));
+
+    [Fact]
+    public void Vidro_PincelSemImagemEhNulo_EComImagemPreencheOCartao()
+    {
+        Assert.Null(GlassSurface.CreateBrush(null));
+
+        var image = System.Windows.Media.Imaging.BitmapSource.Create(
+            2, 2, 96, 96, PixelFormats.Bgra32, null, new byte[16], 8);
+        ImageBrush brush = GlassSurface.CreateBrush(image)!;
+
+        Assert.True(brush.IsFrozen);
+        Assert.Equal(Stretch.Fill, brush.Stretch);
+        Assert.Same(image, brush.ImageSource);
+    }
 }

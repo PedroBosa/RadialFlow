@@ -25,6 +25,7 @@ internal static class ScreenSnapshot
 {
     private const int SRCCOPY = 0x00CC0020;
     private const int CAPTUREBLT = 0x40000000;   // inclui janelas em camadas (translúcidas) de outros apps
+    private const int MaxSide = 8192;
 
     /// <summary>
     /// Copia o quadrado centrado em (centerX, centerY), em pixels físicos da tela.
@@ -33,7 +34,15 @@ internal static class ScreenSnapshot
     /// <returns>Imagem congelada (utilizável em qualquer thread) ou null se a captura falhar.</returns>
     public static BitmapSource? Capture(int centerX, int centerY, int sizePx)
     {
-        if (sizePx <= 0 || sizePx > 8192) return null;
+        if (sizePx <= 0 || sizePx > MaxSide) return null;
+        return CaptureRect(centerX - sizePx / 2, centerY - sizePx / 2, sizePx, sizePx);
+    }
+
+    /// <summary>Copia um retângulo da tela, em pixels físicos (canto superior esquerdo em left/top).</summary>
+    /// <returns>Imagem congelada (utilizável em qualquer thread) ou null se a captura falhar.</returns>
+    public static BitmapSource? CaptureRect(int left, int top, int width, int height)
+    {
+        if (width <= 0 || height <= 0 || width > MaxSide || height > MaxSide) return null;
 
         IntPtr screen = IntPtr.Zero, memory = IntPtr.Zero, bitmap = IntPtr.Zero, previous = IntPtr.Zero;
         try
@@ -42,14 +51,12 @@ internal static class ScreenSnapshot
             if (screen == IntPtr.Zero) return null;
 
             memory = CreateCompatibleDC(screen);
-            bitmap = CreateCompatibleBitmap(screen, sizePx, sizePx);
+            bitmap = CreateCompatibleBitmap(screen, width, height);
             if (memory == IntPtr.Zero || bitmap == IntPtr.Zero) return null;
 
             previous = SelectObject(memory, bitmap);
 
-            int left = centerX - sizePx / 2;
-            int top = centerY - sizePx / 2;
-            if (!BitBlt(memory, 0, 0, sizePx, sizePx, screen, left, top, SRCCOPY | CAPTUREBLT)) return null;
+            if (!BitBlt(memory, 0, 0, width, height, screen, left, top, SRCCOPY | CAPTUREBLT)) return null;
 
             SelectObject(memory, previous);
             previous = IntPtr.Zero;

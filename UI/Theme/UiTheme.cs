@@ -24,6 +24,7 @@ internal sealed record UiPalette(
     bool IsLight,
     Color Surface,        // fundo da janela
     Color SurfaceAlt,     // cabeçalho e rodapé
+    Color GlassSurface,   // véu sobre o fundo desfocado (janelas transitórias)
     Color Card,
     Color CardBorder,
     Color CardTop,        // topo do gradiente do cartão
@@ -41,12 +42,15 @@ internal sealed record UiPalette(
     Color AccentText,     // destaque usado COMO TEXTO (garante contraste sobre Card)
     Color AccentSoft,     // véu do destaque (item selecionado)
     Color AccentOnSoft,   // destaque como TEXTO sobre o véu (garante contraste sobre AccentSoft)
+    Color AccentOnGlass,  // destaque como TEXTO sobre o vidro (pior caso)
     Color AccentLine,     // contorno suave do destaque
     Color AccentHalo,     // anel de foco/seleção
     Color AccentGlow,     // brilho do botão principal
     Color Gloss,          // realce interno branco translúcido
     Color Danger,
+    Color DangerOnGlass,  // erro como TEXTO sobre o vidro (pior caso)
     Color Warning,
+    Color WarningOnGlass, // aviso como TEXTO sobre o vidro (pior caso)
     Color WarningInk)
 {
     public static UiPalette Create(RadialTheme theme)
@@ -80,10 +84,21 @@ internal sealed record UiPalette(
         // O véu fica mais claro no topo do cartão: é o pior caso para texto sobre ele.
         Color accentOnSoft = ColorMath.EnsureContrast(theme.Glow, Over(accentSoft, cardTop), RadialTheme.MinTextContrast);
 
+        // Vidro: o fundo desfocado pode ser qualquer imagem; o pior caso é preto (claro) ou branco (escuro).
+        // O véu claro é 0xEE para o texto secundário ainda passar AA sobre o pior caso.
+        Color glassSurface = Color.FromArgb(light ? (byte)0xEE : (byte)0xE0, surface.R, surface.G, surface.B);
+        Color glassWorst = Over(glassSurface, light ? Colors.Black : Colors.White);
+        Color accentOnGlass = ColorMath.EnsureContrast(theme.Glow, glassWorst, RadialTheme.MinTextContrast);
+        Color danger = light ? Color.FromRgb(0xC4, 0x2B, 0x38) : Color.FromRgb(0xFF, 0x7B, 0x86);
+        Color warning = Color.FromRgb(0xF5, 0xA5, 0x24);
+        Color dangerOnGlass = ColorMath.EnsureContrast(danger, glassWorst, RadialTheme.MinTextContrast);
+        Color warningOnGlass = ColorMath.EnsureContrast(warning, glassWorst, RadialTheme.MinTextContrast);
+
         return new UiPalette(
             IsLight: light,
             Surface: surface,
             SurfaceAlt: light ? Color.FromRgb(0xE8, 0xEC, 0xF3) : Color.FromRgb(0x16, 0x1A, 0x24),
+            GlassSurface: glassSurface,
             Card: card,
             CardBorder: light ? Color.FromRgb(0xDD, 0xE2, 0xEC) : Color.FromRgb(0x2A, 0x31, 0x42),
             CardTop: cardTop,
@@ -101,12 +116,15 @@ internal sealed record UiPalette(
             AccentText: accentText,
             AccentSoft: accentSoft,
             AccentOnSoft: accentOnSoft,
+            AccentOnGlass: accentOnGlass,
             AccentLine: Alpha(theme.Glow, light ? (byte)0x4D : (byte)0x61),
             AccentHalo: Alpha(theme.Glow, light ? (byte)0x1A : (byte)0x26),
             AccentGlow: Alpha(theme.Glow, light ? (byte)0x4D : (byte)0x8C),
             Gloss: Color.FromArgb(0x3D, 0xFF, 0xFF, 0xFF),
-            Danger: light ? Color.FromRgb(0xC4, 0x2B, 0x38) : Color.FromRgb(0xFF, 0x7B, 0x86),
-            Warning: Color.FromRgb(0xF5, 0xA5, 0x24),
+            Danger: danger,
+            DangerOnGlass: dangerOnGlass,
+            Warning: warning,
+            WarningOnGlass: warningOnGlass,
             WarningInk: Color.FromRgb(0x1F, 0x16, 0x05));
     }
 
@@ -115,6 +133,7 @@ internal sealed record UiPalette(
     {
         yield return ("Surface", Surface);
         yield return ("SurfaceAlt", SurfaceAlt);
+        yield return ("GlassSurface", GlassSurface);
         yield return ("Card", Card);
         yield return ("CardBorder", CardBorder);
         yield return ("CardTop", CardTop);
@@ -132,12 +151,15 @@ internal sealed record UiPalette(
         yield return ("AccentText", AccentText);
         yield return ("AccentSoft", AccentSoft);
         yield return ("AccentOnSoft", AccentOnSoft);
+        yield return ("AccentOnGlass", AccentOnGlass);
         yield return ("AccentLine", AccentLine);
         yield return ("AccentHalo", AccentHalo);
         yield return ("AccentGlow", AccentGlow);
         yield return ("Gloss", Gloss);
         yield return ("Danger", Danger);
+        yield return ("DangerOnGlass", DangerOnGlass);
         yield return ("Warning", Warning);
+        yield return ("WarningOnGlass", WarningOnGlass);
         yield return ("WarningInk", WarningInk);
     }
 }

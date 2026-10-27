@@ -164,4 +164,8 @@ internal static class FrostedBackdrop
     /// <summary>Captura + desfoque, em uma chamada. Fora da thread de UI.</summary>
     public static BitmapSource? Create(int centerX, int centerY, int sizePx) =>
         FromSnapshot(ScreenSnapshot.Capture(centerX, centerY, sizePx));
+
+    /// <summary>Captura + desfoque de um retângulo da tela (pixels físicos). Fora da thread de UI.</summary>
+    public static BitmapSource? CreateRect(int left, int top, int width, int height) =>
+        FromSnapshot(ScreenSnapshot.CaptureRect(left, top, width, height));
 }

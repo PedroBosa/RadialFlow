@@ -364,15 +364,22 @@ public sealed class WindowsTests : IDisposable
         {
             UiPalette p = UiPalette.Create(RadialTheme.Create(light, color ?? Color.FromRgb(0x00, 0x78, 0xD4)));
             Color softOnCard = Over(p.AccentSoft, p.CardTop);
+            // O vidro pode cobrir qualquer imagem: o pior caso é preto (tema claro) ou branco (escuro).
+            Color glassWorst = Over(p.GlassSurface, light ? Colors.Black : Colors.White);
 
             Assert.True(ColorMath.Contrast(p.Text, p.Surface) >= 7, $"{key}: texto/janela");
             Assert.True(ColorMath.Contrast(p.Text, p.Card) >= 7, $"{key}: texto/cartão");
             Assert.True(ColorMath.Contrast(p.Text, p.CardTop) >= 7, $"{key}: texto/topo do cartão");
             Assert.True(ColorMath.Contrast(p.Text, softOnCard) >= 7, $"{key}: texto/item selecionado");
+            Assert.True(ColorMath.Contrast(p.Text, glassWorst) >= 7, $"{key}: texto/vidro");
             Assert.True(ColorMath.Contrast(p.AccentOnSoft, softOnCard) >= RadialTheme.MinTextContrast, $"{key}: destaque/pílula");
             Assert.True(ColorMath.Contrast(p.TextDim, p.Card) >= RadialTheme.MinTextContrast, $"{key}: texto secundário/cartão");
             Assert.True(ColorMath.Contrast(p.TextDim, p.Surface) >= RadialTheme.MinTextContrast, $"{key}: texto secundário/janela");
+            Assert.True(ColorMath.Contrast(p.TextDim, glassWorst) >= RadialTheme.MinTextContrast, $"{key}: texto secundário/vidro");
             Assert.True(ColorMath.Contrast(p.AccentText, p.Card) >= RadialTheme.MinTextContrast, $"{key}: valor em destaque/cartão");
+            Assert.True(ColorMath.Contrast(p.AccentOnGlass, glassWorst) >= RadialTheme.MinTextContrast, $"{key}: destaque/vidro");
+            Assert.True(ColorMath.Contrast(p.DangerOnGlass, glassWorst) >= RadialTheme.MinTextContrast, $"{key}: erro/vidro");
+            Assert.True(ColorMath.Contrast(p.WarningOnGlass, glassWorst) >= RadialTheme.MinTextContrast, $"{key}: aviso/vidro");
             Assert.True(ColorMath.Contrast(p.AccentInk, p.Accent) >= RadialTheme.MinTextContrast, $"{key}: texto do botão principal");
             Assert.True(ColorMath.Contrast(p.AccentInk, p.AccentHover) >= RadialTheme.MinTextContrast, $"{key}: texto no topo do gradiente");
             Assert.True(ColorMath.Contrast(p.AccentInk, p.AccentPressed) >= RadialTheme.MinTextContrast, $"{key}: texto na base do gradiente");
@@ -484,7 +491,10 @@ public sealed class WindowsTests : IDisposable
     {
         RunSta(() =>
         {
-            var window = new ProgressWindow("Compactando…", @"C:\Temp\saida.zip") { Left = -20000, Top = 100 };
+            var window = new ProgressWindow("Compactando…", @"C:\Temp\saida.zip")
+            {
+                Left = -20000, Top = 100, WindowStartupLocation = WindowStartupLocation.Manual
+            };
             window.Show();
             Pump(200);
 
@@ -508,7 +518,10 @@ public sealed class WindowsTests : IDisposable
     {
         RunSta(() =>
         {
-            var window = new ProgressWindow("Convertendo…", @"C:\Temp\foto.webp") { Left = -20000, Top = 100 };
+            var window = new ProgressWindow("Convertendo…", @"C:\Temp\foto.webp")
+            {
+                Left = -20000, Top = 100, WindowStartupLocation = WindowStartupLocation.Manual
+            };
             window.Show();
             Pump(150);
 
@@ -529,7 +542,10 @@ public sealed class WindowsTests : IDisposable
     {
         RunSta(() =>
         {
-            var window = new ProgressWindow("Convertendo 3 arquivos…", @"C:\Temp\foto.webp") { Left = -20000, Top = 100 };
+            var window = new ProgressWindow("Convertendo 3 arquivos…", @"C:\Temp\foto.webp")
+            {
+                Left = -20000, Top = 100, WindowStartupLocation = WindowStartupLocation.Manual
+            };
             window.Show();
             Pump(150);
 
@@ -543,6 +559,72 @@ public sealed class WindowsTests : IDisposable
             Assert.Equal("Fechar", Find<Button>(window, "BtnCancel").Content);
             window.Close();
         });
+    }
+
+    [Fact]
+    public void Vidro_JanelasForaDaTela_FicamComFundoOpaco()
+    {
+        RunSta(() =>
+        {
+            var progress = new ProgressWindow("Teste")
+            {
+                Left = -20000, Top = 100, WindowStartupLocation = WindowStartupLocation.Manual
+            };
+            progress.Show();
+            Pump(200);
+            AssertOpaqueGlass(progress);
+            progress.Close();
+
+            string file = System.IO.Path.Combine(System.IO.Path.GetTempPath(), $"rf-{Guid.NewGuid():N}.png");
+            System.IO.File.WriteAllBytes(file, []);
+            try
+            {
+                var conversion = new ConversionWindow(new[] { file })
+                {
+                    Left = -20000,
+                    Top = 100,
+                    WindowStartupLocation = WindowStartupLocation.Manual
+                };
+                conversion.Show();
+                Pump(300);
+                AssertOpaqueGlass(conversion);
+                conversion.Close();
+            }
+            finally
+            {
+                System.IO.File.Delete(file);
+            }
+
+            bool checkedDialog = false;
+            OnShown(window =>
+            {
+                AssertOpaqueGlass(window);
+                checkedDialog = true;
+            });
+            Dialogs.Message(null, "Título", "Mensagem");
+            Assert.True(checkedDialog);
+        });
+    }
+
+    private static void AssertOpaqueGlass(Window window)
+    {
+        Border imageHost, tintHost;
+        if (window.FindName("GlassImageHost") is Border named)
+        {
+            imageHost = named;
+            tintHost = Find<Border>(window, "GlassTint");
+        }
+        else
+        {
+            // Diálogos montam as camadas em código, sem escopo de nomes.
+            var root = Assert.IsType<Grid>(window.Content);
+            imageHost = Assert.IsType<Border>(root.Children[0]);
+            tintHost = Assert.IsType<Border>(root.Children[1]);
+        }
+
+        Assert.Null(imageHost.Background);
+        var tint = Assert.IsType<SolidColorBrush>(tintHost.Background);
+        Assert.Equal(((SolidColorBrush)window.FindResource("SurfaceBrush")).Color, tint.Color);
     }
 
     [Fact]
