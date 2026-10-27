@@ -2,7 +2,7 @@
 
 Cada versão, da mais nova para a mais antiga. O número da versão está em `RadialFlow.csproj`.
 
-## Não lançado
+## 1.3.0 — 27/10/2026
 
 ### Novo
 
@@ -41,6 +41,9 @@ Cada versão, da mais nova para a mais antiga. O número da versão está em `Ra
 
 ### Melhorias
 
+- **Configurações reorganizadas.** A janela foi reorganizada em cartões por aba, e a nova aba **Aparência** reúne
+  cor de destaque, estilo da roda e idioma. Na aba **Menus**, **Duplicar** e **Remover** aparecem só com um menu
+  selecionado.
 - **Mais de 8 opções agora ficam acessíveis.** Quando uma lista não cabe na roda — por exemplo, uma imagem que aceita
   os 9 formatos de conversão —, a última fatia vira **Mais…** e abre a página seguinte, em vez de descartar as opções
   extras. A ordem original é preservada, e as páginas funcionam com mouse (segurar) e teclado (Enter ou o número).
