@@ -493,6 +493,21 @@
                                     <Button x:Name="BtnNewMenuProfile" Content="Novo menu" Style="{StaticResource PrimaryButton}"
                                             Click="BtnAddMenuProfile_Click" Margin="0,0,0,6"
                                             AutomationProperties.Name="Adicionar menu personalizado"/>
+                                    <Grid Margin="0,0,0,6">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="6"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Button x:Name="BtnImportMenus" Content="Importar…" Padding="8,6"
+                                                Click="BtnImportMenus_Click"
+                                                ToolTip="Adiciona menus de um arquivo .json ao rascunho."
+                                                AutomationProperties.Name="Importar menus de um arquivo"/>
+                                        <Button x:Name="BtnExportMenus" Grid.Column="2" Content="Exportar…" Padding="8,6"
+                                                Click="BtnExportMenus_Click"
+                                                ToolTip="Salva todos os menus em um arquivo .json."
+                                                AutomationProperties.Name="Exportar todos os menus para um arquivo"/>
+                                    </Grid>
                                     <Grid x:Name="PnlProfileActions">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="*"/>
@@ -981,6 +996,10 @@
                                         Style="{StaticResource PrimaryButton}" MinWidth="180" Margin="0,20,0,0"
                                         HorizontalAlignment="Center" Click="BtnAddMenuProfile_Click"
                                         AutomationProperties.Name="Criar o primeiro menu personalizado"/>
+                                <Button x:Name="BtnImportMenusEmpty" Content="Importar de um arquivo…"
+                                        MinWidth="180" Padding="12,7" Margin="0,8,0,0"
+                                        HorizontalAlignment="Center" Click="BtnImportMenus_Click"
+                                        AutomationProperties.Name="Importar menus personalizados de um arquivo"/>
                                 <TextBlock Text="Você pode duplicar, desativar e conferir a prévia antes de salvar."
                                            Style="{StaticResource CardHint}" FontSize="11"
                                            TextAlignment="Center" Margin="0,12,0,0"/>

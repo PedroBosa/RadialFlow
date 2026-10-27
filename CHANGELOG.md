@@ -17,6 +17,16 @@ Cada versão, da mais nova para a mais antiga. O número da versão está em `Ra
     quando os itens passam do limite de 8 fatias da roda.
   - Itens do tipo **Submenu** abrem um segundo anel com 2 a 8 opções, como **Apps favoritos**. A roda e a prévia
     marcam essas fatias com uma setinha ▾; o diálogo **Editar opções…** monta cada opção com rótulo, ícone e ação.
+- **Rotinas nos menus personalizados.** Um item do tipo **Rotina** executa até 8 passos em sequência — ações
+  permitidas do RadialFlow com pausas de 50 a 2.000 ms, somando até 5 s. Ações que abrem outra janela, como
+  **Pesquisar**, só podem ser o último passo. O diálogo **Editar passos…** monta a sequência e mostra um resumo;
+  rotinas inválidas não aparecem na roda e a prévia avisa.
+- **Importar e exportar menus personalizados.** Os botões **Importar…** e **Exportar…** na aba Menus trocam somente os
+  menus personalizados, num arquivo `.json` com identificador de formato e versão. A importação acrescenta cópias ao
+  rascunho — nunca substitui os menus existentes —, gera identificadores novos, desempata nomes repetidos com o
+  sufixo “(importado)” e recusa o arquivo inteiro se qualquer menu ou item estiver fora das regras. Nada é executado
+  até você clicar em **Salvar**. A exportação grava o rascunho atual, inclusive alterações ainda não salvas, e usa
+  gravação atômica para não deixar o arquivo escolhido pela metade.
 
 ### Melhorias
 
@@ -39,6 +49,8 @@ Cada versão, da mais nova para a mais antiga. O número da versão está em `Ra
   `https://`; executáveis, scripts e atalhos são recusados em **Abrir arquivo ou pasta**.
 - Programas abertos pelos menus rodam **sem** permissão de administrador. Apps instalados na pasta do usuário (como
   `%LocalAppData%`) são recusados em **Abrir executável**; para esses, continue usando **Apps favoritos**.
+- Itens importados passam pelas mesmas validações da criação manual — tipos conhecidos, limites de tamanho, submenu e
+  rotina nos lugares certos — e os alvos continuam sendo revalidados no momento da execução.
 
 ## 1.2.0 — 24/10/2026
 

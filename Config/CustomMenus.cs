@@ -275,7 +275,7 @@ internal static class CustomMenuNormalizer
             .Take(MaxOptions)
             .ToList();
 
-    private static string NormalizeGlyph(string? glyph)
+    internal static string NormalizeGlyph(string? glyph)
     {
         string value = (glyph ?? "").Trim();
         if (value.Length == 0) return "\uE734";

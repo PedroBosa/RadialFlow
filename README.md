@@ -116,7 +116,8 @@ Depois, adicione os itens. Cada um pode ser:
 | Abrir arquivo ou pasta | Abre com o programa padrão | Executáveis, scripts e atalhos são recusados aqui. |
 | Enviar atalho | Envia uma combinação de teclas, como `Ctrl+Shift+P` | O foco precisa estar na janela onde a roda foi aberta. |
 | Colar texto | Cola um texto no campo em foco | Usa a área de transferência e tenta devolver o conteúdo anterior depois. |
-| Submenu | Abre um segundo anel com até 8 opções | Precisa de 2 a 8 opções ativas; cada opção é um dos tipos acima, exceto outro submenu. |
+| Rotina | Executa até 8 passos em sequência, com pausas | Só ações permitidas do RadialFlow; ações que abrem outra janela ficam no último passo. |
+| Submenu | Abre um segundo anel com até 8 opções | Precisa de 2 a 8 opções ativas; cada opção é um dos tipos acima, exceto outro submenu e rotina. |
 
 **Submenus** funcionam como **Apps favoritos** e **Converter**: a fatia mostra uma setinha ▾ e, na roda, você segura a
 fatia para abrir o segundo anel. Clique em **Editar opções…** para montar as opções com rótulo, ícone e ação. Se um
@@ -128,8 +129,19 @@ um segundo anel. A roda cabe no máximo **8 fatias**: as automáticas que não f
 couber fica de fora — a prévia avisa quantos itens serão ignorados. Cada menu aceita até 8 itens, e você pode ter até
 20 menus.
 
+**Rotinas** encadeiam até 8 passos, cada um uma ação permitida do RadialFlow ou uma pausa de 50 a 2.000 ms (somando
+até 5 s). Ações que abrem outra janela, como **Pesquisar**, só podem ser o último passo. Clique em **Editar passos…**
+para montar a sequência; a prévia avisa quando uma rotina ficaria inválida e ela não aparece na roda.
+
 Salvar já vale para o próximo menu aberto, sem reiniciar o RadialFlow. Para voltar à roda automática, desative ou
 remova o menu.
+
+Para reaproveitar menus em outra instalação, use **Importar…** e **Exportar…** no canto da lista. O arquivo `.json`
+contém somente os menus personalizados — nenhuma outra configuração — e traz um identificador de formato com versão.
+Importar **acrescenta** cópias ao rascunho, nunca substitui os menus existentes: nomes repetidos ganham o sufixo
+“(importado)”, os itens recebem identificadores novos e nada é executado até você clicar em **Salvar**. Um arquivo
+inválido, acima dos limites ou com qualquer item fora das regras é recusado por inteiro. Exportar grava o rascunho
+atual, inclusive alterações ainda não salvas.
 
 Exemplos:
 

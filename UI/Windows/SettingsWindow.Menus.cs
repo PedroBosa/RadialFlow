@@ -23,6 +23,7 @@ using System.Windows.Threading;
 using Microsoft.Win32;
 using RadialFlow.Config;
 using RadialFlow.Context;
+using RadialFlow.Infrastructure;
 using RadialFlow.Services;
 
 namespace RadialFlow.UI;
@@ -66,6 +67,10 @@ public partial class SettingsWindow
     private DispatcherTimer? _previewTimer;
 
     private const int PreviewDebounceMilliseconds = 120;
+
+    /// <summary>Só para testes: substitui os diálogos de arquivo (null devolve "cancelado").</summary>
+    internal static Func<string?>? ChooseImportPathForTests { get; set; }
+    internal static Func<string?>? ChooseExportPathForTests { get; set; }
 
     // Dependências fixas (nada lê configurações nem disco): as fatias automáticas de cada contexto não mudam.
     private static readonly Dictionary<RadialContextKind, IReadOnlyList<RadialSlice>> AutomaticPreviewCache = new();
@@ -242,6 +247,115 @@ public partial class SettingsWindow
             ListMenuProfiles.SelectedIndex = Math.Min(index, _menuProfiles.Count - 1);
 
         MarkMenusDirty();
+    }
+
+    // ------------------------------------------------------------------
+    // Importar/exportar
+    // ------------------------------------------------------------------
+
+    private void BtnImportMenus_Click(object sender, RoutedEventArgs e)
+    {
+        string? path = ChooseImportPathForTests is { } choose ? choose() : ShowImportDialog();
+        if (string.IsNullOrWhiteSpace(path)) return;
+
+        if (!CustomMenuTransfer.TryImportFromFile(
+                path,
+                _menuProfiles.Select(p => (string?)p.Name).ToList(),
+                _menuProfiles.Count,
+                out List<CustomMenuProfile> imported,
+                out string? reason))
+        {
+            AppLog.Warning("Menus", $"Importação recusada: {reason}");
+            Dialogs.Message(this, "Importar menus",
+                $"Nenhum menu foi adicionado.\n\n{reason}", DialogIcon.Warning);
+            return;
+        }
+
+        // O arquivo passa pela mesma validação de alvo do editor antes de entrar
+        // no rascunho: um item inválido recusa a importação inteira.
+        string? invalid = ValidateProfiles(imported);
+        if (invalid is not null)
+        {
+            AppLog.Warning("Menus", $"Importação recusada: {invalid}");
+            Dialogs.Message(this, "Importar menus",
+                $"Nenhum menu foi adicionado.\n\n{invalid}", DialogIcon.Warning);
+            return;
+        }
+
+        foreach (CustomMenuProfile profile in imported)
+            _menuProfiles.Add(profile);
+
+        MarkMenusDirty();
+        ListMenuProfiles.SelectedItem = imported[0];
+        ListMenuProfiles.ScrollIntoView(imported[0]);
+
+        int items = imported.Sum(p => p.Items.Count);
+        AppLog.Info("Menus", $"{imported.Count} menu(s) importado(s) de '{path}'.");
+        Dialogs.Message(this, "Menus importados",
+            $"{DescribeCount(imported.Count, "menu", "menus")} e {DescribeCount(items, "item", "itens")} " +
+            "foram adicionados ao rascunho.\n\nNada é executado agora. Revise a prévia e clique em " +
+            "Salvar para aplicar; as mesmas regras de segurança valem para os itens importados.",
+            DialogIcon.Info);
+    }
+
+    private void BtnExportMenus_Click(object sender, RoutedEventArgs e)
+    {
+        if (_menuProfiles.Count == 0) return;
+
+        string? invalid = ValidateMenus();
+        if (invalid is not null)
+        {
+            Dialogs.Message(this, "Menus personalizados", invalid, DialogIcon.Warning);
+            return;
+        }
+
+        string? path = ChooseExportPathForTests is { } choose ? choose() : ShowExportDialog();
+        if (string.IsNullOrWhiteSpace(path)) return;
+
+        List<CustomMenuProfile> snapshot = _menuProfiles.ToList();
+        if (!CustomMenuTransfer.TryExportToFile(path, snapshot, out string? reason))
+        {
+            AppLog.Warning("Menus", $"Exportação falhou: {reason}");
+            Dialogs.Message(this, "Exportar menus",
+                reason ?? "Não foi possível exportar os menus.", DialogIcon.Error);
+            return;
+        }
+
+        int items = snapshot.Sum(p => p.Items.Count);
+        AppLog.Info("Menus", $"{snapshot.Count} menu(s) exportado(s) para '{path}'.");
+        Dialogs.Message(this, "Menus exportados",
+            $"{DescribeCount(snapshot.Count, "menu", "menus")} e {DescribeCount(items, "item", "itens")} " +
+            $"foram exportados para:\n{path}",
+            DialogIcon.Info);
+    }
+
+    private string? ShowImportDialog()
+    {
+        var dialog = new OpenFileDialog
+        {
+            Title = "Importar menus personalizados",
+            Filter = "Menus do RadialFlow (*.json)|*.json|Todos os arquivos (*.*)|*.*",
+            CheckFileExists = true,
+            Multiselect = false,
+        };
+
+        return dialog.ShowDialog(this) == true ? dialog.FileName : null;
+    }
+
+    private string? ShowExportDialog()
+    {
+        var dialog = new SaveFileDialog
+        {
+            Title = "Exportar menus personalizados",
+            Filter = "Menus do RadialFlow (*.json)|*.json",
+            DefaultExt = ".json",
+            AddExtension = true,
+            FileName = "radialflow-menus.json",
+            OverwritePrompt = true,
+            CheckPathExists = true,
+        };
+
+        return dialog.ShowDialog(this) == true ? dialog.FileName : null;
     }
 
     private void ProfileField_Changed(object sender, RoutedEventArgs e)
@@ -763,6 +877,7 @@ public partial class SettingsWindow
         BtnDuplicateMenuProfile.IsEnabled = hasProfile;
         BtnRemoveMenuProfile.IsEnabled = hasProfile;
         BtnAddMenuItem.IsEnabled = hasProfile;
+        BtnExportMenus.IsEnabled = hasProfiles;
 
         bool hasItem = _selectedItem is not null;
         int index = ListItems.SelectedIndex;
@@ -813,12 +928,17 @@ public partial class SettingsWindow
     // Salvar/cancelar
     // ------------------------------------------------------------------
 
-    /// <summary>Devolve a primeira mensagem de erro de sintaxe (null = tudo certo).</summary>
+    /// <summary>Devolve a primeira mensagem de erro de sintaxe do rascunho (null = tudo certo).</summary>
     private string? ValidateMenus()
     {
         SyncProfileItems();
+        return ValidateProfiles(_menuProfiles);
+    }
 
-        foreach (CustomMenuProfile profile in _menuProfiles)
+    /// <summary>Mesmas regras para o rascunho e para menus importados.</summary>
+    private static string? ValidateProfiles(IEnumerable<CustomMenuProfile> profiles)
+    {
+        foreach (CustomMenuProfile profile in profiles)
         {
             string name = (profile.Name ?? "").Trim();
             if (profile.Enabled && name.Length == 0)
@@ -996,6 +1116,9 @@ public partial class SettingsWindow
         Action = step.Action,
         DelayMilliseconds = step.DelayMilliseconds,
     };
+
+    private static string DescribeCount(int value, string singular, string plural) =>
+        $"{value} {(value == 1 ? singular : plural)}";
 
     private static string UniqueName(IEnumerable<string?> names, string baseName)
     {

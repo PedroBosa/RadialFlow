@@ -11,6 +11,7 @@ using System.Windows.Media;
 using System.Windows.Threading;
 using RadialFlow.Config;
 using RadialFlow.Context;
+using RadialFlow.Tests.TestSupport;
 using RadialFlow.UI;
 using Xunit;
 
@@ -23,6 +24,7 @@ namespace RadialFlow.Tests;
 [Collection("UiWindows")]
 public sealed class MenusTabTests : IDisposable
 {
+    private readonly TempDirectory _temp = new();
     private AppSettings? _saved;
 
     public MenusTabTests()
@@ -38,6 +40,9 @@ public sealed class MenusTabTests : IDisposable
         Dialogs.BeforeShow = null;
         SubmenuEditorWindow.BeforeShowForTests = null;
         RoutineEditorWindow.BeforeShowForTests = null;
+        SettingsWindow.ChooseImportPathForTests = null;
+        SettingsWindow.ChooseExportPathForTests = null;
+        _temp.Dispose();
     }
 
     // ------------------------------------------------------------------
@@ -785,6 +790,149 @@ public sealed class MenusTabTests : IDisposable
             Assert.Null(_saved);
             Assert.True(window.IsVisible);
             window.Close();
+        });
+    }
+
+    // ------------------------------------------------------------------
+    // Importar e exportar
+    // ------------------------------------------------------------------
+
+    private static CustomMenuProfile TransferProfile() => new()
+    {
+        Name = "Importado",
+        Contexts = { RadialContextKind.Generic },
+        Items =
+        {
+            new CustomMenuItem
+            {
+                Label = "Copiar caminho",
+                Kind = CustomMenuItemKind.Action,
+                Action = RadialAction.CopyPath,
+            },
+        },
+    };
+
+    private string ExportToFile(CustomMenuProfile profile)
+    {
+        string path = _temp.Combine("menus.json");
+        Assert.True(CustomMenuTransfer.TryExportToFile(path, [profile], out string? reason), reason);
+        return path;
+    }
+
+    [Fact]
+    public void Importar_ArquivoValido_EntraNoRascunhoComIdsNovosENaoSalva()
+    {
+        RunSta(() =>
+        {
+            CustomMenuProfile source = TransferProfile();
+            SettingsWindow.ChooseImportPathForTests = () => ExportToFile(source);
+
+            SettingsWindow window = OpenSettings();
+            var profiles = Find<ListBox>(window, "ListMenuProfiles");
+            Assert.Empty(profiles.Items);
+            Assert.False(Find<Button>(window, "BtnExportMenus").IsEnabled);
+
+            string? shown = null;
+            ShowMessageContaining("foram adicionados ao rascunho", text => shown = text);
+            Click(Find<Button>(window, "BtnImportMenusEmpty"));
+
+            Assert.NotNull(shown);
+            Assert.Contains("as mesmas regras de segurança", shown);
+            CustomMenuProfile imported = Assert.Single(profiles.Items.Cast<CustomMenuProfile>());
+            Assert.Equal("Importado", imported.Name);
+            Assert.NotEqual(source.Id, imported.Id);
+            Assert.Equal("Importado", Find<TextBox>(window, "TxtProfileName").Text);
+            Assert.True(Find<Button>(window, "BtnExportMenus").IsEnabled);
+            Assert.Null(_saved);
+            Assert.Empty(SettingsService.Current.CustomProfiles);
+
+            CloseDiscarding(window);
+            Assert.Null(_saved);
+        });
+    }
+
+    [Fact]
+    public void Importar_AlvoInvalido_RecusaArquivoInteiro()
+    {
+        RunSta(() =>
+        {
+            CustomMenuProfile source = TransferProfile();
+            source.Name = "Site";
+            source.Items[0] = new CustomMenuItem
+            {
+                Label = "Site",
+                Kind = CustomMenuItemKind.OpenUrl,
+                Target = "file:///C:/Windows/System32/calc.exe",
+            };
+            SettingsWindow.ChooseImportPathForTests = () => ExportToFile(source);
+
+            SettingsWindow window = OpenSettings();
+
+            string? shown = null;
+            ShowMessageContaining("Nenhum menu foi adicionado", text => shown = text);
+            Click(Find<Button>(window, "BtnImportMenusEmpty"));
+
+            Assert.NotNull(shown);
+            Assert.Contains("http://", shown);
+            Assert.Empty(Find<ListBox>(window, "ListMenuProfiles").Items);
+            Assert.True(window.IsVisible);
+            Assert.Null(_saved);
+
+            window.Close();
+        });
+    }
+
+    [Fact]
+    public void Importar_Cancelado_NaoAlteraRascunho()
+    {
+        RunSta(() =>
+        {
+            SettingsWindow.ChooseImportPathForTests = () => null;
+            SettingsWindow window = OpenSettings();
+
+            Click(Find<Button>(window, "BtnImportMenusEmpty"));
+
+            Assert.Empty(Find<ListBox>(window, "ListMenuProfiles").Items);
+            Assert.True(window.IsVisible);
+            Assert.Null(_saved);
+            window.Close();
+        });
+    }
+
+    [Fact]
+    public void Exportar_RascunhoAtual_GeraArquivoLegivelSemSalvarConfiguracoes()
+    {
+        RunSta(() =>
+        {
+            SettingsWindow window = OpenSettings();
+            Click(Find<Button>(window, "BtnAddMenuProfile"));
+            Find<TextBox>(window, "TxtProfileName").Text = "Meu menu";
+            Click(Find<Button>(window, "BtnAddMenuItem"));
+            Find<TextBox>(window, "TxtItemLabel").Text = "Copiar caminho";
+            SelectTag(Find<ComboBox>(window, "CmbItemAction"), RadialAction.CopyPath);
+
+            string path = _temp.Combine("exportado.json");
+            SettingsWindow.ChooseExportPathForTests = () => path;
+
+            string? shown = null;
+            ShowMessageContaining("foram exportados para", text => shown = text);
+            Click(Find<Button>(window, "BtnExportMenus"));
+
+            Assert.NotNull(shown);
+            Assert.Contains(path, shown);
+            Assert.True(File.Exists(path));
+            Assert.Null(_saved);
+            Assert.Empty(SettingsService.Current.CustomProfiles);
+
+            Assert.True(CustomMenuTransfer.TryImportFromFile(
+                path, Array.Empty<string?>(), 0, out List<CustomMenuProfile> imported, out string? reason), reason);
+            CustomMenuProfile exported = Assert.Single(imported);
+            Assert.Equal("Meu menu", exported.Name);
+            CustomMenuItem item = Assert.Single(exported.Items);
+            Assert.Equal("Copiar caminho", item.Label);
+            Assert.Equal(RadialAction.CopyPath, item.Action);
+
+            CloseDiscarding(window);
         });
     }
 
