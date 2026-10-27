@@ -2,6 +2,13 @@
 
 Cada versão, da mais nova para a mais antiga. O número da versão está em `RadialFlow.csproj`.
 
+## Não lançado
+
+### Correções
+
+- **Temporários de conversão.** Pastas deixadas por conversões interrompidas em `%TEMP%\RadialFlow` agora são
+  removidas na inicialização seguinte, em vez de acumularem espaço em disco.
+
 ## 1.4.0 — 27/10/2026
 
 ### Novo

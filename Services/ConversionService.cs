@@ -390,10 +390,53 @@ public static class ConversionService
         return work;
     }
 
+    /// <summary>Idade mínima para considerar uma pasta abandonada; uma conversão dura minutos, não um dia.</summary>
+    private static readonly TimeSpan StaleWorkDirectoryAge = TimeSpan.FromDays(1);
+
+    /// <summary>
+    /// Remove pastas deixadas por conversões anteriores. A exclusão imediata é best-effort (a ferramenta pode
+    /// ainda estar segurando o arquivo), então a inicialização remove as que já estão velhas. Só considera
+    /// filhos com nome de GUID "N" — o formato criado por <see cref="CreateWorkDirectory"/> — e ignora links.
+    /// </summary>
+    internal static int CleanUpStaleWorkDirectories()
+    {
+        string root = Path.Combine(Path.GetTempPath(), "RadialFlow");
+        return CleanUpStaleWorkDirectories(root, DateTime.UtcNow - StaleWorkDirectoryAge);
+    }
+
+    internal static int CleanUpStaleWorkDirectories(string root, DateTime cutoffUtc)
+    {
+        int removed = 0;
+        try
+        {
+            if (!Directory.Exists(root) || IsReparsePoint(root)) return 0;
+
+            foreach (string dir in Directory.EnumerateDirectories(root))
+            {
+                try
+                {
+                    if (!Guid.TryParseExact(Path.GetFileName(dir), "N", out _)) continue;
+                    if (IsReparsePoint(dir)) continue;
+                    if (Directory.GetLastWriteTimeUtc(dir) >= cutoffUtc) continue;
+
+                    Directory.Delete(dir, recursive: true);
+                    removed++;
+                }
+                catch (Exception ex) when (ex is IOException or UnauthorizedAccessException) { }
+            }
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException) { }
+
+        return removed;
+    }
+
+    private static bool IsReparsePoint(string path) =>
+        (File.GetAttributes(path) & FileAttributes.ReparsePoint) != 0;
+
     private static void DeleteWorkDirectory(string work)
     {
         try { Directory.Delete(work, recursive: true); }
-        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException) { /* temporário: o Windows limpa depois */ }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException) { /* fica para a limpeza de inicialização */ }
     }
 
     // ---- Processos externos -----------------------------------------

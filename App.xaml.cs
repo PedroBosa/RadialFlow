@@ -83,6 +83,13 @@ public sealed partial class App : Application, IDisposable
         DispatcherUnhandledException += OnDispatcherUnhandledException;
         AppLog.Info("App", "Pronto.");
 
+        // Pastas de conversões interrompidas podem crescer em %TEMP%\RadialFlow: remove as abandonadas em segundo plano.
+        _ = Task.Run(() =>
+        {
+            int removed = Services.ConversionService.CleanUpStaleWorkDirectories();
+            if (removed > 0) AppLog.Info("Conversão", $"Removidas {removed} pasta(s) de trabalho antigas em %TEMP%.");
+        });
+
         // Codecs, ferramentas e codificadores do FFmpeg: consultados já, em segundo plano, para a primeira roda não esperar.
         _ = Task.Run(Services.ConversionTools.Warm);
     }
