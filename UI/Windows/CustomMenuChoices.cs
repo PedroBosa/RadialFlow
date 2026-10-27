@@ -4,6 +4,7 @@
 // Usadas pelo editor de itens e pelo diálogo de opções do submenu.
 // ============================================================================
 
+using System.Linq;
 using RadialFlow.Config;
 using RadialFlow.Context;
 
@@ -46,7 +47,20 @@ internal static class CustomMenuChoices
         (CustomMenuItemKind.Hotkey, "Enviar atalho"),
         (CustomMenuItemKind.Text, "Colar texto"),
         (CustomMenuItemKind.Submenu, "Submenu (segundo anel)"),
+        (CustomMenuItemKind.Routine, "Rotina de ações"),
     ];
+
+    /// <summary>Ações oferecidas no editor de rotinas: as mesmas que a execução aceita.</summary>
+    internal static readonly (RadialAction Action, string Label)[] RoutineActions =
+        Actions.Where(a => CustomRoutineLogic.IsAllowedAction(a.Action)).ToArray();
+
+    internal static string ActionLabel(RadialAction action)
+    {
+        foreach (var (candidate, label) in Actions)
+            if (candidate == action) return label;
+
+        return action.ToString();
+    }
 
     internal static readonly (string Glyph, string Label)[] Glyphs =
     [

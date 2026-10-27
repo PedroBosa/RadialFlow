@@ -373,4 +373,71 @@ public sealed class CustomMenuResolverTests
         Assert.Equal(CustomMergeStatus.Extra, plan.Entries[1].Status);
         Assert.Empty(plan.Invalid);
     }
+
+    // ------------------------------------------------------------------
+    // Rotinas
+    // ------------------------------------------------------------------
+
+    private static CustomRoutineStep RoutineAction(RadialAction action) => new()
+    {
+        Kind = CustomRoutineStepKind.Action,
+        Action = action,
+    };
+
+    private static CustomMenuItem Routine(params CustomRoutineStep[] steps) => new()
+    {
+        Id = "rotina",
+        Label = "Rotina",
+        Kind = CustomMenuItemKind.Routine,
+        Steps = steps.ToList(),
+    };
+
+    [Fact]
+    public void Plan_RotinaValida_ViraFatiaExecutavel()
+    {
+        CustomMenuItem routine = Routine(
+            RoutineAction(RadialAction.CopyPath),
+            new CustomRoutineStep { Kind = CustomRoutineStepKind.Delay, DelayMilliseconds = 250 },
+            RoutineAction(RadialAction.Paste));
+        var executed = new List<CustomMenuItem>();
+
+        CustomMergePlan plan = CustomMenuResolver.Plan([Slice("A")], [routine], Recorder(executed));
+
+        CustomMergeEntry entry = Assert.Single(plan.Entries, e => e.Status == CustomMergeStatus.Extra);
+        Assert.Equal("Rotina", entry.Slice.Label);
+        Assert.Null(entry.Slice.SubSlices);
+        Assert.Null(entry.Slice.ActionKey);
+        Assert.Empty(plan.Invalid);
+
+        entry.Slice.Execute!();
+        Assert.Same(routine, Assert.Single(executed));
+    }
+
+    [Fact]
+    public void Plan_RotinaComMesmaAcao_NaoSubstituiFatiaAutomatica()
+    {
+        CustomMenuItem routine = Routine(RoutineAction(RadialAction.CopyPath));
+
+        CustomMergePlan plan = CustomMenuResolver.Plan(
+            [Slice("Copiar", RadialAction.CopyPath)], [routine], Recorder([]));
+
+        Assert.Equal(["Copiar", "Rotina"], plan.Entries.Select(e => e.Slice.Label).ToArray());
+        Assert.Equal(CustomMergeStatus.Extra, plan.Entries[1].Status);
+    }
+
+    [Fact]
+    public void Plan_RotinaInvalida_VaiParaInvalidENaoAparece()
+    {
+        CustomMenuItem disallowed = Routine(RoutineAction(RadialAction.Convert));
+        CustomMenuItem empty = Routine();
+
+        CustomMergePlan plan = CustomMenuResolver.Plan(
+            [Slice("A")], [disallowed, empty], Recorder([]));
+
+        Assert.Equal("A", Assert.Single(plan.Entries).Slice.Label);
+        Assert.Equal(2, plan.Invalid.Count);
+        Assert.Same(disallowed, plan.Invalid[0]);
+        Assert.Same(empty, plan.Invalid[1]);
+        Assert.Empty(plan.Dropped);
+    }
 }

@@ -841,6 +841,36 @@
                                                             </StackPanel>
                                                         </Border>
                                                     </StackPanel>
+
+                                                    <StackPanel x:Name="PnlItemRoutine" Visibility="Collapsed">
+                                                        <TextBlock Text="PASSOS DA ROTINA" Style="{StaticResource SectionLabel}" Margin="2,12,0,4"/>
+                                                        <Border Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource CardBorderBrush}"
+                                                                BorderThickness="1" CornerRadius="10" Padding="12,10">
+                                                            <StackPanel>
+                                                                <Grid>
+                                                                    <Grid.ColumnDefinitions>
+                                                                        <ColumnDefinition Width="*"/>
+                                                                        <ColumnDefinition Width="Auto"/>
+                                                                    </Grid.ColumnDefinitions>
+                                                                    <StackPanel VerticalAlignment="Center">
+                                                                        <TextBlock x:Name="TxtRoutineCount" Text="0 de 8 passos"
+                                                                                   FontSize="12.5" FontWeight="SemiBold"/>
+                                                                        <TextBlock x:Name="TxtRoutinePreview" Text="Nenhum passo ainda."
+                                                                                   Style="{StaticResource FieldHint}" TextWrapping="Wrap"/>
+                                                                    </StackPanel>
+                                                                    <Button x:Name="BtnEditRoutineSteps" Grid.Column="1" Content="Editar passos…"
+                                                                            Padding="10,6" Margin="10,0,0,0" VerticalAlignment="Center"
+                                                                            Click="BtnEditRoutineSteps_Click"
+                                                                            AutomationProperties.Name="Editar passos da rotina"/>
+                                                                </Grid>
+                                                                <TextBlock x:Name="TxtRoutineWarning" FontSize="11.5" TextWrapping="Wrap"
+                                                                           Margin="0,6,0,0" Foreground="{DynamicResource WarningBrush}"
+                                                                           Visibility="Collapsed"/>
+                                                                <TextBlock Text="Ações nativas do RadialFlow, na ordem definida. Sem shell, argumentos ou URLs."
+                                                                           Style="{StaticResource FieldHint}"/>
+                                                            </StackPanel>
+                                                        </Border>
+                                                    </StackPanel>
                                                 </StackPanel>
 
                                                 <Border x:Name="PnlNoItemSelected" Background="{DynamicResource SurfaceBrush}"

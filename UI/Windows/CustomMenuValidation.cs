@@ -27,6 +27,8 @@ internal static class CustomMenuValidation
             return $"A descrição da opção “{label}” passou de {CustomMenuNormalizer.MaxDescriptionLength} caracteres.";
         if (option.Kind == CustomMenuItemKind.Submenu)
             return $"O submenu “{submenuLabel}” não pode ter outro submenu dentro.";
+        if (option.Kind == CustomMenuItemKind.Routine)
+            return $"O submenu “{submenuLabel}” não pode ter uma rotina: rotinas ficam no primeiro anel.";
 
         return ValidateTarget(option, label, "opção");
     }
@@ -69,6 +71,11 @@ internal static class CustomMenuValidation
                     return $"Informe o texto a colar {article} {noun} “{label}”.";
                 if (item.Text.Length > CustomMenuNormalizer.MaxTextLength)
                     return $"O texto {article} {noun} “{label}” passou de {CustomMenuNormalizer.MaxTextLength} caracteres.";
+                break;
+
+            case CustomMenuItemKind.Routine:
+                if (!CustomRoutineLogic.TryBuildPlan(item, out _, out string? routineReason))
+                    return $"A rotina {article} {noun} “{label}” está inválida. {routineReason}";
                 break;
         }
 

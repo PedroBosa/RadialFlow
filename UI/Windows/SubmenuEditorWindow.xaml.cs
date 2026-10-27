@@ -48,7 +48,7 @@ public partial class SubmenuEditorWindow : Window
         CmbOptionGlyph.ItemsSource = _glyphChoices;
 
         foreach (var (kind, label) in CustomMenuChoices.Kinds)
-            if (kind != CustomMenuItemKind.Submenu)
+            if (kind is not (CustomMenuItemKind.Submenu or CustomMenuItemKind.Routine))
                 CmbOptionKind.Items.Add(new ComboBoxItem { Content = label, Tag = kind });
 
         foreach (var (action, label) in CustomMenuChoices.Actions)

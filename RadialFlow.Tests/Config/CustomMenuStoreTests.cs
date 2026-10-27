@@ -366,6 +366,144 @@ public sealed class CustomMenuStoreTests : IDisposable
         Assert.DoesNotContain(active, o => o.Label == "Desligada");
     }
 
+    // ------------------------------------------------------------------
+    // Rotinas
+    // ------------------------------------------------------------------
+
+    private static CustomRoutineStep Action(RadialAction action) => new()
+    {
+        Kind = CustomRoutineStepKind.Action,
+        Action = action,
+    };
+
+    private static CustomRoutineStep Delay(int milliseconds) => new()
+    {
+        Kind = CustomRoutineStepKind.Delay,
+        DelayMilliseconds = milliseconds,
+    };
+
+    [Fact]
+    public void SaveELoad_PreservaRotinaEPassos()
+    {
+        var profile = new CustomMenuProfile
+        {
+            Name = "Rotinas",
+            Items =
+            [
+                new CustomMenuItem
+                {
+                    Label = "Copiar e colar",
+                    Kind = CustomMenuItemKind.Routine,
+                    Steps =
+                    [
+                        Action(RadialAction.CopyPath),
+                        Delay(250),
+                        Action(RadialAction.Paste),
+                    ]
+                }
+            ]
+        };
+
+        SettingsStore store = Create();
+        store.Save(SettingsWith(profile));
+        var loaded = store.Load();
+
+        CustomMenuItem routine = Assert.Single(Assert.Single(loaded.Settings.CustomProfiles).Items);
+        Assert.Equal(CustomMenuItemKind.Routine, routine.Kind);
+        Assert.Equal(CustomMenuItem.RoutineSchemaVersion, routine.RoutineVersion);
+        Assert.Collection(routine.Steps,
+            step =>
+            {
+                Assert.Equal(CustomRoutineStepKind.Action, step.Kind);
+                Assert.Equal(RadialAction.CopyPath, step.Action);
+            },
+            step =>
+            {
+                Assert.Equal(CustomRoutineStepKind.Delay, step.Kind);
+                Assert.Equal(250, step.DelayMilliseconds);
+            },
+            step =>
+            {
+                Assert.Equal(CustomRoutineStepKind.Action, step.Kind);
+                Assert.Equal(RadialAction.Paste, step.Action);
+            });
+    }
+
+    [Fact]
+    public void Normalize_DescartaRotinasInvalidas()
+    {
+        CustomMenuProfile profile = Profile();
+        profile.Items =
+        [
+            new CustomMenuItem { Label = "Vazia", Kind = CustomMenuItemKind.Routine },
+            new CustomMenuItem { Label = "Só pausas", Kind = CustomMenuItemKind.Routine, Steps = [Delay(100)] },
+            new CustomMenuItem { Label = "Proibida", Kind = CustomMenuItemKind.Routine, Steps = [Action(RadialAction.Convert)] },
+            new CustomMenuItem
+            {
+                Label = "Versão nova",
+                Kind = CustomMenuItemKind.Routine,
+                Steps = [Action(RadialAction.CopyPath)],
+                RoutineVersion = CustomMenuItem.RoutineSchemaVersion + 1
+            },
+            new CustomMenuItem
+            {
+                Label = "Passo vazio",
+                Kind = CustomMenuItemKind.Routine,
+                Steps = [null!, Action(RadialAction.CopyPath)]
+            },
+            new CustomMenuItem { Label = "Válida", Kind = CustomMenuItemKind.Routine, Steps = [Action(RadialAction.CopyPath)] }
+        ];
+
+        SettingsStore.Normalize(SettingsWith(profile));
+
+        Assert.Equal("Válida", Assert.Single(profile.Items).Label);
+    }
+
+    [Fact]
+    public void Normalize_RotinaDentroDeSubmenu_EDescartada()
+    {
+        var submenu = new CustomMenuItem
+        {
+            Label = "Sub",
+            Kind = CustomMenuItemKind.Submenu,
+            Options =
+            [
+                new CustomMenuItem { Label = "Copiar", Kind = CustomMenuItemKind.Action, Action = RadialAction.CopyPath },
+                new CustomMenuItem
+                {
+                    Label = "Rotina aninhada",
+                    Kind = CustomMenuItemKind.Routine,
+                    Steps = [Action(RadialAction.CopyPath)]
+                },
+            ]
+        };
+        CustomMenuProfile profile = Profile();
+        profile.Items = [submenu];
+
+        SettingsStore.Normalize(SettingsWith(profile));
+
+        CustomMenuItem normalized = Assert.Single(profile.Items);
+        Assert.Equal("Copiar", Assert.Single(normalized.Options).Label);
+    }
+
+    [Fact]
+    public void Normalize_PassosEmItemComum_SaoDescartados()
+    {
+        var item = new CustomMenuItem
+        {
+            Label = "Texto",
+            Kind = CustomMenuItemKind.Text,
+            Text = "oi",
+            Steps = [Action(RadialAction.CopyPath)],
+        };
+        CustomMenuProfile profile = Profile();
+        profile.Items = [item];
+
+        SettingsStore.Normalize(SettingsWith(profile));
+
+        Assert.Empty(Assert.Single(profile.Items).Steps);
+    }
+
     [Fact]
     public void JsonComPerfilMalformado_NaoDerrubaOResto()
     {

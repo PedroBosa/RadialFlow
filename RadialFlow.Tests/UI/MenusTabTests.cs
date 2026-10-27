@@ -37,6 +37,7 @@ public sealed class MenusTabTests : IDisposable
         SettingsService.OverrideCurrentForTests(null);
         Dialogs.BeforeShow = null;
         SubmenuEditorWindow.BeforeShowForTests = null;
+        RoutineEditorWindow.BeforeShowForTests = null;
     }
 
     // ------------------------------------------------------------------
@@ -527,6 +528,261 @@ public sealed class MenusTabTests : IDisposable
             Click(Find<Button>(window, "BtnEditSubmenuOptions"));
 
             Assert.NotNull(shown);
+            Assert.True(window.IsVisible);
+            window.Close();
+        });
+    }
+
+    [Fact]
+    public void Submenu_Dialogo_NaoOfereceSubmenuNemRotina()
+    {
+        RunSta(() =>
+        {
+            SettingsService.OverrideCurrentForTests(SettingsWithSubmenu(SubmenuItem()));
+            SettingsWindow window = OpenSettings();
+            Find<ListBox>(window, "ListItems").SelectedIndex = 0;
+
+            SubmenuEditorWindow.BeforeShowForTests = dialog =>
+            {
+                CustomMenuItemKind[] offered = Find<ComboBox>(dialog, "CmbOptionKind").Items
+                    .Cast<ComboBoxItem>()
+                    .Select(i => (CustomMenuItemKind)i.Tag)
+                    .ToArray();
+                Assert.DoesNotContain(CustomMenuItemKind.Submenu, offered);
+                Assert.DoesNotContain(CustomMenuItemKind.Routine, offered);
+                dialog.Close();
+            };
+
+            Click(Find<Button>(window, "BtnEditSubmenuOptions"));
+            window.Close();
+        });
+    }
+
+    // ------------------------------------------------------------------
+    // Rotinas
+    // ------------------------------------------------------------------
+
+    private static CustomRoutineStep RoutineAction(RadialAction action) => new()
+    {
+        Kind = CustomRoutineStepKind.Action,
+        Action = action,
+    };
+
+    private static CustomRoutineStep RoutineDelay(int milliseconds) => new()
+    {
+        Kind = CustomRoutineStepKind.Delay,
+        DelayMilliseconds = milliseconds,
+    };
+
+    private static CustomMenuItem RoutineItem(params CustomRoutineStep[] steps) => new()
+    {
+        Label = "Copiar e colar",
+        Kind = CustomMenuItemKind.Routine,
+        Steps = steps.ToList(),
+    };
+
+    private static AppSettings SettingsWithRoutine(CustomMenuItem item)
+    {
+        var settings = AppSettings.CreateDefault();
+        settings.CustomProfiles.Add(new CustomMenuProfile
+        {
+            Name = "Menu",
+            Contexts = { RadialContextKind.FileOrFolder },
+            Items = { item },
+        });
+        return settings;
+    }
+
+    [Fact]
+    public void Rotina_PainelResumePassosEPrevia()
+    {
+        RunSta(() =>
+        {
+            SettingsService.OverrideCurrentForTests(SettingsWithRoutine(
+                RoutineItem(RoutineAction(RadialAction.CopyPath), RoutineDelay(250), RoutineAction(RadialAction.Paste))));
+            SettingsWindow window = OpenSettings();
+            Find<TabControl>(window, "MainTabs").SelectedIndex = 3;
+            Pump(300);
+            Find<ListBox>(window, "ListItems").SelectedIndex = 0;
+
+            Assert.Equal(Visibility.Visible, Find<StackPanel>(window, "PnlItemRoutine").Visibility);
+            Assert.Equal(Visibility.Collapsed, Find<Border>(window, "BdItemTarget").Visibility);
+            Assert.Equal("3 de 8 passos", Find<TextBlock>(window, "TxtRoutineCount").Text);
+            Assert.Equal("Copiar caminho → 250 ms → Colar", Find<TextBlock>(window, "TxtRoutinePreview").Text);
+            Assert.Equal(Visibility.Collapsed, Find<TextBlock>(window, "TxtRoutineWarning").Visibility);
+            Assert.True(Find<Button>(window, "BtnEditRoutineSteps").IsEnabled);
+
+            CustomMergeEntry entry = Assert.Single(PreviewOf(window).Current, e => e.Slice.Label == "Copiar e colar");
+            Assert.Null(entry.Slice.SubSlices);
+
+            window.Close();
+        });
+    }
+
+    [Fact]
+    public void Rotina_InvalidaNoPainelEAvisoDaPrevia()
+    {
+        RunSta(() =>
+        {
+            SettingsService.OverrideCurrentForTests(SettingsWithRoutine(
+                RoutineItem(RoutineAction(RadialAction.Convert))));
+            SettingsWindow window = OpenSettings();
+            Find<ListBox>(window, "ListItems").SelectedIndex = 0;
+
+            TextBlock warning = Find<TextBlock>(window, "TxtRoutineWarning");
+            Assert.Equal(Visibility.Visible, warning.Visibility);
+            Assert.Contains("não é permitida", warning.Text);
+
+            Assert.DoesNotContain(PreviewOf(window).Current, e => e.Slice.Label == "Copiar e colar");
+            TextBlock previewWarning = Find<TextBlock>(window, "PreviewWarning");
+            Assert.Equal(Visibility.Visible, previewWarning.Visibility);
+            Assert.Contains("1 rotina inválida não aparece", previewWarning.Text);
+
+            window.Close();
+        });
+    }
+
+    [Fact]
+    public void Rotina_CriarPeloEditor_ExigeAcaoESalva()
+    {
+        RunSta(() =>
+        {
+            SettingsWindow window = OpenSettings();
+            Click(Find<Button>(window, "BtnAddMenuProfile"));
+            Click(Find<Button>(window, "BtnAddMenuItem"));
+            SelectTag(Find<ComboBox>(window, "CmbItemKind"), CustomMenuItemKind.Routine);
+
+            Assert.Equal(Visibility.Visible, Find<StackPanel>(window, "PnlItemRoutine").Visibility);
+            Assert.Equal(Visibility.Collapsed, Find<Border>(window, "BdItemTarget").Visibility);
+            Assert.Equal("0 de 8 passos", Find<TextBlock>(window, "TxtRoutineCount").Text);
+
+            string? blocked = null;
+            ShowMessageContaining("não tem passos", text => blocked = text);
+            Click(Find<Button>(window, "BtnSave"));
+
+            Assert.NotNull(blocked);
+            Assert.Null(_saved);
+            Assert.True(window.IsVisible);
+
+            RoutineEditorWindow.BeforeShowForTests = dialog =>
+            {
+                Click(Find<Button>(dialog, "BtnAddAction"));
+                Click(Find<Button>(dialog, "BtnAddDelay"));
+                Click(Find<Button>(dialog, "BtnDone"));
+            };
+            Click(Find<Button>(window, "BtnEditRoutineSteps"));
+
+            Assert.Equal("2 de 8 passos", Find<TextBlock>(window, "TxtRoutineCount").Text);
+            Assert.Equal("Copiar caminho → 250 ms", Find<TextBlock>(window, "TxtRoutinePreview").Text);
+
+            Click(Find<Button>(window, "BtnSave"));
+
+            Assert.NotNull(_saved);
+            CustomMenuItem saved = Assert.Single(Assert.Single(_saved!.CustomProfiles).Items);
+            Assert.Equal(CustomMenuItemKind.Routine, saved.Kind);
+            Assert.Equal(CustomMenuItem.RoutineSchemaVersion, saved.RoutineVersion);
+            Assert.Equal(
+                [CustomRoutineStepKind.Action, CustomRoutineStepKind.Delay],
+                saved.Steps.Select(s => s.Kind).ToArray());
+            Assert.Equal(RadialAction.CopyPath, saved.Steps[0].Action);
+            Assert.Equal(250, saved.Steps[1].DelayMilliseconds);
+            Assert.False(window.IsVisible);
+        });
+    }
+
+    [Fact]
+    public void Rotina_Dialogo_SoOfereceAcoesPermitidasEExigePasso()
+    {
+        RunSta(() =>
+        {
+            SettingsService.OverrideCurrentForTests(SettingsWithRoutine(RoutineItem()));
+            SettingsWindow window = OpenSettings();
+            Find<ListBox>(window, "ListItems").SelectedIndex = 0;
+
+            RoutineEditorWindow.BeforeShowForTests = dialog =>
+            {
+                RadialAction[] offered = Find<ComboBox>(dialog, "CmbStepAction").Items
+                    .Cast<ComboBoxItem>()
+                    .Select(i => (RadialAction)i.Tag)
+                    .ToArray();
+                Assert.Equal(CustomMenuChoices.RoutineActions.Select(a => a.Action).ToArray(), offered);
+                Assert.DoesNotContain(RadialAction.Convert, offered);
+                Assert.DoesNotContain(RadialAction.Close, offered);
+
+                string? shown = null;
+                ShowMessageContaining("Adicione pelo menos uma ação", text => shown = text);
+                Click(Find<Button>(dialog, "BtnDone"));
+
+                Assert.NotNull(shown);
+                Assert.True(dialog.IsVisible);
+
+                Click(Find<Button>(dialog, "BtnAddAction"));
+                Click(Find<Button>(dialog, "BtnDone"));
+            };
+
+            Click(Find<Button>(window, "BtnEditRoutineSteps"));
+
+            Assert.Equal("1 de 8 passos", Find<TextBlock>(window, "TxtRoutineCount").Text);
+            CloseDiscarding(window);
+        });
+    }
+
+    [Fact]
+    public void Rotina_ComOitoPassos_NaoDeixaAdicionarMais()
+    {
+        RunSta(() =>
+        {
+            CustomRoutineStep[] steps = Enumerable.Range(0, 8)
+                .Select(_ => RoutineAction(RadialAction.CopyPath))
+                .ToArray();
+            SettingsService.OverrideCurrentForTests(SettingsWithRoutine(RoutineItem(steps)));
+            SettingsWindow window = OpenSettings();
+            Find<ListBox>(window, "ListItems").SelectedIndex = 0;
+
+            RoutineEditorWindow.BeforeShowForTests = dialog =>
+            {
+                Assert.False(Find<Button>(dialog, "BtnAddAction").IsEnabled);
+                Assert.False(Find<Button>(dialog, "BtnAddDelay").IsEnabled);
+                Assert.Equal("8 de 8 passos · 0 ms de pausa", Find<TextBlock>(dialog, "TxtStepCount").Text);
+                dialog.Close();
+            };
+
+            Click(Find<Button>(window, "BtnEditRoutineSteps"));
+            window.Close();
+        });
+    }
+
+    [Fact]
+    public void Rotina_AcaoQueMudaFocoNoMeio_AvisaENaoSalva()
+    {
+        RunSta(() =>
+        {
+            SettingsService.OverrideCurrentForTests(SettingsWithRoutine(
+                RoutineItem(RoutineAction(RadialAction.SearchWeb), RoutineAction(RadialAction.CopyPath))));
+            SettingsWindow window = OpenSettings();
+            Find<ListBox>(window, "ListItems").SelectedIndex = 0;
+
+            TextBlock warning = Find<TextBlock>(window, "TxtRoutineWarning");
+            Assert.Equal(Visibility.Visible, warning.Visibility);
+            Assert.Contains("só pode ser o último passo", warning.Text);
+
+            RoutineEditorWindow.BeforeShowForTests = dialog =>
+            {
+                string? shown = null;
+                ShowMessageContaining("só pode ser o último passo", text => shown = text);
+                Click(Find<Button>(dialog, "BtnDone"));
+                Assert.NotNull(shown);
+                Assert.True(dialog.IsVisible);
+                dialog.Close();
+            };
+            Click(Find<Button>(window, "BtnEditRoutineSteps"));
+
+            string? blocked = null;
+            ShowMessageContaining("só pode ser o último passo", text => blocked = text);
+            Click(Find<Button>(window, "BtnSave"));
+
+            Assert.NotNull(blocked);
+            Assert.Null(_saved);
             Assert.True(window.IsVisible);
             window.Close();
         });

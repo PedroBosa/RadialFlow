@@ -21,6 +21,9 @@ namespace RadialFlow.Context;
 
 public static partial class ActionRouter
 {
+    private static readonly object _routineGate = new();
+    private static CancellationTokenSource? _routineCancellation;
+
     /// <summary>Ponto de entrada das fatias personalizadas. Nunca lança.</summary>
     public static void RunCustom(CustomMenuItem item, ContextInfo ctx)
     {
@@ -29,6 +32,12 @@ public static partial class ActionRouter
         if (item.Kind == CustomMenuItemKind.Action)
         {
             Run(item.Action, ctx);
+            return;
+        }
+
+        if (item.Kind == CustomMenuItemKind.Routine)
+        {
+            _ = Task.Run(() => RunRoutineAsync(item, ctx));
             return;
         }
 
@@ -49,6 +58,70 @@ public static partial class ActionRouter
                 AppLog.Error("Menus", $"Erro em '{item.Label}'", ex);
             }
         });
+    }
+
+    /// <summary>
+    /// Valida a rotina e assume o lugar de qualquer rotina em andamento. Ferramentas
+    /// nativas não abrem janela de progresso: ela tiraria o foco necessário para
+    /// Paste/Format e mudaria o alvo da rotina.
+    /// </summary>
+    private static async Task RunRoutineAsync(CustomMenuItem item, ContextInfo ctx)
+    {
+        if (!CustomRoutineLogic.TryBuildPlan(item, out CustomRoutinePlan plan, out string? planReason))
+        {
+            AppLog.Warning("Menus", $"Rotina '{item.Label}' recusada: {planReason}");
+            return;
+        }
+
+        var cancellation = new CancellationTokenSource();
+        lock (_routineGate)
+        {
+            _routineCancellation?.Cancel();
+            _routineCancellation = cancellation;
+        }
+
+        try
+        {
+            CustomRoutineRunResult result = await CustomRoutineLogic.ExecuteAsync(
+                plan, ctx, RunRoutineStepAsync, Task.Delay, cancellation.Token).ConfigureAwait(false);
+
+            if (result.Completed)
+                AppLog.Debug("Menus", $"Rotina '{item.Label}' concluída ({result.ExecutedActions} ação(ões)).");
+            else
+                AppLog.Warning("Menus", $"Rotina '{item.Label}' interrompida no passo {result.ExecutedSteps + 1}.");
+        }
+        catch (OperationCanceledException)
+        {
+            AppLog.Debug("Menus", $"Rotina '{item.Label}' cancelada.");
+        }
+        catch (Exception ex)
+        {
+            AppLog.Error("Menus", $"Erro na rotina '{item.Label}'", ex);
+        }
+        finally
+        {
+            lock (_routineGate)
+            {
+                if (ReferenceEquals(_routineCancellation, cancellation)) _routineCancellation = null;
+            }
+            cancellation.Dispose();
+        }
+    }
+
+    private static async Task<bool> RunRoutineStepAsync(
+        RadialAction action, ContextInfo ctx, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        if (!Logic.TryValidate(action, ctx, out ContextInfo safeCtx, out string? reason))
+        {
+            AppLog.Warning("Menus", $"Rotina: {action} recusada: {reason}");
+            return false;
+        }
+
+        cancellationToken.ThrowIfCancellationRequested();
+        await DispatchAsync(action, safeCtx).ConfigureAwait(false);
+        return true;
     }
 
     private static Task DispatchCustomAsync(CustomActionPlan plan, ContextInfo ctx)

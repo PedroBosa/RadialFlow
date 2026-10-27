@@ -36,11 +36,33 @@ public enum CustomMenuItemKind
     Text,
 
     /// <summary>Abre um segundo anel com as opções de <see cref="CustomMenuItem.Options"/>.</summary>
-    Submenu
+    Submenu,
+
+    /// <summary>Sequência curta de ações nativas do RadialFlow e pausas.</summary>
+    Routine
+}
+
+public enum CustomRoutineStepKind
+{
+    /// <summary>Executa uma ação da lista permitida para rotinas.</summary>
+    Action,
+
+    /// <summary>Aguarda antes do próximo passo.</summary>
+    Delay
+}
+
+public sealed class CustomRoutineStep
+{
+    public CustomRoutineStepKind Kind { get; set; } = CustomRoutineStepKind.Action;
+    public RadialAction Action { get; set; } = RadialAction.CopyPath;
+    public int DelayMilliseconds { get; set; } = 250;
 }
 
 public sealed class CustomMenuItem
 {
+    /// <summary>Versão do esquema de rotina gravada por esta build.</summary>
+    public const int RoutineSchemaVersion = 1;
+
     public string Id { get; set; } = Guid.NewGuid().ToString("N");
     public string Label { get; set; } = "";
     public string Glyph { get; set; } = "\uE734";
@@ -59,6 +81,12 @@ public sealed class CustomMenuItem
 
     /// <summary>Opções do segundo anel quando <see cref="Kind"/> é <see cref="CustomMenuItemKind.Submenu"/>.</summary>
     public List<CustomMenuItem> Options { get; set; } = new();
+
+    /// <summary>Versão do esquema de <see cref="Steps"/>; versões desconhecidas são descartadas na leitura.</summary>
+    public int RoutineVersion { get; set; } = RoutineSchemaVersion;
+
+    /// <summary>Passos ordenados quando <see cref="Kind"/> é <see cref="CustomMenuItemKind.Routine"/>.</summary>
+    public List<CustomRoutineStep> Steps { get; set; } = new();
 }
 
 public sealed class CustomMenuProfile
@@ -180,10 +208,15 @@ internal static class CustomMenuNormalizer
             return false;
         }
 
-        if (!Enum.IsDefined(item.Kind) ||
-            (!allowSubmenu && item.Kind == CustomMenuItemKind.Submenu))
+        if (!Enum.IsDefined(item.Kind))
         {
             AppLog.Debug("Menus", $"Item '{label}' ignorado: tipo inválido ({(int)item.Kind}).");
+            return false;
+        }
+
+        if (!allowSubmenu && item.Kind is CustomMenuItemKind.Submenu or CustomMenuItemKind.Routine)
+        {
+            AppLog.Debug("Menus", $"Item '{label}' ignorado: submenus e rotinas só podem ficar no primeiro anel.");
             return false;
         }
 
@@ -215,6 +248,21 @@ internal static class CustomMenuNormalizer
         {
             AppLog.Debug("Menus", $"Item '{label}': opções ignoradas porque o tipo não é Submenu.");
             item.Options.Clear();
+        }
+
+        item.Steps ??= new List<CustomRoutineStep>();
+        if (item.Kind == CustomMenuItemKind.Routine)
+        {
+            if (!CustomRoutineLogic.TryBuildPlan(item, out _, out string? routineReason))
+            {
+                AppLog.Debug("Menus", $"Rotina '{label}' ignorada: {routineReason}");
+                return false;
+            }
+        }
+        else if (item.Steps.Count > 0)
+        {
+            AppLog.Debug("Menus", $"Item '{label}': passos ignorados porque o tipo não é Rotina.");
+            item.Steps.Clear();
         }
 
         return true;

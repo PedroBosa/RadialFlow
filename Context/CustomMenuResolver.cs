@@ -110,6 +110,14 @@ internal static class CustomMenuResolver
                 continue;
             }
 
+            if (item.Kind == CustomMenuItemKind.Routine &&
+                !CustomRoutineLogic.TryBuildPlan(item, out _, out string? routineReason))
+            {
+                invalid.Add(item);
+                AppLog.Debug("Menus", $"Rotina '{item.Label}' ignorada: {routineReason}");
+                continue;
+            }
+
             int replaceIndex = -1;
 
             if (item.Kind == CustomMenuItemKind.Action)

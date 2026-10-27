@@ -311,6 +311,7 @@ public partial class SettingsWindow
             TxtItemText.Text = "";
             SetKindPanels(CustomMenuItemKind.Action);
             UpdateSubmenuSummary();
+            UpdateRoutineSummary();
             UpdateMenuButtons();
             return;
         }
@@ -328,6 +329,7 @@ public partial class SettingsWindow
         TxtItemText.Text = item.Kind == CustomMenuItemKind.Text ? item.Text ?? "" : "";
         SetKindPanels(item.Kind);
         UpdateSubmenuSummary();
+        UpdateRoutineSummary();
         UpdateMenuButtons();
     }
 
@@ -398,6 +400,7 @@ public partial class SettingsWindow
         _selectedItem.Kind = kind;
         _selectedItem.Target = "";
         _selectedItem.Text = "";
+        _selectedItem.Steps?.Clear();
 
         // Os campos do tipo anterior ficam visíveis apenas para ele: limpa os textos para não
         // parecer que o alvo ainda vale depois de trocar o tipo.
@@ -416,6 +419,7 @@ public partial class SettingsWindow
         }
 
         UpdateSubmenuSummary();
+        UpdateRoutineSummary();
         RefreshItemListRow();
         MarkMenusDirty();
     }
@@ -513,6 +517,78 @@ public partial class SettingsWindow
             : $"{active.Count} ativas: {labels}.";
     }
 
+    // ------------------------------------------------------------------
+    // Rotinas
+    // ------------------------------------------------------------------
+
+    private void BtnEditRoutineSteps_Click(object sender, RoutedEventArgs e)
+    {
+        if (_selectedItem is null) return;
+
+        var initial = (_selectedItem.Steps ?? new List<CustomRoutineStep>())
+            .Where(s => s is not null)
+            .Select(CloneStep)
+            .ToList();
+
+        var dialog = new RoutineEditorWindow(_selectedItem.Label ?? "", initial) { Owner = this };
+        if (dialog.ShowDialog() != true) return;
+
+        _selectedItem.Steps = dialog.Steps.ToList();
+        _selectedItem.RoutineVersion = CustomMenuItem.RoutineSchemaVersion;
+        SyncProfileItems();
+        UpdateRoutineSummary();
+        RefreshItemListRow();
+        MarkMenusDirty();
+    }
+
+    private void UpdateRoutineSummary()
+    {
+        bool hasItem = _selectedItem is not null;
+        BtnEditRoutineSteps.IsEnabled = hasItem;
+
+        if (!hasItem)
+        {
+            TxtRoutineCount.Text = $"0 de {CustomRoutineLogic.MaxSteps} passos";
+            TxtRoutinePreview.Text = "Nenhum passo ainda.";
+            TxtRoutineWarning.Text = "";
+            TxtRoutineWarning.Visibility = Visibility.Collapsed;
+            return;
+        }
+
+        var steps = (_selectedItem!.Steps ?? new List<CustomRoutineStep>())
+            .Where(s => s is not null)
+            .ToList();
+
+        TxtRoutineCount.Text = $"{steps.Count} de {CustomRoutineLogic.MaxSteps} passos";
+        if (steps.Count == 0)
+        {
+            TxtRoutinePreview.Text = "Nenhum passo ainda.";
+            TxtRoutineWarning.Text = "";
+            TxtRoutineWarning.Visibility = Visibility.Collapsed;
+            return;
+        }
+
+        string description = string.Join(" → ", steps.Take(4).Select(DescribeRoutineStep));
+        if (steps.Count > 4) description += " → …";
+        TxtRoutinePreview.Text = description;
+
+        if (CustomRoutineLogic.TryBuildPlan(_selectedItem, out _, out string? reason))
+        {
+            TxtRoutineWarning.Text = "";
+            TxtRoutineWarning.Visibility = Visibility.Collapsed;
+        }
+        else
+        {
+            TxtRoutineWarning.Text = reason ?? "A rotina ainda não pode ser salva.";
+            TxtRoutineWarning.Visibility = Visibility.Visible;
+        }
+    }
+
+    private static string DescribeRoutineStep(CustomRoutineStep step) =>
+        step.Kind == CustomRoutineStepKind.Delay
+            ? $"{step.DelayMilliseconds} ms"
+            : CustomMenuChoices.ActionLabel(step.Action);
+
     private void RefreshItemListRow()
     {
         if (_selectedItem is null) return;
@@ -607,10 +683,18 @@ public partial class SettingsWindow
         else
         {
             var parts = new List<string>();
-            if (plan.Invalid.Count == 1)
+            int invalidSubmenus = plan.Invalid.Count(i => i.Kind == CustomMenuItemKind.Submenu);
+            int invalidRoutines = plan.Invalid.Count(i => i.Kind == CustomMenuItemKind.Routine);
+
+            if (invalidSubmenus == 1)
                 parts.Add("1 submenu precisa de 2 opções ativas e não aparece.");
-            else if (plan.Invalid.Count > 1)
-                parts.Add($"{plan.Invalid.Count} submenus precisam de 2 opções ativas e não aparecem.");
+            else if (invalidSubmenus > 1)
+                parts.Add($"{invalidSubmenus} submenus precisam de 2 opções ativas e não aparecem.");
+
+            if (invalidRoutines == 1)
+                parts.Add("1 rotina inválida não aparece.");
+            else if (invalidRoutines > 1)
+                parts.Add($"{invalidRoutines} rotinas inválidas não aparecem.");
 
             if (plan.Dropped.Count == 1)
                 parts.Add("1 item será ignorado (limite de 8 fatias).");
@@ -816,6 +900,16 @@ public partial class SettingsWindow
                 item.Target = (item.Target ?? "").Trim();
                 item.Text ??= "";
 
+                if (item.Kind == CustomMenuItemKind.Routine)
+                {
+                    item.Steps ??= new List<CustomRoutineStep>();
+                    item.RoutineVersion = CustomMenuItem.RoutineSchemaVersion;
+                }
+                else
+                {
+                    item.Steps?.Clear();
+                }
+
                 foreach (CustomMenuItem option in item.Options ?? new List<CustomMenuItem>())
                 {
                     if (option is null) continue;
@@ -889,6 +983,18 @@ public partial class SettingsWindow
             .Where(o => o is not null)
             .Select(CloneItem)
             .ToList(),
+        RoutineVersion = item.RoutineVersion,
+        Steps = (item.Steps ?? new List<CustomRoutineStep>())
+            .Where(s => s is not null)
+            .Select(CloneStep)
+            .ToList(),
+    };
+
+    private static CustomRoutineStep CloneStep(CustomRoutineStep step) => new()
+    {
+        Kind = step.Kind,
+        Action = step.Action,
+        DelayMilliseconds = step.DelayMilliseconds,
     };
 
     private static string UniqueName(IEnumerable<string?> names, string baseName)
@@ -952,8 +1058,10 @@ public partial class SettingsWindow
     private void SetKindPanels(CustomMenuItemKind kind)
     {
         bool submenu = kind == CustomMenuItemKind.Submenu;
-        BdItemTarget.Visibility = submenu ? Visibility.Collapsed : Visibility.Visible;
+        bool routine = kind == CustomMenuItemKind.Routine;
+        BdItemTarget.Visibility = submenu || routine ? Visibility.Collapsed : Visibility.Visible;
         PnlItemSubmenu.Visibility = submenu ? Visibility.Visible : Visibility.Collapsed;
+        PnlItemRoutine.Visibility = routine ? Visibility.Visible : Visibility.Collapsed;
 
         PnlItemAction.Visibility = kind == CustomMenuItemKind.Action ? Visibility.Visible : Visibility.Collapsed;
         PnlItemLaunch.Visibility = kind == CustomMenuItemKind.Launch ? Visibility.Visible : Visibility.Collapsed;

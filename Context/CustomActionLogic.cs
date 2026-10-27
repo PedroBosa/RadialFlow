@@ -141,6 +141,10 @@ internal static class CustomActionLogic
                 reason = "ações nativas são executadas pelo roteador";
                 return false;
 
+            case CustomMenuItemKind.Routine:
+                reason = "rotinas são executadas pelo roteador";
+                return false;
+
             default:
                 reason = "tipo de item inválido";
                 return false;
