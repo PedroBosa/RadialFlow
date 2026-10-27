@@ -81,11 +81,16 @@ Get-FileHash .\RadialFlow-1.2.0-Setup.exe
 Clique no ícone do RadialFlow perto do relógio.
 
 - **Geral**: iniciar com o Windows, pausar em jogos e vídeos em tela cheia, quanto é preciso arrastar para a roda
-  abrir, quanto tempo esperar para as opções extras aparecerem e a cor da roda.
+  abrir, quanto tempo esperar para as opções extras aparecerem, a cor e o estilo da roda (tamanho e alto contraste).
 - **Blacklist**: programas em que a roda nunca abre (útil em programas 3D e jogos, que usam o botão direito).
 - **Apps favoritos**: os atalhos que aparecem quando você abre a roda na área de trabalho.
 - **Menus**: itens extras que aparecem só em certos aplicativos, janelas ou contextos (veja abaixo).
 - **Conversores**: instala os programas de conversão (veja abaixo).
+
+O estilo da roda — **Padrão**, **Compacto**, **Amplo** ou **Alto contraste** — muda o tamanho e a legibilidade da roda
+e do segundo anel. A cor de destaque continua valendo em todos: o **Alto contraste** troca só as superfícies por preto
+ou branco opacos e contornos fortes, sem o fundo desfocado, seguindo o tema claro/escuro do Windows. A roda acompanha
+a escala de DPI de cada monitor.
 
 **Salvar** só fecha a janela depois que o arquivo foi gravado. Se a gravação falhar, um aviso explica o motivo, nada é
 aplicado e a janela continua aberta. Fechar com alterações não salvas em qualquer aba pede confirmação e lista as
@@ -120,8 +125,9 @@ Depois, adicione os itens. Cada um pode ser:
 | Submenu | Abre um segundo anel com até 8 opções | Precisa de 2 a 8 opções ativas; cada opção é um dos tipos acima, exceto outro submenu e rotina. |
 
 **Submenus** funcionam como **Apps favoritos** e **Converter**: a fatia mostra uma setinha ▾ e, na roda, você segura a
-fatia para abrir o segundo anel. Clique em **Editar opções…** para montar as opções com rótulo, ícone e ação. Se um
-submenu ativo ficar com menos de 2 opções ativas, ele não aparece e a prévia avisa.
+fatia para abrir o segundo anel. Clique em **Editar opções…** para montar as opções com rótulo, ícone e ação. O seletor
+de ícones usa um conjunto curado de ícones locais do Windows, sem baixar nada. Se um submenu ativo ficar com menos de
+2 opções ativas, ele não aparece e a prévia avisa.
 
 O editor mostra uma **prévia da roda**: as fatias em destaque vieram do seu menu e aparecem marcadas como
 **substitui** (assumiu o lugar de uma automática) ou **extra** (acrescentada); a setinha ▾ indica as fatias que abrem

@@ -46,6 +46,7 @@ public partial class SettingsWindow : Window
         SliderDeadzone.Value = current.DeadzonePixels;
         SliderDwell.Value = Math.Clamp(current.DwellMilliseconds, RadialMenuWindow.MinDwellMilliseconds, RadialMenuWindow.MaxDwellMilliseconds);
         FillAccentChoices(current.Accent);
+        FillWheelPresets(current.WheelPreset);
 
         AboutVersion.Text = $"Versão {AppInfo.Version} · Menu radial contextual para Windows";
         LogPath.Text = AppLog.FilePath;
@@ -84,6 +85,7 @@ public partial class SettingsWindow : Window
         int DeadzonePixels,
         int DwellMilliseconds,
         string Accent,
+        string WheelPreset,
         IReadOnlyList<(string ProcessName, string Description)> Blacklist,
         IReadOnlyList<(string Name, string ExecutablePath, string Arguments, string Glyph)> FavoriteApps);
 
@@ -93,6 +95,7 @@ public partial class SettingsWindow : Window
         (int)SliderDeadzone.Value,
         (int)SliderDwell.Value,
         _accentKey,
+        _wheelPreset.Key,
         _blacklistItems.Select(e => (e.ProcessName, e.Description)).ToArray(),
         _favoriteItems.Select(a => (a.Name, a.ExecutablePath, a.Arguments, a.Glyph)).ToArray());
 
@@ -108,7 +111,8 @@ public partial class SettingsWindow : Window
                 now.BlockExclusiveFullscreen != baseline.BlockExclusiveFullscreen ||
                 now.DeadzonePixels != baseline.DeadzonePixels ||
                 now.DwellMilliseconds != baseline.DwellMilliseconds ||
-                !string.Equals(now.Accent, baseline.Accent, StringComparison.Ordinal))
+                !string.Equals(now.Accent, baseline.Accent, StringComparison.Ordinal) ||
+                !string.Equals(now.WheelPreset, baseline.WheelPreset, StringComparison.Ordinal))
             {
                 changed.Add("Geral");
             }
@@ -212,6 +216,26 @@ public partial class SettingsWindow : Window
 
     private void UpdateAccentLabel() =>
         AccentName.Text = RadialTheme.AccentChoices.FirstOrDefault(c => c.Key == _accentKey).Label ?? "Azul";
+
+    private WheelPreset _wheelPreset = WheelPreset.Standard;
+
+    private void FillWheelPresets(string? saved)
+    {
+        CmbWheelPreset.ItemsSource = WheelPreset.All;
+        _wheelPreset = WheelPreset.Resolve(saved);
+        CmbWheelPreset.SelectedItem = _wheelPreset;
+        WheelPresetHint.Text = _wheelPreset.Description;
+    }
+
+    private void WheelPreset_Changed(object sender, SelectionChangedEventArgs e)
+    {
+        if (CmbWheelPreset.SelectedItem is not WheelPreset preset) return;
+
+        _wheelPreset = preset;
+        WheelPresetHint.Text = preset.Description;
+        UpdateDirtyIndicator();
+    }
+
     private void BtnAddBlacklist_Click(object sender, RoutedEventArgs e)
     {
         var entry = Dialogs.PromptPair(this, "Adicionar à blacklist",
@@ -310,6 +334,7 @@ public partial class SettingsWindow : Window
             DeadzonePixels = (int)SliderDeadzone.Value,
             DwellMilliseconds = (int)SliderDwell.Value,
             Accent = _accentKey,
+            WheelPreset = _wheelPreset.Key,
             Blacklist = _blacklistItems
                 .Select(e => new ForegroundBlacklist.BlacklistEntry(e.ProcessName, e.Description))
                 .ToList(),

@@ -158,6 +158,38 @@ public sealed class SettingsDraftTests : IDisposable
     }
 
     [Fact]
+    public void Cancelar_EstiloDaRoda_AvisaGeralENaoAlteraCurrent()
+    {
+        RunSta(() =>
+        {
+            AppSettings settings = SettingsService.Current;
+            Assert.Equal("Standard", settings.WheelPreset);
+
+            SettingsWindow window = OpenSettings();
+            var presets = Find<ComboBox>(window, "CmbWheelPreset");
+            Assert.Equal(WheelPreset.All.Count, presets.Items.Count);
+            Assert.Same(WheelPreset.Standard, presets.SelectedItem);
+
+            presets.SelectedItem = WheelPreset.Compact;
+
+            string? shown = null;
+            OnShown(w =>
+            {
+                shown = VisibleText(w, "Configurações não salvas");
+                Click(ButtonsOf(w).Single(b => (string)b.Content == "Descartar"));
+            });
+
+            window.Close();
+
+            Assert.NotNull(shown);
+            Assert.Contains("Geral", shown);
+            Assert.False(window.IsVisible);
+            Assert.Equal("Standard", settings.WheelPreset);
+            Assert.Null(_saved);
+        });
+    }
+
+    [Fact]
     public void Cancelar_EmFavoritos_AvisaENaoAlteraCurrent()
     {
         RunSta(() =>
@@ -284,6 +316,27 @@ public sealed class SettingsDraftTests : IDisposable
 
             // O objeto antigo permanece intacto.
             Assert.Equal(originalFavorites.Count, settings.FavoriteApps.Count);
+        });
+    }
+
+    [Fact]
+    public void Salvar_EstiloDaRoda_PersisteAEscolha()
+    {
+        RunSta(() =>
+        {
+            SettingsWindow window = OpenSettings();
+            var presets = Find<ComboBox>(window, "CmbWheelPreset");
+
+            presets.SelectedItem = WheelPreset.HighContrast;
+            Assert.Contains("opacas", Find<TextBlock>(window, "WheelPresetHint").Text);
+
+            Dialogs.BeforeShow = _ => throw new InvalidOperationException("Salvar com sucesso não deve pedir confirmação.");
+            Click(Find<Button>(window, "BtnSave"));
+
+            AppSettings saved = Assert.IsType<AppSettings>(_saved);
+            Assert.Equal("HighContrast", saved.WheelPreset);
+            Assert.Same(saved, SettingsService.Current);
+            Assert.False(window.IsVisible);
         });
     }
 

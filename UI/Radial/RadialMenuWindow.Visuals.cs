@@ -140,6 +140,7 @@ public partial class RadialMenuWindow
         tintBrush.Freeze();
         var restVeil = new SolidColorBrush(t.SegmentRest);
         restVeil.Freeze();
+        double borderThickness = Preset.UsesHighContrast ? 2.0 : 1.1;
 
         for (int i = 0; i < n; i++)
         {
@@ -152,7 +153,7 @@ public partial class RadialMenuWindow
             if (_backdropBrush is not null)
                 group.Children.Add(new Path { Data = shape, Fill = _backdropBrush });
             group.Children.Add(new Path { Data = shape, Fill = tintBrush });
-            group.Children.Add(new Path { Data = shape, Fill = restVeil, Stroke = restBorder, StrokeThickness = 1.1, StrokeLineJoin = PenLineJoin.Round });
+            group.Children.Add(new Path { Data = shape, Fill = restVeil, Stroke = restBorder, StrokeThickness = borderThickness, StrokeLineJoin = PenLineJoin.Round });
 
             var glow = new DropShadowEffect
             {
@@ -160,7 +161,7 @@ public partial class RadialMenuWindow
             };
             var hoverLayer = new Path
             {
-                Data = shape, Fill = hoverFill, Stroke = hoverBorder, StrokeThickness = 1.1,
+                Data = shape, Fill = hoverFill, Stroke = hoverBorder, StrokeThickness = borderThickness,
                 StrokeLineJoin = PenLineJoin.Round, Opacity = 0, Effect = glow
             };
             group.Children.Add(hoverLayer);

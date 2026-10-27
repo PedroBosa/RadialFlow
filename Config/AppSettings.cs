@@ -80,6 +80,12 @@ public sealed class AppSettings
     /// </summary>
     public string Accent { get; set; } = "Blue";
 
+    /// <summary>
+    /// Estilo visual da roda: "Standard" (padrão), "Compact", "Large" ou "HighContrast". Guardado como texto:
+    /// um valor desconhecido no arquivo cai no padrão sem invalidar o resto.
+    /// </summary>
+    public string WheelPreset { get; set; } = RadialFlow.UI.WheelPreset.DefaultKey;
+
     /// <summary>Lista de processos em blacklist (jogos, apps 3D, CAD).</summary>
     public List<ForegroundBlacklist.BlacklistEntry> Blacklist { get; set; } = new();
 

@@ -78,6 +78,51 @@ public sealed class RadialVisualsTests
         }
     }
 
+    [Theory]
+    [MemberData(nameof(AccentMatrix))]
+    public void Tema_AltoContraste_TextoSobreODestaque_TemContrasteAA_EmTodoOGradiente(
+        bool light, string name, byte r, byte g, byte b)
+    {
+        RadialTheme theme = RadialTheme.Create(light, Color.FromRgb(r, g, b), highContrast: true);
+
+        Assert.True(ColorMath.Contrast(theme.HoverInk, theme.HoverTop) >= RadialTheme.MinTextContrast, $"{name}/topo");
+        Assert.True(ColorMath.Contrast(theme.HoverInk, theme.HoverBottom) >= RadialTheme.MinTextContrast, $"{name}/base");
+    }
+
+    [Theory]
+    [MemberData(nameof(AccentMatrix))]
+    public void Tema_AltoContraste_SuperficieOpaca_ETextoETracoLegiveis(
+        bool light, string name, byte r, byte g, byte b)
+    {
+        RadialTheme theme = RadialTheme.Create(light, Color.FromRgb(r, g, b), highContrast: true);
+
+        // O preset não depende da captura do fundo: as superfícies são opacas e o texto fica no extremo oposto.
+        Assert.Equal(255, theme.Tint.A);
+        Assert.Equal(255, theme.HubFill.A);
+        Assert.Equal(255, theme.PillFill.A);
+        Assert.Equal(0, theme.SegmentRest.A);
+        Assert.True(ColorMath.Contrast(theme.Ink, theme.Tint) >= 7.0, $"{name}: texto/superfície");
+        Assert.True(ColorMath.Contrast(theme.HubInk, theme.HubFill) >= 7.0, $"{name}: miolo");
+        Assert.True(ColorMath.Contrast(theme.PillInk, theme.PillFill) >= 7.0, $"{name}: dica");
+        Assert.True(ColorMath.Contrast(theme.DwellArc, theme.Tint) >= RadialTheme.MinTextContrast, $"{name}: traço de espera");
+    }
+
+    [Fact]
+    public void Tema_AltoContraste_MantemODestaqueEscolhido()
+    {
+        RadialTheme theme = RadialTheme.Create(light: false, Color.FromRgb(0x3B, 0x82, 0xF6), highContrast: true);
+
+        Assert.True(theme.HoverTop.B > theme.HoverTop.R, "o destaque ativo continua azul");
+        Assert.True(theme.Glow.B > theme.Glow.R);
+        Assert.NotEqual(theme.Tint, theme.HoverTop);
+    }
+
+    [Fact]
+    public void Tema_Padrao_ContinuaTranslucido()
+    {
+        Assert.True(RadialTheme.Create(light: false, Color.FromRgb(0x3B, 0x82, 0xF6)).Tint.A < 255);
+    }
+
     [Fact]
     public void Tema_AzulPadrao_PrefereTextoBrancoEscurecendoODestaque()
     {

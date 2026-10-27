@@ -39,6 +39,7 @@ public partial class RadialMenuWindow : Window
 
     private IntPtr _hwnd;
     private double _scale = 1.0;
+    private double _layoutScale = 1.0;
     private int _originX, _originY;
     private int _cursorX, _cursorY;
     private int _hover = -1;
@@ -76,6 +77,9 @@ public partial class RadialMenuWindow : Window
 
     /// <summary>Cor de destaque escolhida nas Configurações (ver <see cref="RadialTheme.AccentChoices"/>).</summary>
     public string AccentName { get; set; } = "Blue";
+
+    /// <summary>Estilo visual (tamanho e contraste) aplicado na próxima abertura da roda.</summary>
+    internal WheelPreset Preset { get; set; } = WheelPreset.Standard;
 
     /// <summary>Tema fixo (testes e pré-visualização); nulo = segue o Windows a cada abertura.</summary>
     internal RadialTheme? ThemeOverride { get; set; }
@@ -139,13 +143,20 @@ public partial class RadialMenuWindow : Window
         _cursorY = originY;
         _scale = GetMonitorScale(originX, originY);
 
-        ApplyTheme(ThemeOverride ?? RadialTheme.Create(RadialTheme.ReadLightTheme(), RadialTheme.ResolveAccent(AccentName)));
-        ApplyBackdrop(backdrop);
+        WheelPreset preset = Preset;
+        _layoutScale = preset.Scale;
+        Root.LayoutTransform = _layoutScale == 1.0
+            ? Transform.Identity
+            : new ScaleTransform(_layoutScale, _layoutScale);
+
+        ApplyTheme(ThemeOverride ?? RadialTheme.Create(
+            RadialTheme.ReadLightTheme(), RadialTheme.ResolveAccent(AccentName), preset.UsesHighContrast));
+        ApplyBackdrop(preset.UsesHighContrast ? null : backdrop);   // alto contraste não usa o fundo desfocado
         BuildSegments();
         ShowHub(null);
         HideHint();
 
-        int px = (int)Math.Round(SizeDip * _scale);
+        int px = (int)Math.Round(SizeDip * _layoutScale * _scale);
         SetWindowPos(_hwnd, HWND_TOPMOST, originX - px / 2, originY - px / 2, px, px, SWP_NOACTIVATE);
 
         Show();
@@ -233,7 +244,7 @@ public partial class RadialMenuWindow : Window
     {
         double dx = screenX - _originX;
         double dy = screenY - _originY;
-        double neutral = RingInner * _scale;
+        double neutral = RingInner * _layoutScale * _scale;
 
         // Zona neutra central (repouso / cancelar / voltar).
         if (dx * dx + dy * dy < neutral * neutral) return -1;
@@ -428,15 +439,18 @@ public partial class RadialMenuWindow : Window
     /// Centro da roda para um gesto iniciado em (x, y): o próprio ponto, ou o mais próximo que mantém a roda
     /// inteira dentro do monitor. Chamada rápida de Win32; segura em qualquer thread.
     /// </summary>
-    internal static (int X, int Y) PlaceOnScreen(int x, int y)
+    internal static (int X, int Y) PlaceOnScreen(int x, int y, double layoutScale = 1.0)
     {
         IntPtr monitor = MonitorFromPoint(new NativePoint { X = x, Y = y }, MONITOR_DEFAULTTONEAREST);
         var info = new MonitorInfo { cbSize = (uint)Marshal.SizeOf<MonitorInfo>() };
         if (monitor == IntPtr.Zero || !GetMonitorInfo(monitor, ref info)) return (x, y);
 
         return RadialPlacement.Clamp(x, y, info.rcMonitor.Left, info.rcMonitor.Top,
-            info.rcMonitor.Right, info.rcMonitor.Bottom, GetMonitorScale(x, y));
+            info.rcMonitor.Right, info.rcMonitor.Bottom, GetMonitorScale(x, y) * layoutScale);
     }
+
+    /// <summary>Só para testes: mesma conta polar usada pelo cursor real.</summary>
+    internal int HitTestForTests(int screenX, int screenY) => HitTestScreen(screenX, screenY);
 
     /// <summary>Leva o cursor para (x, y). Usado quando a roda foi deslocada para caber na tela.</summary>
     internal static void MoveCursor(int x, int y) => SetCursorPos(x, y);

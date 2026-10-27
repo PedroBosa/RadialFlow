@@ -27,6 +27,13 @@ Cada versão, da mais nova para a mais antiga. O número da versão está em `Ra
   sufixo “(importado)” e recusa o arquivo inteiro se qualquer menu ou item estiver fora das regras. Nada é executado
   até você clicar em **Salvar**. A exportação grava o rascunho atual, inclusive alterações ainda não salvas, e usa
   gravação atômica para não deixar o arquivo escolhido pela metade.
+- **Estilos visuais da roda.** **Padrão**, **Compacto**, **Amplo** e **Alto contraste** mudam o tamanho e a
+  legibilidade da roda e do segundo anel. A cor de destaque continua valendo em todos; o **Alto contraste** usa
+  superfícies opacas e contornos fortes, sem o fundo desfocado, e segue o tema claro/escuro do Windows. O tamanho
+  acompanha a escala de DPI de cada monitor, inclusive na posição perto das bordas.
+- **Conjunto curado de ícones nos menus.** O seletor de ícone agora oferece mais opções locais do Windows (arquivos,
+  mídia, ações, avisos e sistema). Nada é baixado ou instalado: o conjunto é fixo e aparece igual no editor de itens e
+  no de opções do submenu.
 
 ### Melhorias
 
@@ -51,6 +58,7 @@ Cada versão, da mais nova para a mais antiga. O número da versão está em `Ra
   `%LocalAppData%`) são recusados em **Abrir executável**; para esses, continue usando **Apps favoritos**.
 - Itens importados passam pelas mesmas validações da criação manual — tipos conhecidos, limites de tamanho, submenu e
   rotina nos lugares certos — e os alvos continuam sendo revalidados no momento da execução.
+- Os presets visuais são só paleta e geometria locais: não carregam CSS, fontes, imagens nem recursos remotos.
 
 ## 1.2.0 — 24/10/2026
 

@@ -33,6 +33,7 @@ public sealed class RadialController : IDisposable
     private readonly RadialMenuWindow _wheel = new();
     private readonly ForegroundBlacklist _blacklist;
     private readonly Dispatcher _ui = Dispatcher.CurrentDispatcher;
+    private WheelPreset _preset = WheelPreset.Standard;
 
     /// <summary>Pausa manual (bandeja).</summary>
     public bool IsPaused
@@ -46,6 +47,8 @@ public sealed class RadialController : IDisposable
         _hook.DeadzonePixels = settings.DeadzonePixels;
         _wheel.DwellMilliseconds = settings.DwellMilliseconds;
         _wheel.AccentName = settings.Accent;
+        _preset = WheelPreset.Resolve(settings.WheelPreset);
+        _wheel.Preset = _preset;
         _blacklist.BlockExclusiveFullscreen = settings.BlockExclusiveFullscreen;
         _blacklist.UpdateEntries(settings.Blacklist);
     }
@@ -159,9 +162,11 @@ public sealed class RadialController : IDisposable
         {
             // Perto de uma borda a roda é deslocada para caber na tela. O fundo de vidro é capturado nesse centro
             // FINAL, em paralelo com a detecção de contexto (que leva dezenas de ms): não soma atraso.
-            (int cx, int cy) = RadialMenuWindow.PlaceOnScreen(x, y);
-            int sizePx = (int)Math.Round(RadialMenuWindow.SizeDip * RadialMenuWindow.GetMonitorScale(cx, cy));
-            Task<System.Windows.Media.Imaging.BitmapSource?> backdropTask = Task.Run(() => FrostedBackdrop.Create(cx, cy, sizePx));
+            (int cx, int cy) = RadialMenuWindow.PlaceOnScreen(x, y, _preset.Scale);
+            int sizePx = (int)Math.Round(RadialMenuWindow.SizeDip * _preset.Scale * RadialMenuWindow.GetMonitorScale(cx, cy));
+            Task<System.Windows.Media.Imaging.BitmapSource?> backdropTask = _preset.UsesHighContrast
+                ? Task.FromResult<System.Windows.Media.Imaging.BitmapSource?>(null)
+                : Task.Run(() => FrostedBackdrop.Create(cx, cy, sizePx));
 
             var context = await ContextDetector.DetectAsync(x, y);   // o contexto é o do ponto ORIGINAL do gesto
             if (generation != _generation || _disposed) return;   // botão já foi solto

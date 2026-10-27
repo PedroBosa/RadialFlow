@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Threading;
+using System.Windows.Controls;
 using System.Windows.Interop;
 using System.Windows.Media;
+using System.Windows.Shapes;
 using System.Windows.Threading;
 using RadialFlow.Config;
 using RadialFlow.UI;
@@ -279,6 +281,13 @@ public sealed class RadialMenuTests
     [DllImport("user32.dll")] private static extern IntPtr GetAncestor(IntPtr hwnd, uint flags);
     [DllImport("user32.dll")] private static extern int GetWindowLong(IntPtr hwnd, int index);
 
+    [StructLayout(LayoutKind.Sequential)]
+    private struct NativeRect { public int Left, Top, Right, Bottom; }
+
+    [DllImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool GetWindowRect(IntPtr hWnd, out NativeRect rect);
+
     /// <summary>A janela de nível superior que o Windows considera "sob o mouse" no ponto (a que recebe hover e dicas).</summary>
     private static IntPtr TopLevelAt(int x, int y) => GetAncestor(WindowFromPoint(new NativePoint { X = x, Y = y }), 2 /* GA_ROOT */);
 
@@ -335,6 +344,67 @@ public sealed class RadialMenuTests
             // O fundo que segura o mouse precisa ser invisível: opacidade de no máximo 2/255.
             var background = Assert.IsType<SolidColorBrush>(wheel.Background);
             Assert.InRange(background.Color.A, (byte)1, (byte)2);
+
+            wheel.Close();
+        });
+    }
+
+    // ------------------------------------------------------------------
+    // Presets visuais
+    // ------------------------------------------------------------------
+
+    [Fact]
+    public void PresetCompacto_ReduzAJanelaEAAreaNeutraNaMesmaEscala()
+    {
+        RunSta(() =>
+        {
+            var wheel = new RadialMenuWindow { Preset = WheelPreset.Compact, DwellMilliseconds = 650 };
+            wheel.Prewarm();
+            wheel.Present(OriginX, OriginY, [Slice("A"), Slice("B"), Slice("C")]);
+            Pump(300);
+
+            Assert.Equal(WheelPreset.Compact.Scale, ((ScaleTransform)wheel.Root.LayoutTransform).ScaleX, precision: 6);
+
+            double dpi = RadialMenuWindow.GetMonitorScale(OriginX, OriginY);
+            int expected = (int)Math.Round(RadialMenuWindow.SizeDip * WheelPreset.Compact.Scale * dpi);
+            Assert.True(GetWindowRect(new WindowInteropHelper(wheel).Handle, out NativeRect rect));
+            Assert.InRange(rect.Right - rect.Left, expected - 1, expected + 1);
+
+            // A zona neutra acompanha o tamanho: um ponto entre as duas zonas já é fatia no compacto
+            // e ainda seria miolo no padrão.
+            double standardNeutral = 58 * dpi;
+            double compactNeutral = standardNeutral * WheelPreset.Compact.Scale;
+            int probe = (int)Math.Round((standardNeutral + compactNeutral) / 2);
+
+            Assert.InRange(probe, (int)Math.Ceiling(compactNeutral), (int)Math.Floor(standardNeutral) - 1);
+            Assert.InRange(wheel.HitTestForTests(OriginX + probe, OriginY), 0, 2);
+            Assert.Equal(-1, wheel.HitTestForTests(OriginX + (int)Math.Round(compactNeutral * 0.8), OriginY));
+
+            wheel.Close();
+        });
+    }
+
+    [Fact]
+    public void PresetAltoContraste_IgnoraOFundoEReforcaOsContornos()
+    {
+        RunSta(() =>
+        {
+            var backdrop = System.Windows.Media.Imaging.BitmapSource.Create(
+                4, 4, 96, 96, PixelFormats.Bgra32, null, new byte[4 * 4 * 4], 16);
+            var wheel = new RadialMenuWindow
+            {
+                Preset = WheelPreset.HighContrast,
+                ThemeOverride = RadialTheme.Create(light: false, Color.FromRgb(0x3B, 0x82, 0xF6), highContrast: true)
+            };
+            wheel.Prewarm();
+            wheel.Present(OriginX, OriginY, [Slice("A"), Slice("B"), Slice("C")], backdrop);
+            Pump(300);
+
+            var group = Assert.IsType<Canvas>(wheel.WheelCanvas.Children[0]);
+            Assert.Equal(4, group.Children.Count);   // tint, contorno, destaque e conteúdo — sem a camada do fundo
+            Assert.Equal(2.0, ((Path)group.Children[1]).StrokeThickness);
+            Assert.Equal(2.0, ((Path)group.Children[2]).StrokeThickness);
+            Assert.Equal(Colors.White, ((SolidColorBrush)wheel.IdleDot.Stroke).Color);
 
             wheel.Close();
         });

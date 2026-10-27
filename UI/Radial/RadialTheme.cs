@@ -69,7 +69,7 @@ internal sealed record RadialTheme(
 
     public static RadialTheme FromSystem() => Create(ReadLightTheme(), ReadAccent());
 
-    public static RadialTheme Create(bool light, Color accent)
+    public static RadialTheme Create(bool light, Color accent, bool highContrast = false)
     {
         (double h, double s, double l) = ColorMath.ToHsl(accent);
 
@@ -84,6 +84,34 @@ internal sealed record RadialTheme(
         Color hoverBottom = hover.Bottom;
         Color hoverInk = hover.Ink;
         Color baseAccent = ColorMath.FromHsl(h, s, l);
+
+        // Alto contraste: superfícies opacas preto/branco, sem depender do fundo desfocado. O destaque
+        // escolhido continua no estado ativo; o traço de espera só é ajustado se não contrastar com a superfície.
+        if (highContrast)
+        {
+            Color surface = light ? Colors.White : Color.FromRgb(0x05, 0x05, 0x05);
+            Color ink = light ? Color.FromRgb(0x05, 0x05, 0x05) : Colors.White;
+
+            return new RadialTheme(
+                IsLight: light,
+                Tint: surface,
+                SegmentRest: Colors.Transparent,
+                BorderTop: ink,
+                BorderBottom: ink,
+                Ink: ink,
+                InkMuted: ink,
+                HoverTop: hoverTop,
+                HoverBottom: hoverBottom,
+                HoverInk: hoverInk,
+                HoverBorder: ink,
+                Glow: baseAccent,
+                HubFill: surface,
+                HubBorder: ink,
+                HubInk: ink,
+                PillFill: surface,
+                PillInk: ink,
+                DwellArc: ColorMath.EnsureContrast(baseAccent, surface, MinTextContrast));
+        }
 
         if (light)
         {

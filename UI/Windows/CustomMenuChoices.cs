@@ -62,6 +62,10 @@ internal static class CustomMenuChoices
         return action.ToString();
     }
 
+    /// <summary>
+    /// Ícones locais da Segoe Fluent Icons (com fallback Segoe MDL2 Assets). Nada é baixado nem instalado:
+    /// o conjunto é fixo e curado para os menus.
+    /// </summary>
     internal static readonly (string Glyph, string Label)[] Glyphs =
     [
         ("\uE734", "Aplicativos"),
@@ -89,5 +93,27 @@ internal static class CustomMenuChoices
         ("\uE706", "Transparência"),
         ("\uE8DD", "Negrito"),
         ("\uE894", "Limpar"),
+        ("\uE8EF", "Calculadora"),
+        ("\uE756", "Terminal"),
+        ("\uE80F", "Início"),
+        ("\uE8F4", "Nova pasta"),
+        ("\uE7C3", "Página"),
+        ("\uE8E5", "Abrir arquivo"),
+        ("\uE74E", "Salvar"),
+        ("\uE749", "Imprimir"),
+        ("\uE74D", "Excluir"),
+        ("\uE8C6", "Recortar"),
+        ("\uE72C", "Atualizar"),
+        ("\uE896", "Baixar"),
+        ("\uE768", "Reproduzir"),
+        ("\uE769", "Pausar"),
+        ("\uE71A", "Parar"),
+        ("\uE7BA", "Aviso"),
+        ("\uE946", "Informações"),
+        ("\uE930", "Concluído"),
+        ("\uE785", "Desbloquear"),
+        ("\uE8B3", "Selecionar tudo"),
+        ("\uE787", "Calendário"),
+        ("\uE890", "Visualizar"),
     ];
 }

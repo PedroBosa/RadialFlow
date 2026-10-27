@@ -119,6 +119,7 @@ internal sealed class SettingsStore(string directory, string fileName = "setting
         loaded.FavoriteApps ??= new List<FavoriteAppEntry>();
         loaded.CustomProfiles ??= new List<CustomMenuProfile>();
         loaded.Accent ??= "Blue";
+        loaded.WheelPreset = UI.WheelPreset.Normalize(loaded.WheelPreset);
 
         CustomMenuNormalizer.Normalize(loaded.CustomProfiles);
 
