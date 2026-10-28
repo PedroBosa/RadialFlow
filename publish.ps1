@@ -103,6 +103,8 @@ dotnet publish .\RadialFlow.csproj -c Release -r win-x64 --self-contained true `
 if ($LASTEXITCODE -ne 0) { throw 'dotnet publish falhou.' }
 
 Copy-Item .\README.md, .\CHANGELOG.md $outDir
+Copy-Item .\LICENSE $outDir
+Copy-Item .\docs -Destination $outDir -Recurse
 
 if ($signtool) {
     Step 'Assinando RadialFlow.exe'

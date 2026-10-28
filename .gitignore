@@ -10,6 +10,7 @@ artifacts/
 .vs/
 .vscode/
 .idea/
+.qoder/
 *.user
 *.suo
 *.DotSettings.user
@@ -38,3 +39,5 @@ Desktop.ini
 # Backups locais
 *.zip
 *.bak
+*.orig
+*.rej
