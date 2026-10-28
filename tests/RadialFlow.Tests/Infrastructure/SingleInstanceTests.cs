@@ -154,10 +154,29 @@ public sealed class SingleInstanceTests
         first.StartListening(() => Interlocked.Increment(ref calls));
         first.Dispose();
 
+        // O Unregister do thread pool é assíncrono: o evento nomeado pode continuar abrível por alguns ms.
+        // Espera o handle sumir para provar que, depois do Dispose, não há mais como entregar nada.
+        DateTime deadline = DateTime.UtcNow.AddSeconds(2);
+        while (ActivationEventExists(name) && DateTime.UtcNow < deadline)
+            Thread.Sleep(10);
+
         Assert.False(SingleInstance.SignalExisting(name));
         Thread.Sleep(200);
         Assert.Equal(0, Volatile.Read(ref calls));
         first.Dispose();   // idempotente
+    }
+
+    private static bool ActivationEventExists(string name)
+    {
+        try
+        {
+            using EventWaitHandle existing = EventWaitHandle.OpenExisting($@"Local\{name}.activate");
+            return true;
+        }
+        catch (WaitHandleCannotBeOpenedException)
+        {
+            return false;
+        }
     }
 
     [Fact]
