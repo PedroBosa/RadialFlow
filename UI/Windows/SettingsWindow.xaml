@@ -387,7 +387,7 @@
                                     <TextBlock Text="{loc:Loc Settings.Appearance.WheelStyle}" Style="{StaticResource CardTitle}"/>
                                     <TextBlock Style="{StaticResource CardHint}"
                                                Text="{loc:Loc Settings.Appearance.WheelStyleHint}"/>
-                                    <ComboBox x:Name="CmbWheelPreset" Width="260" HorizontalAlignment="Left" Margin="0,10,0,0"
+                                    <ComboBox x:Name="CmbWheelPreset" Width="280" HorizontalAlignment="Left" Margin="0,10,0,0"
                                               DisplayMemberPath="Label" SelectionChanged="WheelPreset_Changed"
                                               AutomationProperties.Name="{loc:Loc Settings.Appearance.WheelStyle}"/>
                                     <TextBlock x:Name="WheelPresetHint" Style="{StaticResource FieldHint}"/>

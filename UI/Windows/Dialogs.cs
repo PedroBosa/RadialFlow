@@ -76,7 +76,7 @@ internal static class Dialogs
     {
         string confirm = confirmText ?? Loc.Get("Common.Yes");
         string cancel = cancelText ?? Loc.Get("Common.No");
-        return Choose(owner, title, message, icon, [cancel, confirm], defaultIsConfirm ? 1 : 0, 0) == 1;
+        return Choose(owner, title, message, icon, [confirm, cancel], defaultIsConfirm ? 0 : 1, 1) == 0;
     }
 
     /// <summary>

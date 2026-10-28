@@ -823,6 +823,23 @@
                     <Grid Background="Transparent">
                         <Ellipse x:Name="ring" Stroke="{DynamicResource TextBrush}" StrokeThickness="2" Opacity="0"/>
                         <Ellipse Margin="4" Fill="{TemplateBinding Background}"/>
+                        <Grid x:Name="mark" Width="13" Height="13" Visibility="Collapsed"
+                              HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="2"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="2"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Rectangle Grid.Row="0" Grid.Column="0" Fill="{TemplateBinding Foreground}" RadiusX="1" RadiusY="1"/>
+                            <Rectangle Grid.Row="0" Grid.Column="2" Fill="{TemplateBinding Foreground}" RadiusX="1" RadiusY="1"/>
+                            <Rectangle Grid.Row="2" Grid.Column="0" Fill="{TemplateBinding Foreground}" RadiusX="1" RadiusY="1"/>
+                            <Rectangle Grid.Row="2" Grid.Column="2" Fill="{TemplateBinding Foreground}" RadiusX="1" RadiusY="1"/>
+                        </Grid>
                         <TextBlock x:Name="check" Text="&#xE73E;" FontFamily="{StaticResource IconFont}" FontSize="14" Opacity="0"
                                    Foreground="{TemplateBinding Foreground}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </Grid>
@@ -830,9 +847,13 @@
                         <Trigger Property="IsMouseOver" Value="True">
                             <Setter TargetName="ring" Property="Opacity" Value="0.45"/>
                         </Trigger>
+                        <Trigger Property="Tag" Value="Windows">
+                            <Setter TargetName="mark" Property="Visibility" Value="Visible"/>
+                        </Trigger>
                         <Trigger Property="IsChecked" Value="True">
                             <Setter TargetName="ring" Property="Opacity" Value="1"/>
                             <Setter TargetName="check" Property="Opacity" Value="1"/>
+                            <Setter TargetName="mark" Property="Visibility" Value="Collapsed"/>
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>

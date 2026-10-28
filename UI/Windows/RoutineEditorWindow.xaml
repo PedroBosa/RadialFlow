@@ -53,7 +53,7 @@
         </Border>
 
         <!-- ================= Corpo ================= -->
-        <Grid Grid.Row="1" Margin="22,18,22,0">
+        <Grid Grid.Row="1" Margin="22,18,22,18">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="264"/>
                 <ColumnDefinition Width="14"/>
@@ -210,9 +210,9 @@
                            Foreground="{DynamicResource WarningBrush}" Visibility="Collapsed"/>
 
                 <StackPanel Grid.Column="1" Orientation="Horizontal">
-                    <Button Content="{loc:Loc Common.Cancel}" MinWidth="96" IsCancel="True"/>
-                    <Button x:Name="BtnDone" Content="{loc:Loc Common.Done}" MinWidth="104" Margin="8,0,0,0"
+                    <Button x:Name="BtnDone" Content="{loc:Loc Common.Done}" MinWidth="104" Margin="0,0,8,0"
                             Style="{StaticResource PrimaryButton}" IsDefault="True" Click="BtnDone_Click"/>
+                    <Button Content="{loc:Loc Common.Cancel}" MinWidth="96" IsCancel="True"/>
                 </StackPanel>
             </Grid>
         </Border>
