@@ -4,19 +4,35 @@ Cada versão, da mais nova para a mais antiga. O número da versão está em `Ra
 
 ## 1.4.1 — 28/10/2026
 
+### Novo
+
+- **Menus por extensão e por classe de janela.** Além de processo, título e contexto, um menu pode valer só para
+  certos tipos de arquivo (até 8 extensões) ou para uma classe técnica de janela (como `CabinetWClass`, do Explorer).
+- **Transformar o texto selecionado.** Um item pode deixar a seleção em maiúsculas, minúsculas, título ou frase, sem
+  espaços sobrando ou em uma linha: o RadialFlow copia, transforma e cola por cima, sem enviar nada para fora.
+- **Atalho próprio por menu.** Cada menu pode ter um atalho global (como `Ctrl+Alt+1`) que abre a roda direto com os
+  itens dele, no cursor e sem exigir as condições; repetir o atalho global ou o de outro menu é recusado.
+
 ### Melhorias
 
 - **Configurações e diálogos mais diretos.** Paleta quase monocromática nos dois temas, acento restrito a foco,
   seleção e ação principal, cartões sem borda e controles finos, no mesmo tratamento das janelas de Conversão,
   Progresso, Submenu e Rotina; a ação principal vem antes de **Cancelar**, que começa com o foco nos avisos destrutivos.
-- **Aba Menus reorganizada em torno dos itens.** Condições compactas em chips no topo e itens no centro; sem menu
-  selecionado, um convite curto explica como começar, e criar, excluir ou importar move o foco para o campo certo.
+- **Aba Menus reorganizada do zero.** Lista de menus à esquerda, com contagem e as ações de criar, importar e exportar;
+  o menu selecionado ganha um cabeçalho fixo com nome editável, chave **Ativo**, duplicar/remover e um resumo ao vivo
+  das condições; abaixo, três seções — **Itens**, **Aplicação** e **Prévia** — mostram um assunto por vez.
 - **Espaçamentos e tamanhos padronizados** na aba Menus, com a largura dos controles igual à das outras abas.
 
 ### Correções
 
 - **Temporários de conversão:** pastas de conversões interrompidas em `%TEMP%\RadialFlow` são removidas na
   inicialização seguinte, em vez de acumular espaço; o cabeçalho fixo da aba Menus se alinha aos cartões ao rolar.
+
+### Para desenvolvedores
+
+- **Repositório pronto para contribuir.** Código em `src/`, testes em `tests/`, solução única com pastas, `.editorconfig`,
+  CI no GitHub Actions que compila e roda a suíte a cada push, e `publish.ps1` conferindo a versão do `.iss` contra o
+  `.csproj` antes de gerar os arquivos de distribuição.
 
 ## 1.4.0 — 27/10/2026
 
