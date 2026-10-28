@@ -209,13 +209,12 @@
   <data name="Menus.PreviewHint" xml:space="preserve"><value>Highlighted slices come from this menu; the others are automatic for the context. Hold a slice with ▾ to open the second ring. Items beyond the limit of 8 stay out of the wheel.</value></data>
   <data name="Menus.NoProfileSelected" xml:space="preserve"><value>No menu selected</value></data>
   <data name="Menus.NoProfileSelectedHint" xml:space="preserve"><value>Create a menu with “New menu” or select one in the list on the left. Its items appear only in the apps and contexts you choose.</value></data>
-  <data name="Menus.EmptyTitle" xml:space="preserve"><value>Create your first menu</value></data>
-  <data name="Menus.EmptyHint" xml:space="preserve"><value>Give it a name, choose which apps and contexts it appears in, and add the wheel items.</value></data>
-  <data name="Menus.CreateFirst" xml:space="preserve"><value>Create first menu</value></data>
+  <data name="Menus.EmptyTitle" xml:space="preserve"><value>No menus yet</value></data>
+  <data name="Menus.EmptyHint" xml:space="preserve"><value>Name it and choose where it appears.</value></data>
+  <data name="Menus.CreateFirst" xml:space="preserve"><value>Create menu</value></data>
   <data name="Menus.CreateFirstAutomation" xml:space="preserve"><value>Create the first custom menu</value></data>
   <data name="Menus.ImportFromFile" xml:space="preserve"><value>Import from a file…</value></data>
   <data name="Menus.ImportFromFileAutomation" xml:space="preserve"><value>Import custom menus from a file</value></data>
-  <data name="Menus.EmptyFooterHint" xml:space="preserve"><value>You can duplicate, disable and check the preview before saving.</value></data>
   <data name="Menus.ContextFileOrFolder" xml:space="preserve"><value>Files and folders</value></data>
   <data name="Menus.ContextDesktop" xml:space="preserve"><value>Desktop</value></data>
   <data name="Menus.ContextTitleBar" xml:space="preserve"><value>Title bar</value></data>

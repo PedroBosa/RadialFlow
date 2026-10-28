@@ -209,13 +209,12 @@
   <data name="Menus.PreviewHint" xml:space="preserve"><value>Las porciones destacadas vienen de este menú; las demás son automáticas del contexto. Mantén una porción con ▾ para abrir el segundo anillo. Los elementos que superan el límite de 8 quedan fuera de la rueda.</value></data>
   <data name="Menus.NoProfileSelected" xml:space="preserve"><value>Ningún menú seleccionado</value></data>
   <data name="Menus.NoProfileSelectedHint" xml:space="preserve"><value>Crea un menú con «Menú nuevo» o selecciona uno en la lista de la izquierda. Sus elementos aparecen solo en las aplicaciones y contextos que elijas.</value></data>
-  <data name="Menus.EmptyTitle" xml:space="preserve"><value>Crea tu primer menú</value></data>
-  <data name="Menus.EmptyHint" xml:space="preserve"><value>Dale un nombre, elige en qué aplicaciones y contextos aparece y añade los elementos de la rueda.</value></data>
-  <data name="Menus.CreateFirst" xml:space="preserve"><value>Crear primer menú</value></data>
+  <data name="Menus.EmptyTitle" xml:space="preserve"><value>Aún no hay menús</value></data>
+  <data name="Menus.EmptyHint" xml:space="preserve"><value>Ponle un nombre y elige dónde aparece.</value></data>
+  <data name="Menus.CreateFirst" xml:space="preserve"><value>Crear menú</value></data>
   <data name="Menus.CreateFirstAutomation" xml:space="preserve"><value>Crear el primer menú personalizado</value></data>
   <data name="Menus.ImportFromFile" xml:space="preserve"><value>Importar desde un archivo…</value></data>
   <data name="Menus.ImportFromFileAutomation" xml:space="preserve"><value>Importar menús personalizados desde un archivo</value></data>
-  <data name="Menus.EmptyFooterHint" xml:space="preserve"><value>Puedes duplicar, desactivar y comprobar la vista previa antes de guardar.</value></data>
   <data name="Menus.ContextFileOrFolder" xml:space="preserve"><value>Archivos y carpetas</value></data>
   <data name="Menus.ContextDesktop" xml:space="preserve"><value>Escritorio</value></data>
   <data name="Menus.ContextTitleBar" xml:space="preserve"><value>Barra de título</value></data>

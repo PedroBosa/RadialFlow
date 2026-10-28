@@ -209,13 +209,12 @@
   <data name="Menus.PreviewHint" xml:space="preserve"><value>Fatias em destaque vêm deste menu; as demais são automáticas do contexto. Segure uma fatia com ▾ para abrir o segundo anel. Itens além do limite de 8 ficam de fora da roda.</value></data>
   <data name="Menus.NoProfileSelected" xml:space="preserve"><value>Nenhum menu selecionado</value></data>
   <data name="Menus.NoProfileSelectedHint" xml:space="preserve"><value>Crie um menu com “Novo menu” ou selecione um na lista à esquerda. Os itens dele aparecem só nos aplicativos e contextos que você escolher.</value></data>
-  <data name="Menus.EmptyTitle" xml:space="preserve"><value>Crie seu primeiro menu</value></data>
-  <data name="Menus.EmptyHint" xml:space="preserve"><value>Dê um nome, escolha em quais aplicativos e contextos ele aparece e adicione os itens da roda.</value></data>
-  <data name="Menus.CreateFirst" xml:space="preserve"><value>Criar primeiro menu</value></data>
+  <data name="Menus.EmptyTitle" xml:space="preserve"><value>Nenhum menu ainda</value></data>
+  <data name="Menus.EmptyHint" xml:space="preserve"><value>Dê um nome e escolha onde ele aparece.</value></data>
+  <data name="Menus.CreateFirst" xml:space="preserve"><value>Criar menu</value></data>
   <data name="Menus.CreateFirstAutomation" xml:space="preserve"><value>Criar o primeiro menu personalizado</value></data>
   <data name="Menus.ImportFromFile" xml:space="preserve"><value>Importar de um arquivo…</value></data>
   <data name="Menus.ImportFromFileAutomation" xml:space="preserve"><value>Importar menus personalizados de um arquivo</value></data>
-  <data name="Menus.EmptyFooterHint" xml:space="preserve"><value>Você pode duplicar, desativar e conferir a prévia antes de salvar.</value></data>
   <data name="Menus.ContextFileOrFolder" xml:space="preserve"><value>Arquivos e pastas</value></data>
   <data name="Menus.ContextDesktop" xml:space="preserve"><value>Área de trabalho</value></data>
   <data name="Menus.ContextTitleBar" xml:space="preserve"><value>Barra de título</value></data>

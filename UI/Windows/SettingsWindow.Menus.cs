@@ -212,6 +212,7 @@ public partial class SettingsWindow
         _menuProfiles.Add(profile);
         ListMenuProfiles.SelectedItem = profile;
         MarkMenusDirty();
+        FocusAfterProfileChange();
     }
 
     private void BtnDuplicateMenuProfile_Click(object sender, RoutedEventArgs e)
@@ -248,6 +249,23 @@ public partial class SettingsWindow
             ListMenuProfiles.SelectedIndex = Math.Min(index, _menuProfiles.Count - 1);
 
         MarkMenusDirty();
+        FocusAfterProfileChange();
+    }
+
+    /// <summary>O painel muda de visibilidade no mesmo turno; o foco entra depois do layout.</summary>
+    private void FocusAfterProfileChange()
+    {
+        Dispatcher.BeginInvoke(DispatcherPriority.Input, new Action(() =>
+        {
+            if (_menuProfiles.Count == 0)
+            {
+                BtnAddMenuProfile.Focus();
+                return;
+            }
+
+            TxtProfileName.Focus();
+            TxtProfileName.SelectAll();
+        }));
     }
 
     // ------------------------------------------------------------------
@@ -297,6 +315,8 @@ public partial class SettingsWindow
                 DescribeCount(imported.Count, "Common.MenusCountOne", "Common.MenusCountMany"),
                 DescribeCount(items, "Common.ItemsCountOne", "Common.ItemsCountMany")),
             DialogIcon.Info);
+
+        FocusAfterProfileChange();
     }
 
     private void BtnExportMenus_Click(object sender, RoutedEventArgs e)

@@ -1115,34 +1115,31 @@
                     </Grid>
 
                     <Border x:Name="PnlNoMenus" Grid.Row="1" Margin="32,4,20,20" Visibility="Collapsed">
-                        <Border Style="{StaticResource Card}" Margin="0" Padding="36,34" MaxWidth="560"
-                                HorizontalAlignment="Center" VerticalAlignment="Center">
-                            <StackPanel HorizontalAlignment="Center">
-                                <Border Width="56" Height="56" CornerRadius="28"
-                                        Background="{DynamicResource AccentSoftBrush}"
-                                        BorderBrush="{DynamicResource AccentLineBrush}" BorderThickness="1">
-                                    <TextBlock Text="&#xE8FD;" FontFamily="{StaticResource IconFont}" FontSize="24"
-                                               Foreground="{DynamicResource AccentTextBrush}"
-                                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                </Border>
-                                <TextBlock Text="{loc:Loc Menus.EmptyTitle}" FontSize="20" FontWeight="Bold"
-                                           Foreground="{DynamicResource TextBrush}" HorizontalAlignment="Center" Margin="0,16,0,0"/>
-                                <TextBlock Text="{loc:Loc Menus.EmptyHint}"
-                                           Style="{StaticResource CardHint}" FontSize="12.5" MaxWidth="420"
-                                           TextAlignment="Center" Margin="0,6,0,0"/>
+                        <StackPanel MaxWidth="420" Margin="0,6,0,0"
+                                    HorizontalAlignment="Left" VerticalAlignment="Top">
+                            <Border Style="{StaticResource IconBadge}" Width="36" Height="36" CornerRadius="18"
+                                    HorizontalAlignment="Left">
+                                <Path Data="{StaticResource IconMenus}" Width="18" Height="18"
+                                      Stroke="{DynamicResource AccentOnSoftBrush}" StrokeThickness="1.6"
+                                      StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"
+                                      Fill="Transparent" Stretch="Uniform"
+                                      HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <TextBlock Text="{loc:Loc Menus.EmptyTitle}" Margin="0,12,0,0"
+                                       FontSize="15" FontWeight="SemiBold"
+                                       Foreground="{DynamicResource TextBrush}"/>
+                            <TextBlock Text="{loc:Loc Menus.EmptyHint}" Margin="0,4,0,0"
+                                       Style="{StaticResource CardHint}" FontSize="12.5" MaxWidth="380"/>
+                            <StackPanel Orientation="Horizontal" Margin="0,20,0,0">
                                 <Button x:Name="BtnAddMenuProfile" Content="{loc:Loc Menus.CreateFirst}"
-                                        Style="{StaticResource PrimaryButton}" MinWidth="180" Margin="0,20,0,0"
-                                        HorizontalAlignment="Center" Click="BtnAddMenuProfile_Click"
+                                        Style="{StaticResource PrimaryButton}" Margin="0,0,12,0"
+                                        Click="BtnAddMenuProfile_Click"
                                         AutomationProperties.Name="{loc:Loc Menus.CreateFirstAutomation}"/>
                                 <Button x:Name="BtnImportMenusEmpty" Content="{loc:Loc Menus.ImportFromFile}"
-                                        MinWidth="180" Padding="12,7" Margin="0,8,0,0"
-                                        HorizontalAlignment="Center" Click="BtnImportMenus_Click"
+                                        Padding="14,7" Click="BtnImportMenus_Click"
                                         AutomationProperties.Name="{loc:Loc Menus.ImportFromFileAutomation}"/>
-                                <TextBlock Text="{loc:Loc Menus.EmptyFooterHint}"
-                                           Style="{StaticResource CardHint}" FontSize="11"
-                                           TextAlignment="Center" Margin="0,12,0,0"/>
                             </StackPanel>
-                        </Border>
+                        </StackPanel>
                     </Border>
                 </Grid>
             </TabItem>

@@ -256,6 +256,28 @@ public sealed class MenusTabTests : IDisposable
         });
     }
 
+    [Fact]
+    public void EstadoVazio_FocoVaiParaONomeAoCriarEVoltaAoConviteAoExcluir()
+    {
+        RunSta(() =>
+        {
+            SettingsWindow window = OpenSettings();
+            SelectTab(window, "Menus");
+            window.Activate();
+            Pump(100);
+
+            Click(Find<Button>(window, "BtnAddMenuProfile"));
+            Pump(50);
+            Assert.True(Find<TextBox>(window, "TxtProfileName").IsKeyboardFocusWithin);
+
+            Click(Find<Button>(window, "BtnRemoveMenuProfile"));
+            Pump(50);
+            Assert.True(Find<Button>(window, "BtnAddMenuProfile").IsKeyboardFocusWithin);
+
+            CloseDiscarding(window);
+        });
+    }
+
     // ------------------------------------------------------------------
     // Prévia
     // ------------------------------------------------------------------
