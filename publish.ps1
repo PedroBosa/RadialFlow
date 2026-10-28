@@ -161,10 +161,12 @@ if ($iscc) {
 # 5. Hashes
 # ---------------------------------------------------------------------------
 Step 'Calculando os hashes'
-Get-ChildItem $dist -File | Where-Object { $_.Name -ne 'SHA256SUMS.txt' } | Sort-Object Name | ForEach-Object {
+$lines = @(Get-ChildItem $dist -File | Where-Object { $_.Name -ne 'SHA256SUMS.txt' } | Sort-Object Name | ForEach-Object {
     $hash = (Get-FileHash $_.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
     "$hash  $($_.Name)"
-} | Set-Content (Join-Path $dist 'SHA256SUMS.txt') -Encoding ascii
+})
+# WriteAllText com "`n" para gerar LF (Set-Content usa CRLF e quebra sha256sum -c no Git Bash/WSL).
+[IO.File]::WriteAllText((Join-Path $dist 'SHA256SUMS.txt'), ($lines -join "`n") + "`n", [Text.Encoding]::ASCII)
 
 # ---------------------------------------------------------------------------
 # 6. Limpeza da pasta de publicação
