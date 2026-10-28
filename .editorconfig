@@ -44,5 +44,5 @@ dotnet_diagnostic.CA1838.severity = suggestion
 # ----------------------------------------------------------------------------
 # Testes: nomes em português com sublinhados são intencionais (descrevem o comportamento).
 # ----------------------------------------------------------------------------
-[RadialFlow.Tests/**.cs]
+[tests/RadialFlow.Tests/**.cs]
 dotnet_diagnostic.CA1707.severity = none

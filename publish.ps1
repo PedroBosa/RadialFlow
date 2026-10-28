@@ -9,6 +9,7 @@
   4. Gera o zip portátil.
   5. Gera o instalador com o Inno Setup 6, se estiver instalado (assinando instalador e desinstalador, se houver certificado).
   6. Grava SHA256SUMS.txt com os hashes de tudo.
+  7. Apaga a pasta de publicação, deixando no dist só o zip, o instalador e os hashes (use -KeepStaging para mantê-la).
 
 .PARAMETER CertThumbprint
   Impressão digital de um certificado de assinatura de código instalado no Windows (Cert:\CurrentUser\My ou
@@ -21,6 +22,10 @@
 .PARAMETER SkipTests
   Pula os testes. Use só se você acabou de rodá-los.
 
+.PARAMETER KeepStaging
+  Mantém a pasta RadialFlow-<versão>-win-x64 que o zip e o instalador empacotam. Por padrão, ela é apagada no fim
+  para o dist ficar só com o zip, o instalador e os hashes. Use quando quiser inspecionar os arquivos publicados.
+
 .EXAMPLE
   powershell -ExecutionPolicy Bypass -File .\publish.ps1
 
@@ -30,7 +35,8 @@
 param(
     [string]$CertThumbprint = $env:RADIALFLOW_SIGN_THUMBPRINT,
     [string]$TimestampUrl = 'http://timestamp.digicert.com',
-    [switch]$SkipTests
+    [switch]$SkipTests,
+    [switch]$KeepStaging
 )
 
 $ErrorActionPreference = 'Stop'
@@ -41,11 +47,19 @@ function Done([string]$text) { Write-Host "    $text" -ForegroundColor Green }
 function Note([string]$text) { Write-Host "    $text" -ForegroundColor Yellow }
 
 # ---------------------------------------------------------------------------
-# Versão: uma só fonte (o <Version> do RadialFlow.csproj)
+# Versão: uma só fonte (o <Version> do src\RadialFlow\RadialFlow.csproj)
 # ---------------------------------------------------------------------------
-[xml]$csproj = Get-Content .\RadialFlow.csproj
+[xml]$csproj = Get-Content .\src\RadialFlow\RadialFlow.csproj
 $version = @($csproj.Project.PropertyGroup | ForEach-Object { $_.Version } | Where-Object { $_ })[0]
-if (-not $version) { throw 'Não achei <Version> no RadialFlow.csproj.' }
+if (-not $version) { throw 'Não achei <Version> no src\RadialFlow\RadialFlow.csproj.' }
+
+# O .iss precisa de um valor de reserva para compilar à mão; se ele divergir do csproj, o instalador sairia com a
+# versão errada. Melhor falhar aqui.
+$issAppVersion = Select-String -Path .\RadialFlow.iss -Pattern '#define AppVersion "([^"]+)"' | Select-Object -First 1
+if (-not $issAppVersion) { throw 'Não achei #define AppVersion no RadialFlow.iss.' }
+if ($issAppVersion.Matches[0].Groups[1].Value -ne $version) {
+    throw "Versão divergente: csproj $version, RadialFlow.iss $($issAppVersion.Matches[0].Groups[1].Value). Atualize o #define AppVersion."
+}
 
 $name   = "RadialFlow-$version-win-x64"
 $dist   = Join-Path $PSScriptRoot 'dist'
@@ -97,7 +111,7 @@ New-Item $outDir -ItemType Directory | Out-Null
 # Sem "arquivo único": o WPF extrairia DLLs nativas para uma pasta temporária a cada execução, o que é mais lento e,
 # num programa que roda como administrador, carregaria código de uma pasta que outros programas podem alterar.
 Step "Publicando $name (autocontido)"
-dotnet publish .\RadialFlow.csproj -c Release -r win-x64 --self-contained true `
+dotnet publish .\src\RadialFlow\RadialFlow.csproj -c Release -r win-x64 --self-contained true `
     -p:DebugType=none -p:DebugSymbols=false `
     -o $outDir --nologo
 if ($LASTEXITCODE -ne 0) { throw 'dotnet publish falhou.' }
@@ -151,6 +165,16 @@ Get-ChildItem $dist -File | Where-Object { $_.Name -ne 'SHA256SUMS.txt' } | Sort
     $hash = (Get-FileHash $_.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
     "$hash  $($_.Name)"
 } | Set-Content (Join-Path $dist 'SHA256SUMS.txt') -Encoding ascii
+
+# ---------------------------------------------------------------------------
+# 6. Limpeza da pasta de publicação
+# ---------------------------------------------------------------------------
+if ($KeepStaging) {
+    Note "Pasta de publicação mantida: $outDir"
+} else {
+    Remove-Item $outDir -Recurse -Force
+    Done 'Pasta de publicação removida (use -KeepStaging para mantê-la).'
+}
 
 if (-not $signtool) {
     Note 'Os arquivos NÃO foram assinados: o Windows vai mostrar o aviso "O Windows protegeu o computador".'

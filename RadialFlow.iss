@@ -1,6 +1,6 @@
 ; RadialFlow - instalador (Inno Setup 6)
 ; Chamado pelo publish.ps1, que passa /DAppVersion, /DSourceDir e, se houver certificado, /DSignTool.
-; Para compilar à mão: ISCC /DAppVersion=1.4.1 /DSourceDir=dist\RadialFlow-1.4.1-win-x64 RadialFlow.iss
+; Para compilar à mão: ISCC /DAppVersion=<versão> /DSourceDir=dist\RadialFlow-<versão>-win-x64 RadialFlow.iss
 
 #ifndef AppVersion
   #define AppVersion "1.4.1"
@@ -21,6 +21,10 @@ AppName={#AppName}
 AppVersion={#AppVersion}
 AppVerName={#AppName} {#AppVersion}
 AppPublisher={#AppPublisher}
+AppPublisherURL=https://github.com/PedroBosa/RadialFlow
+AppSupportURL=https://github.com/PedroBosa/RadialFlow/issues
+AppUpdatesURL=https://github.com/PedroBosa/RadialFlow/releases
+AppReadmeFile={app}\README.md
 AppComments=Menu radial para o Windows: segure o botão direito, arraste e escolha.
 AppCopyright=Copyright © 2026 {#AppCopyrightHolder}
 
@@ -43,7 +47,7 @@ ArchitecturesInstallIn64BitMode=x64compatible
 MinVersion=10.0
 UninstallDisplayName={#AppName}
 UninstallDisplayIcon={app}\{#AppExe}
-SetupIconFile=Assets\RadialFlow.ico
+SetupIconFile=src\RadialFlow\Assets\RadialFlow.ico
 OutputBaseFilename={#AppName}-{#AppVersion}-Setup
 Compression=lzma2/max
 SolidCompression=yes

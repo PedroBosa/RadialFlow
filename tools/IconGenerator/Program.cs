@@ -10,7 +10,7 @@ internal static class Program
     [STAThread]
     private static int Main(string[] args)
     {
-        string output = args.Length > 0 ? args[0] : Path.Combine("Assets", "RadialFlow.ico");
+        string output = args.Length > 0 ? args[0] : Path.Combine("src", "RadialFlow", "Assets", "RadialFlow.ico");
 
         try
         {
