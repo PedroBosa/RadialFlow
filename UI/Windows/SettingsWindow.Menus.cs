@@ -19,6 +19,7 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Automation;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Threading;
 using Microsoft.Win32;
 using RadialFlow.Config;
@@ -57,6 +58,10 @@ public partial class SettingsWindow
     private readonly ObservableCollection<GlyphChoice> _glyphChoices =
         new(CustomMenuChoices.Glyphs.Select(g => new GlyphChoice(g.Glyph, g.Label)));
 
+    private readonly List<ToggleButton> _contextChips = new();
+    private ToggleButton? _contextAllChip;
+    private bool _syncingContexts;
+
     private ObservableCollection<CustomMenuProfile> _menuProfiles = new();
     private readonly ObservableCollection<CustomMenuItem> _menuItems = new();
     private CustomMenuProfile? _selectedProfile;
@@ -90,15 +95,9 @@ public partial class SettingsWindow
             foreach (var (action, label) in CustomMenuChoices.Actions)
                 CmbItemAction.Items.Add(new ComboBoxItem { Content = label, Tag = action });
 
+            _contextAllChip = AddContextChip(Loc.Get("Menus.ContextAll"), null);
             foreach (var (kind, labelKey) in ContextChoices)
-            {
-                string label = Loc.Get(labelKey);
-                var check = new CheckBox { Content = label, Tag = kind, Margin = new Thickness(0, 4, 12, 4) };
-                check.Checked += ProfileField_Changed;
-                check.Unchecked += ProfileField_Changed;
-                AutomationProperties.SetName(check, Loc.Format("Menus.ContextAutomation", label));
-                PnlContexts.Children.Add(check);
-            }
+                AddContextChip(Loc.Get(labelKey), kind);
 
             _menuProfiles = new ObservableCollection<CustomMenuProfile>(
                 (SettingsService.Current.CustomProfiles ?? new List<CustomMenuProfile>())
@@ -125,6 +124,78 @@ public partial class SettingsWindow
         _menusDirty = false;
         UpdateMenuButtons();
         RefreshPreview();
+    }
+
+    private ToggleButton AddContextChip(string label, RadialContextKind? kind)
+    {
+        var chip = new ToggleButton
+        {
+            Content = label,
+            Tag = kind,
+            Style = (Style)FindResource("ContextChip"),
+        };
+        chip.Checked += ContextChip_Changed;
+        chip.Unchecked += ContextChip_Changed;
+        AutomationProperties.SetName(chip, Loc.Format("Menus.ContextAutomation", label));
+        PnlContexts.Children.Add(chip);
+        _contextChips.Add(chip);
+        return chip;
+    }
+
+    /// <summary>"Todos" é o estado vazio (nenhum contexto salvo); os demais chips são exclusivos dele.</summary>
+    private void ContextChip_Changed(object sender, RoutedEventArgs e)
+    {
+        if (_syncingContexts || _loadingMenus || _selectedProfile is null || sender is not ToggleButton chip) return;
+
+        _syncingContexts = true;
+        try
+        {
+            if (chip == _contextAllChip)
+            {
+                if (chip.IsChecked == true)
+                    foreach (ToggleButton other in _contextChips.Where(c => c != chip))
+                        other.IsChecked = false;
+                else
+                    chip.IsChecked = true;   // desmarcar "Todos" sozinho deixaria o menu sem contexto
+            }
+            else if (chip.IsChecked == true)
+            {
+                if (_contextAllChip is not null) _contextAllChip.IsChecked = false;
+            }
+            else if (!_contextChips.Any(c => c != _contextAllChip && c.IsChecked == true))
+            {
+                if (_contextAllChip is not null) _contextAllChip.IsChecked = true;
+            }
+        }
+        finally
+        {
+            _syncingContexts = false;
+        }
+
+        ProfileField_Changed(sender, e);
+    }
+
+    private void ApplyContexts(IReadOnlyCollection<RadialContextKind> contexts)
+    {
+        _syncingContexts = true;
+        try
+        {
+            bool any = false;
+            foreach (ToggleButton chip in _contextChips)
+            {
+                if (chip == _contextAllChip) continue;
+
+                bool on = chip.Tag is RadialContextKind kind && contexts.Contains(kind);
+                chip.IsChecked = on;
+                any |= on;
+            }
+
+            if (_contextAllChip is not null) _contextAllChip.IsChecked = !any;
+        }
+        finally
+        {
+            _syncingContexts = false;
+        }
     }
 
     // ------------------------------------------------------------------
@@ -154,8 +225,7 @@ public partial class SettingsWindow
         _selectedProfile = profile;
         bool hasProfile = profile is not null;
         PnlProfileEditor.IsEnabled = hasProfile;
-
-        MenusScroll.Visibility = hasProfile ? Visibility.Visible : Visibility.Collapsed;
+        PnlProfileEditor.Visibility = hasProfile ? Visibility.Visible : Visibility.Collapsed;
         PnlNoProfileSelected.Visibility = hasProfile ? Visibility.Collapsed : Visibility.Visible;
 
         if (profile is null)
@@ -166,7 +236,7 @@ public partial class SettingsWindow
             TxtProfileTitle.Text = "";
             SliderProfilePriority.Value = 0;
             TxtPriorityValue.Text = "0";
-            foreach (CheckBox check in PnlContexts.Children.OfType<CheckBox>()) check.IsChecked = false;
+            ApplyContexts(Array.Empty<RadialContextKind>());
             _selectedItem = null;
             _menuItems.Clear();
             LoadItemEditor(null);
@@ -180,9 +250,7 @@ public partial class SettingsWindow
         SliderProfilePriority.Value = Math.Clamp(profile.Priority, -100, 100);
         TxtPriorityValue.Text = ((int)SliderProfilePriority.Value).ToString(CultureInfo.InvariantCulture);
 
-        var contexts = profile.Contexts ?? new List<RadialContextKind>();
-        foreach (CheckBox check in PnlContexts.Children.OfType<CheckBox>())
-            check.IsChecked = check.Tag is RadialContextKind kind && contexts.Contains(kind);
+        ApplyContexts(profile.Contexts ?? new List<RadialContextKind>());
 
         _menuItems.Clear();
         foreach (CustomMenuItem item in profile.Items ?? new List<CustomMenuItem>())
@@ -236,6 +304,7 @@ public partial class SettingsWindow
         _menuProfiles.Insert(index, copy);
         ListMenuProfiles.SelectedItem = copy;
         MarkMenusDirty();
+        FocusAfterProfileChange();   // a cópia mantém o nome de origem; o foco já deixa renomear
     }
 
     private void BtnRemoveMenuProfile_Click(object sender, RoutedEventArgs e)
@@ -391,9 +460,9 @@ public partial class SettingsWindow
         _selectedProfile.TitleContains = (TxtProfileTitle.Text ?? "").Trim();
         _selectedProfile.Priority = (int)Math.Round(SliderProfilePriority.Value);
         TxtPriorityValue.Text = _selectedProfile.Priority.ToString(CultureInfo.InvariantCulture);
-        _selectedProfile.Contexts = PnlContexts.Children.OfType<CheckBox>()
+        _selectedProfile.Contexts = _contextChips
             .Where(c => c.IsChecked == true && c.Tag is RadialContextKind)
-            .Select(c => (RadialContextKind)c.Tag)
+            .Select(c => (RadialContextKind)c.Tag!)
             .ToList();
 
         MarkMenusDirty(debouncePreview: sender is TextBox);

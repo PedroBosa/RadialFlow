@@ -823,6 +823,52 @@
         </Setter>
     </Style>
 
+    <!-- ================= Chip de seleção múltipla (ToggleButton) ================= -->
+    <Style x:Key="ContextChip" TargetType="ToggleButton">
+        <Setter Property="Foreground" Value="{DynamicResource TextDimBrush}"/>
+        <Setter Property="FontSize" Value="11.5"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="Margin" Value="0,0,6,6"/>
+        <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ToggleButton">
+                    <Grid>
+                        <Border x:Name="bd" Background="Transparent"
+                                BorderBrush="{DynamicResource ControlBorderBrush}" BorderThickness="1"
+                                CornerRadius="12"/>
+                        <StackPanel Orientation="Horizontal" Margin="10,5" VerticalAlignment="Center">
+                            <TextBlock x:Name="check" Text="&#xE73E;" FontFamily="{StaticResource IconFont}" FontSize="10"
+                                       Foreground="{DynamicResource AccentTextBrush}" VerticalAlignment="Center"
+                                       Margin="0,0,4,0" Opacity="0"/>
+                            <ContentPresenter TextElement.Foreground="{TemplateBinding Foreground}" VerticalAlignment="Center"/>
+                        </StackPanel>
+                        <Border x:Name="focusRing" Margin="-2" CornerRadius="14" BorderThickness="2"
+                                BorderBrush="{DynamicResource AccentTextBrush}" Opacity="0" IsHitTestVisible="False"/>
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="bd" Property="Background" Value="{DynamicResource ControlBrush}"/>
+                        </Trigger>
+                        <Trigger Property="IsChecked" Value="True">
+                            <Setter TargetName="bd" Property="Background" Value="{DynamicResource AccentSoftBrush}"/>
+                            <Setter TargetName="bd" Property="BorderBrush" Value="{DynamicResource AccentLineBrush}"/>
+                            <Setter Property="Foreground" Value="{DynamicResource TextBrush}"/>
+                            <Setter TargetName="check" Property="Opacity" Value="1"/>
+                        </Trigger>
+                        <Trigger Property="IsKeyboardFocused" Value="True">
+                            <Setter TargetName="focusRing" Property="Opacity" Value="1"/>
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter TargetName="bd" Property="Opacity" Value="0.45"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
     <!-- ================= Barra de progresso ================= -->
     <Style TargetType="ProgressBar">
         <Setter Property="Height" Value="6"/>

@@ -97,6 +97,10 @@ public sealed class MenusTabTests : IDisposable
     private static void SelectTag(ComboBox combo, object tag) =>
         combo.SelectedItem = combo.Items.Cast<ComboBoxItem>().Single(i => Equals(i.Tag, tag));
 
+    private static ToggleButton ContextChip(SettingsWindow window, RadialContextKind kind) =>
+        Find<WrapPanel>(window, "PnlContexts").Children.OfType<ToggleButton>()
+            .Single(c => Equals(c.Tag, kind));
+
     private static IEnumerable<Button> ButtonsOf(Window window) => Descendants(window).OfType<Button>();
 
     private static IEnumerable<DependencyObject> Descendants(DependencyObject root)
@@ -195,14 +199,14 @@ public sealed class MenusTabTests : IDisposable
             SettingsWindow window = OpenSettings();
             var profiles = Find<ListBox>(window, "ListMenuProfiles");
             Assert.Empty(profiles.Items);
-            Assert.False(Find<StackPanel>(window, "PnlProfileEditor").IsEnabled);
+            Assert.False(Find<Grid>(window, "PnlProfileEditor").IsEnabled);
 
             Click(Find<Button>(window, "BtnAddMenuProfile"));
             Assert.Single(profiles.Items);
             var first = (CustomMenuProfile)profiles.Items[0];
             Assert.Equal("Novo menu", first.Name);
             Assert.Equal("Novo menu", Find<TextBox>(window, "TxtProfileName").Text);
-            Assert.True(Find<StackPanel>(window, "PnlProfileEditor").IsEnabled);
+            Assert.True(Find<Grid>(window, "PnlProfileEditor").IsEnabled);
 
             Find<TextBox>(window, "TxtProfileName").Text = "Menu A";
             Click(Find<Button>(window, "BtnAddMenuItem"));
@@ -226,7 +230,7 @@ public sealed class MenusTabTests : IDisposable
 
             Click(Find<Button>(window, "BtnRemoveMenuProfile"));
             Assert.Empty(profiles.Items);
-            Assert.False(Find<StackPanel>(window, "PnlProfileEditor").IsEnabled);
+            Assert.False(Find<Grid>(window, "PnlProfileEditor").IsEnabled);
 
             Assert.Empty(SettingsService.Current.CustomProfiles);
             CloseDiscarding(window);
@@ -257,7 +261,7 @@ public sealed class MenusTabTests : IDisposable
     }
 
     [Fact]
-    public void EstadoVazio_FocoVaiParaONomeAoCriarEVoltaAoConviteAoExcluir()
+    public void EstadoVazio_FocoVaiParaONomeAoCriarEDuplicarEVoltaAoConviteAoExcluir()
     {
         RunSta(() =>
         {
@@ -270,11 +274,106 @@ public sealed class MenusTabTests : IDisposable
             Pump(50);
             Assert.True(Find<TextBox>(window, "TxtProfileName").IsKeyboardFocusWithin);
 
+            Click(Find<Button>(window, "BtnDuplicateMenuProfile"));
+            Pump(50);
+            Assert.True(Find<TextBox>(window, "TxtProfileName").IsKeyboardFocusWithin);
+
+            Click(Find<Button>(window, "BtnRemoveMenuProfile"));
+            Pump(50);
+            Assert.True(Find<TextBox>(window, "TxtProfileName").IsKeyboardFocusWithin);
+
             Click(Find<Button>(window, "BtnRemoveMenuProfile"));
             Pump(50);
             Assert.True(Find<Button>(window, "BtnAddMenuProfile").IsKeyboardFocusWithin);
 
             CloseDiscarding(window);
+        });
+    }
+
+    [Fact]
+    public void Contextos_ChipTodos_RepresentaNenhumContextoSalvo()
+    {
+        RunSta(() =>
+        {
+            SettingsWindow window = OpenSettings();
+            Click(Find<Button>(window, "BtnAddMenuProfile"));
+
+            ToggleButton[] chips = Find<WrapPanel>(window, "PnlContexts").Children.OfType<ToggleButton>().ToArray();
+            ToggleButton all = chips.Single(c => c.Tag is null);
+            ToggleButton file = ContextChip(window, RadialContextKind.FileOrFolder);
+            var profile = (CustomMenuProfile)Find<ListBox>(window, "ListMenuProfiles").Items[0];
+
+            Assert.True(all.IsChecked);
+            Assert.Empty(profile.Contexts);
+
+            // Um contexto específico assume o lugar de "Todos".
+            file.IsChecked = true;
+            Assert.False(all.IsChecked);
+            Assert.Equal(new[] { RadialContextKind.FileOrFolder }, profile.Contexts);
+
+            // Desmarcar o último contexto volta para "Todos".
+            file.IsChecked = false;
+            Assert.True(all.IsChecked);
+            Assert.Empty(profile.Contexts);
+
+            // Marcar "Todos" limpa qualquer contexto específico.
+            file.IsChecked = true;
+            all.IsChecked = true;
+            Assert.False(file.IsChecked);
+            Assert.Empty(profile.Contexts);
+
+            // "Todos" não pode ser desmarcado sozinho.
+            all.IsChecked = false;
+            Assert.True(all.IsChecked);
+            Assert.Empty(profile.Contexts);
+
+            CloseDiscarding(window);
+        });
+    }
+
+    [Fact]
+    public void Contextos_AoTrocarDePerfil_OsChipsRefletemORascunho()
+    {
+        RunSta(() =>
+        {
+            var settings = AppSettings.CreateDefault();
+            settings.CustomProfiles.Add(new CustomMenuProfile
+            {
+                Name = "Com contextos",
+                Contexts = { RadialContextKind.FileOrFolder, RadialContextKind.TextField },
+            });
+            settings.CustomProfiles.Add(new CustomMenuProfile { Name = "Sem contexto" });
+            SettingsService.OverrideCurrentForTests(settings);
+
+            SettingsWindow window = OpenSettings();
+            var profiles = Find<ListBox>(window, "ListMenuProfiles");
+            ToggleButton all = Find<WrapPanel>(window, "PnlContexts").Children.OfType<ToggleButton>()
+                .Single(c => c.Tag is null);
+
+            // Primeiro perfil: só os contextos salvos ficam marcados.
+            Assert.False(all.IsChecked);
+            Assert.True(ContextChip(window, RadialContextKind.FileOrFolder).IsChecked);
+            Assert.True(ContextChip(window, RadialContextKind.TextField).IsChecked);
+            Assert.False(ContextChip(window, RadialContextKind.TitleBar).IsChecked);
+
+            // Segundo perfil sem contextos: "Todos" assume e nada específico fica marcado.
+            profiles.SelectedIndex = 1;
+            Assert.True(all.IsChecked);
+            Assert.DoesNotContain(
+                Find<WrapPanel>(window, "PnlContexts").Children.OfType<ToggleButton>().Where(c => c != all),
+                c => c.IsChecked == true);
+
+            // Voltar ao primeiro restaura a seleção sem alterar o rascunho.
+            profiles.SelectedIndex = 0;
+            var first = (CustomMenuProfile)profiles.Items[0];
+            Assert.False(all.IsChecked);
+            Assert.True(ContextChip(window, RadialContextKind.FileOrFolder).IsChecked);
+            Assert.True(ContextChip(window, RadialContextKind.TextField).IsChecked);
+            Assert.Equal(
+                new[] { RadialContextKind.FileOrFolder, RadialContextKind.TextField },
+                first.Contexts.ToArray());
+
+            window.Close();
         });
     }
 
@@ -289,9 +388,7 @@ public sealed class MenusTabTests : IDisposable
         {
             SettingsWindow window = OpenSettings();
             Click(Find<Button>(window, "BtnAddMenuProfile"));
-            CheckBox fileContext = Find<UniformGrid>(window, "PnlContexts").Children.OfType<CheckBox>()
-                .Single(c => Equals(c.Tag, RadialContextKind.FileOrFolder));
-            fileContext.IsChecked = true;
+            ContextChip(window, RadialContextKind.FileOrFolder).IsChecked = true;
             Click(Find<Button>(window, "BtnAddMenuItem"));   // ação padrão: Converter (fatia com submenu)
 
             MenuPreview preview = PreviewOf(window);
@@ -321,8 +418,7 @@ public sealed class MenusTabTests : IDisposable
         {
             SettingsWindow window = OpenSettings();
             Click(Find<Button>(window, "BtnAddMenuProfile"));
-            Find<UniformGrid>(window, "PnlContexts").Children.OfType<CheckBox>()
-                .Single(c => Equals(c.Tag, RadialContextKind.FileOrFolder)).IsChecked = true;
+            ContextChip(window, RadialContextKind.FileOrFolder).IsChecked = true;
             Click(Find<Button>(window, "BtnAddMenuItem"));
 
             MenuPreview preview = PreviewOf(window);
@@ -352,8 +448,7 @@ public sealed class MenusTabTests : IDisposable
         {
             SettingsWindow window = OpenSettings();
             Click(Find<Button>(window, "BtnAddMenuProfile"));
-            Find<UniformGrid>(window, "PnlContexts").Children.OfType<CheckBox>()
-                .Single(c => Equals(c.Tag, RadialContextKind.FileOrFolder)).IsChecked = true;
+            ContextChip(window, RadialContextKind.FileOrFolder).IsChecked = true;
             Click(Find<Button>(window, "BtnAddMenuItem"));
 
             Find<TextBox>(window, "TxtItemLabel").Text = "Fechando já";

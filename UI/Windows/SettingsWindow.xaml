@@ -607,14 +607,18 @@
                                                        AutomationProperties.Name="{loc:Loc Menus.ProfilesCountAutomation}"/>
                                         </Border>
                                     </Grid>
-                                    <TextBlock Text="{loc:Loc Menus.ProfilesHint}" Style="{StaticResource CardHint}"
-                                               FontSize="11" Margin="0,3,0,0"/>
                                 </StackPanel>
 
                                 <StackPanel DockPanel.Dock="Bottom" Margin="0,10,0,0">
-                                    <Button x:Name="BtnNewMenuProfile" Content="{loc:Loc Menus.NewMenu}" Style="{StaticResource PrimaryButton}"
-                                            Click="BtnAddMenuProfile_Click" Margin="0,0,0,6"
-                                            AutomationProperties.Name="{loc:Loc Menus.NewMenuAutomation}"/>
+                                    <Button x:Name="BtnNewMenuProfile" Click="BtnAddMenuProfile_Click" Margin="0,0,0,6"
+                                            AutomationProperties.Name="{loc:Loc Menus.NewMenuAutomation}">
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Text="&#xE710;" FontFamily="{StaticResource IconFont}" FontSize="11"
+                                                       VerticalAlignment="Center" Margin="0,0,7,0"
+                                                       Foreground="{DynamicResource TextDimBrush}"/>
+                                            <TextBlock Text="{loc:Loc Menus.NewMenu}" VerticalAlignment="Center"/>
+                                        </StackPanel>
+                                    </Button>
                                     <Grid Margin="0,0,0,6">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="*"/>
@@ -640,6 +644,7 @@
                                                 Click="BtnDuplicateMenuProfile_Click"
                                                 AutomationProperties.Name="{loc:Loc Menus.DuplicateAutomation}"/>
                                         <Button x:Name="BtnRemoveMenuProfile" Grid.Column="2" Content="{loc:Loc Common.Remove}" Padding="8,6"
+                                                Foreground="{DynamicResource DangerBrush}"
                                                 Click="BtnRemoveMenuProfile_Click"
                                                 AutomationProperties.Name="{loc:Loc Menus.RemoveAutomation}"/>
                                     </Grid>
@@ -686,79 +691,35 @@
                             </DockPanel>
                         </Border>
 
-                        <ScrollViewer x:Name="MenusScroll" Grid.Column="2" VerticalScrollBarVisibility="Auto"
-                                      HorizontalScrollBarVisibility="Disabled" PanningMode="VerticalOnly">
-                            <StackPanel Margin="0,0,10,12">
+                        <Grid Grid.Column="2">
+                            <Grid x:Name="PnlProfileEditor">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="*"/>
+                                </Grid.RowDefinitions>
 
-                                <StackPanel x:Name="PnlProfileEditor">
-                                    <Border Style="{StaticResource Card}">
+                                <!-- Cabeçalho fixo: nome e estado continuam visíveis com a lista rolada. -->
+                                <Border Style="{StaticResource Card}" Padding="16,10,16,12" Margin="0,0,10,0">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
                                         <StackPanel>
-                                            <TextBlock Text="{loc:Loc Menus.ConditionsTitle}" Style="{StaticResource CardTitle}"/>
-                                            <TextBlock Text="{loc:Loc Menus.ConditionsHint}"
-                                                       Style="{StaticResource CardHint}" Margin="0,3,0,0"/>
-
-                                            <Grid Margin="0,10,0,0">
-                                                <Grid.ColumnDefinitions>
-                                                    <ColumnDefinition Width="*"/>
-                                                    <ColumnDefinition Width="14"/>
-                                                    <ColumnDefinition Width="Auto"/>
-                                                </Grid.ColumnDefinitions>
-                                                <StackPanel>
-                                                    <TextBlock Text="{loc:Loc Menus.NameLabel}" Style="{StaticResource FieldLabel}" Margin="0,0,0,5"/>
-                                                    <TextBox x:Name="TxtProfileName" MaxLength="60" TextChanged="ProfileField_Changed"
-                                                             LostFocus="TxtProfileName_LostFocus"/>
-                                                </StackPanel>
-                                                <CheckBox x:Name="ChkProfileEnabled" Grid.Column="2" Content="{loc:Loc Menus.Active}"
-                                                          VerticalAlignment="Bottom" Margin="0,0,0,7"
-                                                          Checked="ProfileField_Changed" Unchecked="ProfileField_Changed"/>
-                                            </Grid>
-
-                                            <Grid>
-                                                <Grid.ColumnDefinitions>
-                                                    <ColumnDefinition Width="*"/>
-                                                    <ColumnDefinition Width="12"/>
-                                                    <ColumnDefinition Width="*"/>
-                                                </Grid.ColumnDefinitions>
-                                                <StackPanel>
-                                                    <TextBlock Text="{loc:Loc Menus.ProcessLabel}" Style="{StaticResource FieldLabel}"/>
-                                                    <TextBox x:Name="TxtProfileProcess" MaxLength="120" TextChanged="ProfileField_Changed"/>
-                                                    <TextBlock Text="{loc:Loc Menus.ProcessHint}" Style="{StaticResource FieldHint}"/>
-                                                </StackPanel>
-                                                <StackPanel Grid.Column="2">
-                                                    <TextBlock Text="{loc:Loc Menus.TitleContains}" Style="{StaticResource FieldLabel}"/>
-                                                    <TextBox x:Name="TxtProfileTitle" MaxLength="120" TextChanged="ProfileField_Changed"/>
-                                                    <TextBlock Text="{loc:Loc Menus.TitleHint}" Style="{StaticResource FieldHint}"/>
-                                                </StackPanel>
-                                            </Grid>
-
-                                            <Border Style="{StaticResource Divider}"/>
-
-                                            <Grid>
-                                                <Grid.ColumnDefinitions>
-                                                    <ColumnDefinition Width="*"/>
-                                                    <ColumnDefinition Width="Auto"/>
-                                                </Grid.ColumnDefinitions>
-                                                <TextBlock Text="{loc:Loc Menus.Priority}" Style="{StaticResource FieldLabel}" Margin="0,0,0,5"/>
-                                                <Border Grid.Column="1" Style="{StaticResource ValuePill}" MinWidth="48"
-                                                        VerticalAlignment="Top">
-                                                    <TextBlock x:Name="TxtPriorityValue" Style="{StaticResource ValueText}"
-                                                               MinWidth="36" Text="0"/>
-                                                </Border>
-                                            </Grid>
-                                            <TextBlock Text="{loc:Loc Menus.PriorityHint}"
-                                                       Style="{StaticResource FieldHint}" Margin="0,0,0,4"/>
-                                            <Slider x:Name="SliderProfilePriority" Minimum="-100" Maximum="100" TickFrequency="1"
-                                                    IsSnapToTickEnabled="True" SmallChange="1" LargeChange="10"
-                                                    ValueChanged="ProfileField_Changed" AutomationProperties.Name="{loc:Loc Menus.PriorityAutomation}"/>
-
-                                            <TextBlock Text="{loc:Loc Menus.ContextsLabel}" Style="{StaticResource FieldLabel}"/>
-                                            <Border Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource CardBorderBrush}"
-                                                    BorderThickness="1" CornerRadius="8" Padding="12,8">
-                                                <UniformGrid x:Name="PnlContexts" Columns="2"/>
-                                            </Border>
+                                            <TextBlock Text="{loc:Loc Menus.NameLabel}" Style="{StaticResource FieldLabel}" Margin="0,0,0,5"/>
+                                            <TextBox x:Name="TxtProfileName" MaxLength="60" TextChanged="ProfileField_Changed"
+                                                     LostFocus="TxtProfileName_LostFocus"/>
                                         </StackPanel>
-                                    </Border>
-                                </StackPanel>
+                                        <CheckBox x:Name="ChkProfileEnabled" Grid.Column="1" Content="{loc:Loc Menus.Active}"
+                                                  VerticalAlignment="Center" Margin="16,10,0,0"
+                                                  Checked="ProfileField_Changed" Unchecked="ProfileField_Changed"/>
+                                    </Grid>
+                                </Border>
+
+                                <ScrollViewer x:Name="MenusScroll" Grid.Row="1" Margin="0,10,0,0"
+                                              VerticalScrollBarVisibility="Auto"
+                                              HorizontalScrollBarVisibility="Disabled" PanningMode="VerticalOnly">
+                                    <StackPanel Margin="0,0,10,12">
 
                                 <Border Style="{StaticResource Card}">
                                     <StackPanel>
@@ -788,30 +749,38 @@
                                             </Grid.ColumnDefinitions>
 
                                             <DockPanel>
-                                                <StackPanel DockPanel.Dock="Bottom" Margin="0,8,0,0">
-                                                    <Grid>
-                                                        <Grid.ColumnDefinitions>
-                                                            <ColumnDefinition Width="*"/>
-                                                            <ColumnDefinition Width="6"/>
-                                                            <ColumnDefinition Width="*"/>
-                                                        </Grid.ColumnDefinitions>
-                                                        <Button x:Name="BtnAddMenuItem" Content="{loc:Loc Common.Add}" Padding="8,6"
-                                                                Click="BtnAddMenuItem_Click" AutomationProperties.Name="{loc:Loc Menus.AddItemAutomation}"/>
-                                                        <Button x:Name="BtnRemoveMenuItem" Grid.Column="2" Content="{loc:Loc Common.Remove}" Padding="8,6"
-                                                                Click="BtnRemoveMenuItem_Click" AutomationProperties.Name="{loc:Loc Menus.RemoveItemAutomation}"/>
-                                                    </Grid>
-                                                    <Grid Margin="0,6,0,0">
-                                                        <Grid.ColumnDefinitions>
-                                                            <ColumnDefinition Width="*"/>
-                                                            <ColumnDefinition Width="6"/>
-                                                            <ColumnDefinition Width="*"/>
-                                                        </Grid.ColumnDefinitions>
-                                                        <Button x:Name="BtnMoveItemUp" Content="{loc:Loc Common.MoveUp}" Padding="8,6"
-                                                                Click="BtnMoveItemUp_Click" AutomationProperties.Name="{loc:Loc Menus.MoveItemUpAutomation}"/>
-                                                        <Button x:Name="BtnMoveItemDown" Grid.Column="2" Content="{loc:Loc Common.MoveDown}" Padding="8,6"
-                                                                Click="BtnMoveItemDown_Click" AutomationProperties.Name="{loc:Loc Menus.MoveItemDownAutomation}"/>
-                                                    </Grid>
-                                                </StackPanel>
+                                                <!-- Barra compacta: quatro ações do item, sempre no mesmo lugar. -->
+                                                <Grid DockPanel.Dock="Bottom" Margin="0,8,0,0">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="6"/>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="6"/>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="6"/>
+                                                        <ColumnDefinition Width="*"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    <Button x:Name="BtnAddMenuItem" Height="30" Padding="0"
+                                                            ToolTip="{loc:Loc Common.Add}" Click="BtnAddMenuItem_Click"
+                                                            AutomationProperties.Name="{loc:Loc Menus.AddItemAutomation}">
+                                                        <TextBlock Text="&#xE710;" FontFamily="{StaticResource IconFont}" FontSize="13"/>
+                                                    </Button>
+                                                    <Button x:Name="BtnRemoveMenuItem" Grid.Column="2" Height="30" Padding="0"
+                                                            ToolTip="{loc:Loc Common.Remove}" Click="BtnRemoveMenuItem_Click"
+                                                            AutomationProperties.Name="{loc:Loc Menus.RemoveItemAutomation}">
+                                                        <TextBlock Text="&#xE74D;" FontFamily="{StaticResource IconFont}" FontSize="13"/>
+                                                    </Button>
+                                                    <Button x:Name="BtnMoveItemUp" Grid.Column="4" Height="30" Padding="0"
+                                                            ToolTip="{loc:Loc Common.MoveUp}" Click="BtnMoveItemUp_Click"
+                                                            AutomationProperties.Name="{loc:Loc Menus.MoveItemUpAutomation}">
+                                                        <TextBlock Text="&#xE74A;" FontFamily="{StaticResource IconFont}" FontSize="13"/>
+                                                    </Button>
+                                                    <Button x:Name="BtnMoveItemDown" Grid.Column="6" Height="30" Padding="0"
+                                                            ToolTip="{loc:Loc Common.MoveDown}" Click="BtnMoveItemDown_Click"
+                                                            AutomationProperties.Name="{loc:Loc Menus.MoveItemDownAutomation}">
+                                                        <TextBlock Text="&#xE74B;" FontFamily="{StaticResource IconFont}" FontSize="13"/>
+                                                    </Button>
+                                                </Grid>
 
                                                 <Grid>
                                                     <ListBox x:Name="ListItems" SelectionChanged="ListItems_SelectionChanged" MinHeight="210"
@@ -1032,6 +1001,71 @@
                                     </StackPanel>
                                 </Border>
 
+                                <!-- Condições: quando este menu vale. Ficam depois dos itens: são o refinamento. -->
+                                <Border Style="{StaticResource Card}">
+                                    <StackPanel>
+                                        <TextBlock Text="{loc:Loc Menus.ConditionsTitle}" Style="{StaticResource CardTitle}"/>
+                                        <TextBlock Text="{loc:Loc Menus.ConditionsHint}"
+                                                   Style="{StaticResource CardHint}" Margin="0,3,0,0"/>
+
+                                        <Grid Margin="0,10,0,0">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="12"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel>
+                                                <TextBlock Text="{loc:Loc Menus.ProcessLabel}" Style="{StaticResource FieldLabel}" Margin="0,0,0,5"/>
+                                                <TextBox x:Name="TxtProfileProcess" MaxLength="120" TextChanged="ProfileField_Changed"/>
+                                                <TextBlock Text="{loc:Loc Menus.ProcessHint}" Style="{StaticResource FieldHint}"/>
+                                            </StackPanel>
+                                            <StackPanel Grid.Column="2">
+                                                <TextBlock Text="{loc:Loc Menus.TitleContains}" Style="{StaticResource FieldLabel}" Margin="0,0,0,5"/>
+                                                <TextBox x:Name="TxtProfileTitle" MaxLength="120" TextChanged="ProfileField_Changed"/>
+                                                <TextBlock Text="{loc:Loc Menus.TitleHint}" Style="{StaticResource FieldHint}"/>
+                                            </StackPanel>
+                                        </Grid>
+
+                                        <Border Style="{StaticResource Divider}" Margin="0,12,0,12"/>
+
+                                        <TextBlock Text="{loc:Loc Menus.ContextsLabel}" Style="{StaticResource FieldLabel}" Margin="0,0,0,6"/>
+                                        <WrapPanel x:Name="PnlContexts"/>
+                                        <TextBlock Text="{loc:Loc Menus.ContextsHint}" Style="{StaticResource FieldHint}"
+                                                   Margin="0,2,0,0"/>
+
+                                        <Border Style="{StaticResource Divider}" Margin="0,12,0,12"/>
+
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Text="{loc:Loc Menus.Priority}" Style="{StaticResource FieldLabel}" Margin="0,0,0,5"/>
+                                            <Border Grid.Column="1" Style="{StaticResource ValuePill}" MinWidth="48"
+                                                    VerticalAlignment="Top">
+                                                <TextBlock x:Name="TxtPriorityValue" Style="{StaticResource ValueText}"
+                                                           MinWidth="36" Text="0"/>
+                                            </Border>
+                                        </Grid>
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Text="-100" Style="{StaticResource EndpointText}"
+                                                       VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                            <Slider x:Name="SliderProfilePriority" Grid.Column="1" Minimum="-100" Maximum="100"
+                                                    TickFrequency="1" IsSnapToTickEnabled="True" SmallChange="1" LargeChange="10"
+                                                    ValueChanged="ProfileField_Changed" AutomationProperties.Name="{loc:Loc Menus.PriorityAutomation}"/>
+                                            <TextBlock Grid.Column="2" Text="100" Style="{StaticResource EndpointText}"
+                                                       VerticalAlignment="Center" Margin="8,0,0,0"/>
+                                        </Grid>
+                                        <TextBlock Text="{loc:Loc Menus.PriorityHint}"
+                                                   Style="{StaticResource FieldHint}" Margin="0,2,0,0"/>
+                                    </StackPanel>
+                                </Border>
+
                                 <Border Style="{StaticResource Card}">
                                     <StackPanel>
                                         <TextBlock Text="{loc:Loc Menus.PreviewTitle}" Style="{StaticResource CardTitle}"/>
@@ -1089,8 +1123,9 @@
 
                             </StackPanel>
                         </ScrollViewer>
+                            </Grid>
 
-                        <Border x:Name="PnlNoProfileSelected" Grid.Column="2" Style="{StaticResource Card}"
+                        <Border x:Name="PnlNoProfileSelected" Style="{StaticResource Card}"
                                 Padding="24,40" MaxWidth="460" HorizontalAlignment="Center" VerticalAlignment="Center">
                             <StackPanel HorizontalAlignment="Center">
                                 <Border Style="{StaticResource IconBadge}" Width="48" Height="48" CornerRadius="24"
@@ -1103,6 +1138,7 @@
                                            Style="{StaticResource CardHint}" TextAlignment="Center" Margin="0,4,0,0"/>
                             </StackPanel>
                         </Border>
+                        </Grid>
                     </Grid>
 
                     <Border x:Name="PnlNoMenus" Grid.Row="1" Margin="32,4,20,20" Visibility="Collapsed">

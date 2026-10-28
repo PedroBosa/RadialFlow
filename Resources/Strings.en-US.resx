@@ -130,7 +130,6 @@
   <data name="Menus.PageTitle" xml:space="preserve"><value>Custom menus</value></data>
   <data name="Menus.PageSubtitle" xml:space="preserve"><value>Create menus that appear only in the apps and contexts you choose. Each item becomes a wheel slice.</value></data>
   <data name="Menus.ProfilesTitle" xml:space="preserve"><value>Your menus</value></data>
-  <data name="Menus.ProfilesHint" xml:space="preserve"><value>They appear only where the conditions match.</value></data>
   <data name="Menus.ProfilesCountAutomation" xml:space="preserve"><value>Total menus</value></data>
   <data name="Menus.NewMenu" xml:space="preserve"><value>New menu</value></data>
   <data name="Menus.NewMenuAutomation" xml:space="preserve"><value>Add custom menu</value></data>
@@ -157,7 +156,9 @@
   <data name="Menus.Priority" xml:space="preserve"><value>Priority</value></data>
   <data name="Menus.PriorityHint" xml:space="preserve"><value>Higher priority is considered first when the wheel does not have room for everything.</value></data>
   <data name="Menus.PriorityAutomation" xml:space="preserve"><value>Menu priority</value></data>
-  <data name="Menus.ContextsLabel" xml:space="preserve"><value>Contexts (none checked = all)</value></data>
+  <data name="Menus.ContextsLabel" xml:space="preserve"><value>Contexts</value></data>
+  <data name="Menus.ContextAll" xml:space="preserve"><value>All</value></data>
+  <data name="Menus.ContextsHint" xml:space="preserve"><value>Pick where this menu should appear.</value></data>
   <data name="Menus.ItemsTitle" xml:space="preserve"><value>Menu items</value></data>
   <data name="Menus.ItemsHint" xml:space="preserve"><value>Each item becomes a wheel slice. Up to 8 items per menu.</value></data>
   <data name="Menus.ItemsCountFormat" xml:space="preserve"><value>{0} of {1}</value></data>

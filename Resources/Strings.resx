@@ -130,7 +130,6 @@
   <data name="Menus.PageTitle" xml:space="preserve"><value>Menus personalizados</value></data>
   <data name="Menus.PageSubtitle" xml:space="preserve"><value>Crie menus que aparecem só nos aplicativos e contextos que você escolher. Cada item vira uma fatia da roda.</value></data>
   <data name="Menus.ProfilesTitle" xml:space="preserve"><value>Seus menus</value></data>
-  <data name="Menus.ProfilesHint" xml:space="preserve"><value>Aparecem só onde as condições casarem.</value></data>
   <data name="Menus.ProfilesCountAutomation" xml:space="preserve"><value>Total de menus</value></data>
   <data name="Menus.NewMenu" xml:space="preserve"><value>Novo menu</value></data>
   <data name="Menus.NewMenuAutomation" xml:space="preserve"><value>Adicionar menu personalizado</value></data>
@@ -157,7 +156,9 @@
   <data name="Menus.Priority" xml:space="preserve"><value>Prioridade</value></data>
   <data name="Menus.PriorityHint" xml:space="preserve"><value>Maior prioridade é considerada primeiro quando a roda não tem espaço para tudo.</value></data>
   <data name="Menus.PriorityAutomation" xml:space="preserve"><value>Prioridade do menu</value></data>
-  <data name="Menus.ContextsLabel" xml:space="preserve"><value>Contextos (nenhum marcado = todos)</value></data>
+  <data name="Menus.ContextsLabel" xml:space="preserve"><value>Contextos</value></data>
+  <data name="Menus.ContextAll" xml:space="preserve"><value>Todos</value></data>
+  <data name="Menus.ContextsHint" xml:space="preserve"><value>Marque onde este menu deve aparecer.</value></data>
   <data name="Menus.ItemsTitle" xml:space="preserve"><value>Itens do menu</value></data>
   <data name="Menus.ItemsHint" xml:space="preserve"><value>Cada item vira uma fatia da roda. Até 8 itens por menu.</value></data>
   <data name="Menus.ItemsCountFormat" xml:space="preserve"><value>{0} de {1}</value></data>
