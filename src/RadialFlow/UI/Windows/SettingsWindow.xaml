@@ -111,6 +111,52 @@
             <Setter Property="Foreground" Value="{DynamicResource TextDimBrush}"/>
         </Style>
 
+        <!-- Aba Menus: três seções no mesmo lugar (Itens, Aplicação, Prévia). -->
+        <Style x:Key="MenuSegment" TargetType="RadioButton">
+            <Setter Property="Foreground" Value="{DynamicResource TextDimBrush}"/>
+            <Setter Property="FontSize" Value="12.5"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Padding" Value="18,6"/>
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RadioButton">
+                        <Grid>
+                            <Border x:Name="bd" Background="Transparent" CornerRadius="8"/>
+                            <ContentPresenter Margin="{TemplateBinding Padding}" HorizontalAlignment="Center"
+                                              VerticalAlignment="Center" TextElement.Foreground="{TemplateBinding Foreground}"/>
+                            <Border x:Name="focusRing" Margin="-1" CornerRadius="9" BorderThickness="2"
+                                    BorderBrush="{DynamicResource AccentTextBrush}" Opacity="0" IsHitTestVisible="False"/>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bd" Property="Background" Value="{DynamicResource ControlHoverBrush}"/>
+                                <Setter Property="Foreground" Value="{DynamicResource TextBrush}"/>
+                            </Trigger>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="bd" Property="Background" Value="{DynamicResource CardSurfaceBrush}"/>
+                                <Setter Property="Foreground" Value="{DynamicResource TextBrush}"/>
+                            </Trigger>
+                            <Trigger Property="IsKeyboardFocused" Value="True">
+                                <Setter TargetName="focusRing" Property="Opacity" Value="1"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- O nome do menu é o título do painel: sem caixa até receber foco. -->
+        <Style x:Key="ProfileNameBox" TargetType="TextBox" BasedOn="{StaticResource {x:Type TextBox}}">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="5,0"/>
+            <Setter Property="MinHeight" Value="28"/>
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+        </Style>
+
         <!-- Navegação lateral: item neutro; o acento marca só o selecionado. -->
         <Style x:Key="SettingsTabItem" TargetType="TabItem" BasedOn="{StaticResource {x:Type TabItem}}">
             <Setter Property="Foreground" Value="{DynamicResource TextDimBrush}"/>
@@ -598,106 +644,87 @@
 
                     <Grid x:Name="MenusWorkspace" Grid.Row="1" Margin="32,4,20,20">
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="180"/>
+                            <ColumnDefinition Width="196"/>
                             <ColumnDefinition Width="12"/>
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
 
-                        <Border Grid.Column="0" Style="{StaticResource Card}" Padding="14" Margin="0">
+                        <!-- Rail: escolher o menu. Criar, importar e exportar ficam aqui, longe do editor. -->
+                        <Border Grid.Column="0" Style="{StaticResource Card}" Padding="12" Margin="0">
                             <DockPanel>
-                                <StackPanel DockPanel.Dock="Top" Margin="0,0,0,12">
-                                    <Grid>
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="*"/>
-                                            <ColumnDefinition Width="Auto"/>
-                                        </Grid.ColumnDefinitions>
-                                        <TextBlock Text="{loc:Loc Menus.ProfilesTitle}" Style="{StaticResource CardTitle}"/>
-                                        <Border Grid.Column="1" Style="{StaticResource CountBadge}">
-                                            <TextBlock x:Name="MenuProfileCount" Text="0" Style="{StaticResource CountBadgeText}"
-                                                       AutomationProperties.Name="{loc:Loc Menus.ProfilesCountAutomation}"/>
-                                        </Border>
-                                    </Grid>
-                                </StackPanel>
-
-                                <StackPanel DockPanel.Dock="Bottom" Margin="0,12,0,0">
-                                    <Button x:Name="BtnNewMenuProfile" Click="BtnAddMenuProfile_Click" Margin="0,0,0,6"
+                                <Grid DockPanel.Dock="Top" Margin="2,0,2,8">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="{loc:Loc Menus.ProfilesTitle}" Style="{StaticResource CardTitle}"
+                                               VerticalAlignment="Center"/>
+                                    <Border Grid.Column="1" Style="{StaticResource CountBadge}" Margin="8,0,6,0">
+                                        <TextBlock x:Name="MenuProfileCount" Text="0" Style="{StaticResource CountBadgeText}"
+                                                   AutomationProperties.Name="{loc:Loc Menus.ProfilesCountAutomation}"/>
+                                    </Border>
+                                    <Button x:Name="BtnNewMenuProfile" Grid.Column="2" Width="28" Height="28" Padding="0"
+                                            Background="{DynamicResource ControlBrush}"
+                                            ToolTip="{loc:Loc Menus.NewMenu}" Click="BtnAddMenuProfile_Click"
                                             AutomationProperties.Name="{loc:Loc Menus.NewMenuAutomation}">
-                                        <StackPanel Orientation="Horizontal">
-                                            <TextBlock Text="&#xE710;" FontFamily="{StaticResource IconFont}" FontSize="12"
-                                                       VerticalAlignment="Center" Margin="0,0,8,0"
-                                                       Foreground="{DynamicResource TextDimBrush}"/>
-                                            <TextBlock Text="{loc:Loc Menus.NewMenu}" VerticalAlignment="Center"/>
-                                        </StackPanel>
+                                        <TextBlock Text="&#xE710;" FontFamily="{StaticResource IconFont}" FontSize="13"/>
                                     </Button>
-                                    <Grid Margin="0,0,0,6">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="*"/>
-                                            <ColumnDefinition Width="6"/>
-                                            <ColumnDefinition Width="*"/>
-                                        </Grid.ColumnDefinitions>
-                                        <Button x:Name="BtnImportMenus" Content="{loc:Loc Menus.Import}" Padding="8,6"
-                                                Click="BtnImportMenus_Click"
-                                                ToolTip="{loc:Loc Menus.ImportToolTip}"
-                                                AutomationProperties.Name="{loc:Loc Menus.ImportAutomation}"/>
-                                        <Button x:Name="BtnExportMenus" Grid.Column="2" Content="{loc:Loc Menus.Export}" Padding="8,6"
-                                                Click="BtnExportMenus_Click"
-                                                ToolTip="{loc:Loc Menus.ExportToolTip}"
-                                                AutomationProperties.Name="{loc:Loc Menus.ExportAutomation}"/>
-                                    </Grid>
-                                    <Grid x:Name="PnlProfileActions">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="*"/>
-                                            <ColumnDefinition Width="6"/>
-                                            <ColumnDefinition Width="*"/>
-                                        </Grid.ColumnDefinitions>
-                                        <Button x:Name="BtnDuplicateMenuProfile" Content="{loc:Loc Menus.Duplicate}" Padding="8,6"
-                                                Click="BtnDuplicateMenuProfile_Click"
-                                                AutomationProperties.Name="{loc:Loc Menus.DuplicateAutomation}"/>
-                                        <Button x:Name="BtnRemoveMenuProfile" Grid.Column="2" Content="{loc:Loc Common.Remove}" Padding="8,6"
-                                                Foreground="{DynamicResource DangerBrush}"
-                                                Click="BtnRemoveMenuProfile_Click"
-                                                AutomationProperties.Name="{loc:Loc Menus.RemoveAutomation}"/>
-                                    </Grid>
-                                </StackPanel>
-
-                                <Grid>
-                                    <ListBox x:Name="ListMenuProfiles" SelectionChanged="ListMenuProfiles_SelectionChanged">
-                                        <ListBox.ItemTemplate>
-                                            <DataTemplate>
-                                                <StackPanel>
-                                                    <Grid>
-                                                        <Grid.ColumnDefinitions>
-                                                            <ColumnDefinition Width="*"/>
-                                                            <ColumnDefinition Width="Auto"/>
-                                                        </Grid.ColumnDefinitions>
-                                                        <TextBlock x:Name="profileName" Text="{Binding Name}" FontWeight="SemiBold"
-                                                                   ToolTip="{Binding Name}" TextTrimming="CharacterEllipsis"/>
-                                                        <Ellipse x:Name="profileOff" Grid.Column="1" Width="5" Height="5" Margin="6,0,1,0"
-                                                                 Visibility="Collapsed" VerticalAlignment="Center"
-                                                                 Fill="{DynamicResource TextDimBrush}"
-                                                                 ToolTip="{loc:Loc Menus.DisabledBadge}"/>
-                                                    </Grid>
-                                                    <TextBlock x:Name="profileScope" Text="{Binding ProcessName, Converter={StaticResource LocFormat}, ConverterParameter=Menus.ProcessFormat}"
-                                                               Style="{StaticResource CardHint}" FontSize="10.5" Margin="0,1,0,0"
-                                                               TextTrimming="CharacterEllipsis"/>
-                                                </StackPanel>
-                                                <DataTemplate.Triggers>
-                                                    <DataTrigger Binding="{Binding ProcessName}" Value="">
-                                                        <Setter TargetName="profileScope" Property="Text" Value="{loc:Loc Menus.AnyApp}"/>
-                                                    </DataTrigger>
-                                                    <DataTrigger Binding="{Binding ProcessName}" Value="{x:Null}">
-                                                        <Setter TargetName="profileScope" Property="Text" Value="{loc:Loc Menus.AnyApp}"/>
-                                                    </DataTrigger>
-                                                    <DataTrigger Binding="{Binding Enabled}" Value="False">
-                                                        <Setter TargetName="profileName" Property="Foreground"
-                                                                Value="{DynamicResource TextDimBrush}"/>
-                                                        <Setter TargetName="profileOff" Property="Visibility" Value="Visible"/>
-                                                    </DataTrigger>
-                                                </DataTemplate.Triggers>
-                                            </DataTemplate>
-                                        </ListBox.ItemTemplate>
-                                    </ListBox>
                                 </Grid>
+
+                                <Grid DockPanel.Dock="Bottom" Margin="0,8,0,0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="6"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Button x:Name="BtnImportMenus" Content="{loc:Loc Menus.Import}" Padding="6,5" FontSize="11.5"
+                                            Click="BtnImportMenus_Click"
+                                            ToolTip="{loc:Loc Menus.ImportToolTip}"
+                                            AutomationProperties.Name="{loc:Loc Menus.ImportAutomation}"/>
+                                    <Button x:Name="BtnExportMenus" Grid.Column="2" Content="{loc:Loc Menus.Export}" Padding="6,5" FontSize="11.5"
+                                            Click="BtnExportMenus_Click"
+                                            ToolTip="{loc:Loc Menus.ExportToolTip}"
+                                            AutomationProperties.Name="{loc:Loc Menus.ExportAutomation}"/>
+                                </Grid>
+
+                                <ListBox x:Name="ListMenuProfiles" Background="Transparent" BorderThickness="0" Padding="0"
+                                         SelectionChanged="ListMenuProfiles_SelectionChanged">
+                                    <ListBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <StackPanel>
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    <TextBlock x:Name="profileName" Text="{Binding Name}" FontWeight="SemiBold"
+                                                               ToolTip="{Binding Name}" TextTrimming="CharacterEllipsis"/>
+                                                    <Ellipse x:Name="profileOff" Grid.Column="1" Width="5" Height="5" Margin="6,0,1,0"
+                                                             Visibility="Collapsed" VerticalAlignment="Center"
+                                                             Fill="{DynamicResource TextDimBrush}"
+                                                             ToolTip="{loc:Loc Menus.DisabledBadge}"/>
+                                                </Grid>
+                                                <TextBlock x:Name="profileScope" Text="{Binding ProcessName, Converter={StaticResource LocFormat}, ConverterParameter=Menus.ProcessFormat}"
+                                                           Style="{StaticResource CardHint}" FontSize="10.5" Margin="0,1,0,0"
+                                                           TextTrimming="CharacterEllipsis"/>
+                                            </StackPanel>
+                                            <DataTemplate.Triggers>
+                                                <DataTrigger Binding="{Binding ProcessName}" Value="">
+                                                    <Setter TargetName="profileScope" Property="Text" Value="{loc:Loc Menus.AnyApp}"/>
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding ProcessName}" Value="{x:Null}">
+                                                    <Setter TargetName="profileScope" Property="Text" Value="{loc:Loc Menus.AnyApp}"/>
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding Enabled}" Value="False">
+                                                    <Setter TargetName="profileName" Property="Foreground"
+                                                            Value="{DynamicResource TextDimBrush}"/>
+                                                    <Setter TargetName="profileOff" Property="Visibility" Value="Visible"/>
+                                                </DataTrigger>
+                                            </DataTemplate.Triggers>
+                                        </DataTemplate>
+                                    </ListBox.ItemTemplate>
+                                </ListBox>
                             </DockPanel>
                         </Border>
 
@@ -705,470 +732,599 @@
                             <Grid x:Name="PnlProfileEditor">
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="*"/>
                                 </Grid.RowDefinitions>
 
-                                <!-- Cabeçalho fixo: nome e estado continuam visíveis com a lista rolada.
-                                     A coluna à direita reserva a largura da barra de rolagem para alinhar com os cartões. -->
+                                <!-- Cabeçalho fixo: identidade, estado e resumo continuam visíveis em qualquer seção.
+                                     A coluna à direita reserva a largura da barra de rolagem para alinhar com o conteúdo. -->
                                 <Grid>
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*"/>
                                         <ColumnDefinition Width="{Binding Source={x:Static SystemParameters.VerticalScrollBarWidth}}"/>
                                     </Grid.ColumnDefinitions>
-                                    <Border Style="{StaticResource Card}" Padding="16,12" Margin="0">
+                                    <Border Style="{StaticResource Card}" Padding="14,12" Margin="0">
                                         <Grid>
                                             <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
                                                 <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
                                                 <ColumnDefinition Width="Auto"/>
                                             </Grid.ColumnDefinitions>
                                             <Grid.RowDefinitions>
                                                 <RowDefinition Height="Auto"/>
                                                 <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
                                             </Grid.RowDefinitions>
-                                            <TextBlock Grid.ColumnSpan="2" Text="{loc:Loc Menus.NameLabel}"
-                                                       Style="{StaticResource FieldLabel}" Margin="0,0,0,5"/>
-                                            <TextBox x:Name="TxtProfileName" Grid.Row="1" MaxLength="60" TextChanged="ProfileField_Changed"
-                                                     LostFocus="TxtProfileName_LostFocus"/>
-                                            <CheckBox x:Name="ChkProfileEnabled" Grid.Row="1" Grid.Column="1" Content="{loc:Loc Menus.Active}"
-                                                      VerticalAlignment="Center" Margin="16,0,0,0"
-                                                      Checked="ProfileField_Changed" Unchecked="ProfileField_Changed"/>
-                                        </Grid>
-                                    </Border>
-                                </Grid>
 
-                                <ScrollViewer x:Name="MenusScroll" Grid.Row="1" Margin="0,10,0,0"
-                                              VerticalScrollBarVisibility="Visible"
-                                              HorizontalScrollBarVisibility="Disabled" PanningMode="VerticalOnly">
-                                    <StackPanel Margin="0,0,0,12">
-
-                                <Border Style="{StaticResource Card}" Padding="16">
-                                    <StackPanel>
-                                        <Grid>
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="*"/>
-                                                <ColumnDefinition Width="Auto"/>
-                                            </Grid.ColumnDefinitions>
-                                            <StackPanel>
-                                                <TextBlock Text="{loc:Loc Menus.ItemsTitle}" Style="{StaticResource CardTitle}"/>
-                                                <TextBlock Text="{loc:Loc Menus.ItemsHint}"
-                                                           Style="{StaticResource CardHint}" Margin="0,3,0,0"/>
-                                            </StackPanel>
-                                            <Border Grid.Column="1" Style="{StaticResource CountBadge}" Margin="8,0,0,0"
+                                            <Border Grid.RowSpan="3" Width="40" Height="40" CornerRadius="12"
+                                                    Background="{DynamicResource AccentSoftBrush}" Margin="0,2,12,0"
                                                     VerticalAlignment="Top">
-                                                <TextBlock x:Name="MenuItemCount" Text="{loc:Loc Menus.ItemsCountZero}"
-                                                           Style="{StaticResource CountBadgeText}"
-                                                           AutomationProperties.Name="{loc:Loc Menus.ItemsCountAutomation}"/>
+                                                <Path Data="{StaticResource IconMenus}" Width="19" Height="19"
+                                                      Stroke="{DynamicResource AccentTextBrush}" StrokeThickness="1.6"
+                                                      StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"
+                                                      Fill="Transparent" Stretch="Uniform"
+                                                      HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                             </Border>
-                                        </Grid>
 
-                                        <!-- Lista e editor na mesma altura; as ações do item ficam em uma linha própria. -->
-                                        <Grid Margin="0,14,0,0">
-                                            <Grid.RowDefinitions>
-                                                <RowDefinition Height="*"/>
-                                                <RowDefinition Height="Auto"/>
-                                            </Grid.RowDefinitions>
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="190"/>
-                                                <ColumnDefinition Width="12"/>
-                                                <ColumnDefinition Width="*"/>
-                                            </Grid.ColumnDefinitions>
+                                            <TextBox x:Name="TxtProfileName" Grid.Column="1" MaxLength="60"
+                                                     Style="{StaticResource ProfileNameBox}"
+                                                     TextChanged="ProfileField_Changed" LostFocus="TxtProfileName_LostFocus"
+                                                     AutomationProperties.Name="{loc:Loc Menus.NameLabel}"/>
 
-                                            <Grid Grid.Row="0" Grid.Column="0">
-                                                <ListBox x:Name="ListItems" SelectionChanged="ListItems_SelectionChanged" MinHeight="210">
-                                                        <ListBox.ItemTemplate>
-                                                            <DataTemplate>
-                                                                <Grid>
-                                                                    <Grid.ColumnDefinitions>
-                                                                        <ColumnDefinition Width="Auto"/>
-                                                                        <ColumnDefinition Width="*"/>
-                                                                        <ColumnDefinition Width="Auto"/>
-                                                                    </Grid.ColumnDefinitions>
-                                                                    <TextBlock x:Name="itemGlyph" Text="{Binding Glyph}"
-                                                                               FontFamily="{StaticResource IconFont}" FontSize="14" Width="20"
-                                                                               VerticalAlignment="Center" Foreground="{DynamicResource TextDimBrush}"/>
-                                                                    <TextBlock x:Name="itemLabel" Grid.Column="1" Text="{Binding Label}"
-                                                                               ToolTip="{Binding Label}"
-                                                                               VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
-                                                                    <TextBlock x:Name="itemSubmenuBadge" Grid.Column="2"
-                                                                               Text="{Binding Options.Count, Converter={StaticResource LocFormat}, ConverterParameter=Menus.SubmenuBadgeFormat}"
-                                                                               FontSize="10" VerticalAlignment="Center" Margin="6,0,0,0"
-                                                                               Foreground="{DynamicResource TextDimBrush}" Visibility="Collapsed"/>
-                                                                </Grid>
-                                                                <DataTemplate.Triggers>
-                                                                    <DataTrigger Binding="{Binding Glyph}" Value="">
-                                                                        <Setter TargetName="itemGlyph" Property="Text" Value="&#xE734;"/>
-                                                                    </DataTrigger>
-                                                                    <DataTrigger Binding="{Binding Enabled}" Value="False">
-                                                                        <Setter TargetName="itemLabel" Property="Foreground"
-                                                                                Value="{DynamicResource TextDimBrush}"/>
-                                                                    </DataTrigger>
-                                                                    <DataTrigger Binding="{Binding Kind}" Value="Submenu">
-                                                                        <Setter TargetName="itemSubmenuBadge" Property="Visibility" Value="Visible"/>
-                                                                    </DataTrigger>
-                                                                </DataTemplate.Triggers>
-                                                            </DataTemplate>
-                                                        </ListBox.ItemTemplate>
-                                                    </ListBox>
+                                            <CheckBox x:Name="ChkProfileEnabled" Grid.Column="2" Content="{loc:Loc Menus.Active}"
+                                                      VerticalAlignment="Center" Margin="14,0,10,0"
+                                                      Checked="ProfileField_Changed" Unchecked="ProfileField_Changed"/>
 
-                                                    <StackPanel x:Name="PnlNoItems" VerticalAlignment="Center" HorizontalAlignment="Center"
-                                                                IsHitTestVisible="False" Margin="8">
-                                                        <Border Style="{StaticResource IconBadge}" HorizontalAlignment="Center">
-                                                            <TextBlock Style="{StaticResource IconGlyph}" Text="&#xE710;"/>
-                                                        </Border>
-                                                        <TextBlock Text="{loc:Loc Menus.NoItems}" FontSize="12.5" FontWeight="SemiBold"
-                                                                   HorizontalAlignment="Center" Margin="0,6,0,0"/>
-                                                        <TextBlock Text="{loc:Loc Menus.NoItemsHint}" Style="{StaticResource CardHint}"
-                                                                   FontSize="11.5" TextAlignment="Center" MaxWidth="140" Margin="0,3,0,0"/>
-                                                    </StackPanel>
-                                            </Grid>
-
-                                            <Grid Grid.Row="0" Grid.Column="2">
-                                                <StackPanel x:Name="PnlItemEditor">
-                                                    <ContentControl Content="{loc:Loc Menus.AppearanceSection}" Style="{StaticResource SectionHeader}" Margin="2,0,0,4"/>
-                                                    <StackPanel>
-                                                        <TextBlock Text="{loc:Loc Common.Label}" Style="{StaticResource FieldLabel}" Margin="0,0,0,5"/>
-                                                        <TextBox x:Name="TxtItemLabel" MaxLength="24" TextChanged="ItemField_Changed"
-                                                                 LostFocus="TxtItemLabel_LostFocus"/>
-                                                        <TextBlock Text="{loc:Loc Common.Icon}" Style="{StaticResource FieldLabel}"/>
-                                                        <ComboBox x:Name="CmbItemGlyph" Width="180" HorizontalAlignment="Left"
-                                                                  SelectionChanged="ItemField_Changed">
-                                                            <ComboBox.ItemTemplate>
-                                                                <DataTemplate>
-                                                                    <StackPanel Orientation="Horizontal">
-                                                                        <TextBlock Text="{Binding Glyph}" FontFamily="{StaticResource IconFont}"
-                                                                                   FontSize="15" Width="22" VerticalAlignment="Center"/>
-                                                                        <TextBlock Text="{Binding Label}" Margin="2,0,0,0" VerticalAlignment="Center"/>
-                                                                    </StackPanel>
-                                                                </DataTemplate>
-                                                            </ComboBox.ItemTemplate>
-                                                        </ComboBox>
-                                                    </StackPanel>
-
-                                                    <TextBlock Text="{loc:Loc Common.DescriptionOptional}" Style="{StaticResource FieldLabel}"/>
-                                                    <TextBox x:Name="TxtItemDescription" MaxLength="120" TextChanged="ItemField_Changed"/>
-                                                    <CheckBox x:Name="ChkItemEnabled" Content="{loc:Loc Menus.ItemActive}" Margin="0,10,0,0"
-                                                              Checked="ItemField_Changed" Unchecked="ItemField_Changed"/>
-
-                                                    <Border Style="{StaticResource Divider}" Margin="0,12,0,12"/>
-
-                                                    <ContentControl Content="{loc:Loc Menus.ActionSection}" Style="{StaticResource SectionHeader}" Margin="2,0,0,4"/>
-                                                    <TextBlock Text="{loc:Loc Menus.ItemKind}" Style="{StaticResource FieldLabel}" Margin="0,0,0,5"/>
-                                                    <ComboBox x:Name="CmbItemKind" SelectionChanged="CmbItemKind_SelectionChanged"/>
-
-                                                    <Border x:Name="BdItemTarget" Background="{DynamicResource SurfaceBrush}"
-                                                            BorderBrush="{DynamicResource CardBorderBrush}"
-                                                            BorderThickness="1" CornerRadius="10" Padding="12,2,12,10" Margin="0,10,0,0">
-                                                        <Grid>
-                                                            <StackPanel x:Name="PnlItemAction">
-                                                                <TextBlock Text="{loc:Loc Choices.Kind.Action}" Style="{StaticResource FieldLabel}"/>
-                                                                <ComboBox x:Name="CmbItemAction" SelectionChanged="ItemField_Changed"/>
-                                                            </StackPanel>
-
-                                                            <StackPanel x:Name="PnlItemLaunch">
-                                                                <TextBlock Text="{loc:Loc Menus.Executable}" Style="{StaticResource FieldLabel}"/>
-                                                                <Grid>
-                                                                    <Grid.ColumnDefinitions>
-                                                                        <ColumnDefinition Width="*"/>
-                                                                        <ColumnDefinition Width="Auto"/>
-                                                                    </Grid.ColumnDefinitions>
-                                                                    <TextBox x:Name="TxtItemLaunch" MaxLength="2048" TextChanged="ItemField_Changed"/>
-                                                                    <Button Grid.Column="1" Content="{loc:Loc Common.Browse}" Margin="8,0,0,0" Padding="10,6"
-                                                                            Click="BtnBrowseExecutable_Click"/>
-                                                                </Grid>
-                                                                <TextBlock Text="{loc:Loc Menus.ExecutableHint}"
-                                                                           Style="{StaticResource FieldHint}"/>
-                                                            </StackPanel>
-
-                                                            <StackPanel x:Name="PnlItemUrl">
-                                                                <TextBlock Text="{loc:Loc Menus.UrlLabel}" Style="{StaticResource FieldLabel}"/>
-                                                                <TextBox x:Name="TxtItemUrl" MaxLength="2048" TextChanged="ItemField_Changed"/>
-                                                            </StackPanel>
-
-                                                            <StackPanel x:Name="PnlItemPath">
-                                                                <TextBlock Text="{loc:Loc Menus.PathLabel}" Style="{StaticResource FieldLabel}"/>
-                                                                <TextBox x:Name="TxtItemPath" MaxLength="2048" TextChanged="ItemField_Changed"/>
-                                                                <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
-                                                                    <Button Content="{loc:Loc Menus.FileButton}" Padding="10,6" Margin="0,0,6,0" Click="BtnBrowseFile_Click"/>
-                                                                    <Button Content="{loc:Loc Menus.FolderButton}" Padding="10,6" Click="BtnBrowseFolder_Click"/>
-                                                                </StackPanel>
-                                                                <TextBlock Text="{loc:Loc Menus.PathHint}"
-                                                                           Style="{StaticResource FieldHint}"/>
-                                                            </StackPanel>
-
-                                                            <StackPanel x:Name="PnlItemHotkey">
-                                                                <TextBlock Text="{loc:Loc Menus.HotkeyLabel}" Style="{StaticResource FieldLabel}"/>
-                                                                <TextBox x:Name="TxtItemHotkey" MaxLength="80" TextChanged="ItemField_Changed"/>
-                                                                <TextBlock Text="{loc:Loc Menus.HotkeyHint}"
-                                                                           Style="{StaticResource FieldHint}"/>
-                                                            </StackPanel>
-
-                                                            <StackPanel x:Name="PnlItemText">
-                                                                <TextBlock Text="{loc:Loc Menus.TextLabel}" Style="{StaticResource FieldLabel}"/>
-                                                                <TextBox x:Name="TxtItemText" MaxLength="4096" Height="86" AcceptsReturn="True"
-                                                                         TextWrapping="Wrap" VerticalScrollBarVisibility="Auto"
-                                                                         TextChanged="ItemField_Changed"/>
-                                                            </StackPanel>
-                                                        </Grid>
-                                                    </Border>
-
-                                                    <StackPanel x:Name="PnlItemSubmenu" Visibility="Collapsed">
-                                                        <ContentControl Content="{loc:Loc Menus.SubmenuSection}" Style="{StaticResource SectionHeader}" Margin="2,12,0,4"/>
-                                                        <Border Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource CardBorderBrush}"
-                                                                BorderThickness="1" CornerRadius="10" Padding="12,10">
-                                                            <StackPanel>
-                                                                <Grid>
-                                                                    <Grid.ColumnDefinitions>
-                                                                        <ColumnDefinition Width="*"/>
-                                                                        <ColumnDefinition Width="Auto"/>
-                                                                    </Grid.ColumnDefinitions>
-                                                                    <StackPanel VerticalAlignment="Center">
-                                                                        <TextBlock x:Name="TxtSubmenuCount" Text="{loc:Loc Menus.SubmenuCountZero}"
-                                                                                   FontSize="12.5" FontWeight="SemiBold"/>
-                                                                        <TextBlock x:Name="TxtSubmenuPreview" Text="{loc:Loc Menus.NoOptionsYet}"
-                                                                                   Style="{StaticResource FieldHint}" TextWrapping="Wrap"/>
-                                                                    </StackPanel>
-                                                                    <Button x:Name="BtnEditSubmenuOptions" Grid.Column="1" Content="{loc:Loc Menus.EditOptions}"
-                                                                            Padding="10,6" Margin="10,0,0,0" VerticalAlignment="Center"
-                                                                            Click="BtnEditSubmenuOptions_Click"
-                                                                            AutomationProperties.Name="{loc:Loc Menus.EditOptionsAutomation}"/>
-                                                                </Grid>
-                                                                <TextBlock Text="{loc:Loc Menus.SubmenuHint}"
-                                                                           Style="{StaticResource FieldHint}"/>
-                                                            </StackPanel>
-                                                        </Border>
-                                                    </StackPanel>
-
-                                                    <StackPanel x:Name="PnlItemRoutine" Visibility="Collapsed">
-                                                        <ContentControl Content="{loc:Loc Menus.RoutineSection}" Style="{StaticResource SectionHeader}" Margin="2,12,0,4"/>
-                                                        <Border Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource CardBorderBrush}"
-                                                                BorderThickness="1" CornerRadius="10" Padding="12,10">
-                                                            <StackPanel>
-                                                                <Grid>
-                                                                    <Grid.ColumnDefinitions>
-                                                                        <ColumnDefinition Width="*"/>
-                                                                        <ColumnDefinition Width="Auto"/>
-                                                                    </Grid.ColumnDefinitions>
-                                                                    <StackPanel VerticalAlignment="Center">
-                                                                        <TextBlock x:Name="TxtRoutineCount" Text="{loc:Loc Menus.RoutineCountZero}"
-                                                                                   FontSize="12.5" FontWeight="SemiBold"/>
-                                                                        <TextBlock x:Name="TxtRoutinePreview" Text="{loc:Loc Menus.NoStepsYet}"
-                                                                                   Style="{StaticResource FieldHint}" TextWrapping="Wrap"/>
-                                                                    </StackPanel>
-                                                                    <Button x:Name="BtnEditRoutineSteps" Grid.Column="1" Content="{loc:Loc Menus.EditSteps}"
-                                                                            Padding="10,6" Margin="10,0,0,0" VerticalAlignment="Center"
-                                                                            Click="BtnEditRoutineSteps_Click"
-                                                                            AutomationProperties.Name="{loc:Loc Menus.EditStepsAutomation}"/>
-                                                                </Grid>
-                                                                <TextBlock x:Name="TxtRoutineWarning" FontSize="11.5" TextWrapping="Wrap"
-                                                                           Margin="0,6,0,0" Foreground="{DynamicResource WarningBrush}"
-                                                                           Visibility="Collapsed"/>
-                                                                <TextBlock Text="{loc:Loc Menus.RoutineHint}"
-                                                                           Style="{StaticResource FieldHint}"/>
-                                                            </StackPanel>
-                                                        </Border>
-                                                    </StackPanel>
-                                                </StackPanel>
-
-                                                <Border x:Name="PnlNoItemSelected" Background="{DynamicResource CardSurfaceBrush}"
-                                                        BorderBrush="{DynamicResource CardEdgeBrush}" BorderThickness="1"
-                                                        CornerRadius="10" Padding="20" Visibility="Collapsed">
-                                                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" MaxWidth="220">
-                                                        <Border Style="{StaticResource IconBadge}" HorizontalAlignment="Center">
-                                                            <TextBlock Style="{StaticResource IconGlyph}" Text="&#xE70F;"/>
-                                                        </Border>
-                                                        <TextBlock Text="{loc:Loc Menus.NoItemSelected}" FontSize="12.5" FontWeight="SemiBold"
-                                                                   HorizontalAlignment="Center" Margin="0,6,0,0"/>
-                                                        <TextBlock Text="{loc:Loc Menus.NoItemSelectedHint}"
-                                                                   Style="{StaticResource CardHint}" FontSize="11.5" TextAlignment="Center"
-                                                                   Margin="0,3,0,0"/>
-                                                    </StackPanel>
-                                                </Border>
-                                            </Grid>
-
-                                            <!-- Adicionar à esquerda; remover e mover à direita. -->
-                                            <Grid Grid.Row="1" Grid.ColumnSpan="3" Margin="0,12,0,0">
+                                            <Grid x:Name="PnlProfileActions" Grid.Column="3" VerticalAlignment="Center">
                                                 <Grid.ColumnDefinitions>
-                                                    <ColumnDefinition Width="Auto"/>
-                                                    <ColumnDefinition Width="*"/>
-                                                    <ColumnDefinition Width="Auto"/>
-                                                    <ColumnDefinition Width="6"/>
                                                     <ColumnDefinition Width="Auto"/>
                                                     <ColumnDefinition Width="6"/>
                                                     <ColumnDefinition Width="Auto"/>
                                                 </Grid.ColumnDefinitions>
-                                                <Button x:Name="BtnAddMenuItem" Width="34" Height="34" Padding="0"
+                                                <Button x:Name="BtnDuplicateMenuProfile" Width="30" Height="30" Padding="0"
                                                         Background="{DynamicResource ControlBrush}"
-                                                        ToolTip="{loc:Loc Common.Add}" Click="BtnAddMenuItem_Click"
-                                                        AutomationProperties.Name="{loc:Loc Menus.AddItemAutomation}">
-                                                    <TextBlock Text="&#xE710;" FontFamily="{StaticResource IconFont}" FontSize="14"/>
+                                                        ToolTip="{loc:Loc Menus.Duplicate}" Click="BtnDuplicateMenuProfile_Click"
+                                                        AutomationProperties.Name="{loc:Loc Menus.DuplicateAutomation}">
+                                                    <TextBlock Text="&#xE8C8;" FontFamily="{StaticResource IconFont}" FontSize="13"/>
                                                 </Button>
-                                                <Button x:Name="BtnRemoveMenuItem" Grid.Column="2" Width="34" Height="34" Padding="0"
+                                                <Button x:Name="BtnRemoveMenuProfile" Grid.Column="2" Width="30" Height="30" Padding="0"
                                                         Background="{DynamicResource ControlBrush}"
-                                                        ToolTip="{loc:Loc Common.Remove}" Click="BtnRemoveMenuItem_Click"
-                                                        AutomationProperties.Name="{loc:Loc Menus.RemoveItemAutomation}">
-                                                    <TextBlock Text="&#xE74D;" FontFamily="{StaticResource IconFont}" FontSize="14"/>
-                                                </Button>
-                                                <Button x:Name="BtnMoveItemUp" Grid.Column="4" Width="34" Height="34" Padding="0"
-                                                        Background="{DynamicResource ControlBrush}"
-                                                        ToolTip="{loc:Loc Common.MoveUp}" Click="BtnMoveItemUp_Click"
-                                                        AutomationProperties.Name="{loc:Loc Menus.MoveItemUpAutomation}">
-                                                    <TextBlock Text="&#xE74A;" FontFamily="{StaticResource IconFont}" FontSize="14"/>
-                                                </Button>
-                                                <Button x:Name="BtnMoveItemDown" Grid.Column="6" Width="34" Height="34" Padding="0"
-                                                        Background="{DynamicResource ControlBrush}"
-                                                        ToolTip="{loc:Loc Common.MoveDown}" Click="BtnMoveItemDown_Click"
-                                                        AutomationProperties.Name="{loc:Loc Menus.MoveItemDownAutomation}">
-                                                    <TextBlock Text="&#xE74B;" FontFamily="{StaticResource IconFont}" FontSize="14"/>
+                                                        ToolTip="{loc:Loc Common.Remove}"
+                                                        Foreground="{DynamicResource DangerBrush}"
+                                                        Click="BtnRemoveMenuProfile_Click"
+                                                        AutomationProperties.Name="{loc:Loc Menus.RemoveAutomation}">
+                                                    <TextBlock Text="&#xE74D;" FontFamily="{StaticResource IconFont}" FontSize="13"/>
                                                 </Button>
                                             </Grid>
+
+                                            <TextBlock x:Name="ProfileSummary" Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="3"
+                                                       Style="{StaticResource CardHint}" FontSize="11.5" Margin="5,1,0,0"
+                                                       TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"/>
+
+                                            <TextBlock x:Name="PreviewWarning" Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="3"
+                                                       Style="{StaticResource CardHint}" Margin="5,3,0,0" FontSize="11.5"
+                                                       FontWeight="SemiBold" Foreground="{DynamicResource TextBrush}"
+                                                       TextWrapping="Wrap" Visibility="Collapsed"/>
                                         </Grid>
+                                    </Border>
+                                </Grid>
+
+                                <!-- Três assuntos, uma seção por vez: itens, quando aparece e como fica. -->
+                                <Border Grid.Row="1" Background="{DynamicResource ControlBrush}" CornerRadius="10"
+                                        Padding="3" HorizontalAlignment="Left" Margin="0,10,0,0">
+                                    <StackPanel Orientation="Horizontal">
+                                        <RadioButton x:Name="SegItems" Content="{loc:Loc Menus.TabItems}" GroupName="MenuSections"
+                                                     IsChecked="True" Style="{StaticResource MenuSegment}"
+                                                     Checked="MenuSection_Checked"/>
+                                        <RadioButton x:Name="SegApplication" Content="{loc:Loc Menus.TabApplication}" GroupName="MenuSections"
+                                                     Style="{StaticResource MenuSegment}"
+                                                     Checked="MenuSection_Checked"/>
+                                        <RadioButton x:Name="SegPreview" Content="{loc:Loc Menus.TabPreview}" GroupName="MenuSections"
+                                                     Style="{StaticResource MenuSegment}"
+                                                     Checked="MenuSection_Checked"/>
                                     </StackPanel>
                                 </Border>
 
-                                <!-- Condições: quando este menu vale. Ficam depois dos itens: são o refinamento. -->
-                                <Border Style="{StaticResource Card}" Padding="16">
-                                    <StackPanel>
-                                        <TextBlock Text="{loc:Loc Menus.ConditionsTitle}" Style="{StaticResource CardTitle}"/>
-                                        <TextBlock Text="{loc:Loc Menus.ConditionsHint}"
-                                                   Style="{StaticResource CardHint}" Margin="0,3,0,0"/>
+                                <ScrollViewer x:Name="MenusScroll" Grid.Row="2" Margin="0,10,0,0"
+                                              VerticalScrollBarVisibility="Visible"
+                                              HorizontalScrollBarVisibility="Disabled" PanningMode="VerticalOnly">
+                                    <StackPanel Margin="0,0,0,6">
 
-                                        <Grid Margin="0,10,0,0">
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="*"/>
-                                                <ColumnDefinition Width="12"/>
-                                                <ColumnDefinition Width="*"/>
-                                            </Grid.ColumnDefinitions>
+                                        <!-- ================= ITENS ================= -->
+                                        <Grid x:Name="PnlSectionItems">
                                             <StackPanel>
-                                                <TextBlock Text="{loc:Loc Menus.ProcessLabel}" Style="{StaticResource FieldLabel}" Margin="0,0,0,5"/>
-                                                <TextBox x:Name="TxtProfileProcess" MaxLength="120" TextChanged="ProfileField_Changed"/>
-                                                <TextBlock Text="{loc:Loc Menus.ProcessHint}" Style="{StaticResource FieldHint}"/>
-                                            </StackPanel>
-                                            <StackPanel Grid.Column="2">
-                                                <TextBlock Text="{loc:Loc Menus.TitleContains}" Style="{StaticResource FieldLabel}" Margin="0,0,0,5"/>
-                                                <TextBox x:Name="TxtProfileTitle" MaxLength="120" TextChanged="ProfileField_Changed"/>
-                                                <TextBlock Text="{loc:Loc Menus.TitleHint}" Style="{StaticResource FieldHint}"/>
+                                                <Grid Margin="2,0,0,6">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                        <TextBlock Text="{loc:Loc Menus.ItemsTitle}" Style="{StaticResource CardTitle}"
+                                                                   VerticalAlignment="Center"/>
+                                                        <Border Style="{StaticResource CountBadge}" Margin="8,0,0,0">
+                                                            <TextBlock x:Name="MenuItemCount" Text="{loc:Loc Menus.ItemsCountZero}"
+                                                                       Style="{StaticResource CountBadgeText}"
+                                                                       AutomationProperties.Name="{loc:Loc Menus.ItemsCountAutomation}"/>
+                                                        </Border>
+                                                    </StackPanel>
+                                                    <Button x:Name="BtnAddMenuItem" Grid.Column="1"
+                                                            Background="{DynamicResource ControlBrush}"
+                                                            Click="BtnAddMenuItem_Click"
+                                                            AutomationProperties.Name="{loc:Loc Menus.AddItemAutomation}">
+                                                        <StackPanel Orientation="Horizontal">
+                                                            <TextBlock Text="&#xE710;" FontFamily="{StaticResource IconFont}" FontSize="12"
+                                                                       VerticalAlignment="Center" Foreground="{DynamicResource TextDimBrush}"/>
+                                                            <TextBlock Text="{loc:Loc Menus.AddItem}" Margin="7,0,0,0" VerticalAlignment="Center"/>
+                                                        </StackPanel>
+                                                    </Button>
+                                                </Grid>
+                                                <TextBlock Text="{loc:Loc Menus.ItemsHint}" Style="{StaticResource CardHint}"
+                                                           Margin="2,0,0,6"/>
+
+                                                <Grid x:Name="ItemsBody">
+                                                        <Grid x:Name="ItemsWorkspace">
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="212"/>
+                                                            <ColumnDefinition Width="12"/>
+                                                            <ColumnDefinition Width="*"/>
+                                                        </Grid.ColumnDefinitions>
+
+                                                        <Grid Grid.Column="0">
+                                                            <Grid.RowDefinitions>
+                                                                <RowDefinition Height="*"/>
+                                                                <RowDefinition Height="Auto"/>
+                                                            </Grid.RowDefinitions>
+                                                            <ListBox x:Name="ListItems" SelectionChanged="ListItems_SelectionChanged"
+                                                                     MinHeight="210">
+                                                                <ListBox.ItemTemplate>
+                                                                    <DataTemplate>
+                                                                        <Grid>
+                                                                            <Grid.ColumnDefinitions>
+                                                                                <ColumnDefinition Width="Auto"/>
+                                                                                <ColumnDefinition Width="*"/>
+                                                                                <ColumnDefinition Width="Auto"/>
+                                                                            </Grid.ColumnDefinitions>
+                                                                            <TextBlock x:Name="itemGlyph" Text="{Binding Glyph}"
+                                                                                       FontFamily="{StaticResource IconFont}" FontSize="14" Width="20"
+                                                                                       VerticalAlignment="Center" Foreground="{DynamicResource TextDimBrush}"/>
+                                                                            <TextBlock x:Name="itemLabel" Grid.Column="1" Text="{Binding Label}"
+                                                                                       ToolTip="{Binding Label}"
+                                                                                       VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                                                                            <TextBlock x:Name="itemSubmenuBadge" Grid.Column="2"
+                                                                                       Text="{Binding Options.Count, Converter={StaticResource LocFormat}, ConverterParameter=Menus.SubmenuBadgeFormat}"
+                                                                                       FontSize="10" VerticalAlignment="Center" Margin="6,0,0,0"
+                                                                                       Foreground="{DynamicResource TextDimBrush}" Visibility="Collapsed"/>
+                                                                        </Grid>
+                                                                        <DataTemplate.Triggers>
+                                                                            <DataTrigger Binding="{Binding Glyph}" Value="">
+                                                                                <Setter TargetName="itemGlyph" Property="Text" Value="&#xE734;"/>
+                                                                            </DataTrigger>
+                                                                            <DataTrigger Binding="{Binding Enabled}" Value="False">
+                                                                                <Setter TargetName="itemLabel" Property="Foreground"
+                                                                                        Value="{DynamicResource TextDimBrush}"/>
+                                                                            </DataTrigger>
+                                                                            <DataTrigger Binding="{Binding Kind}" Value="Submenu">
+                                                                                <Setter TargetName="itemSubmenuBadge" Property="Visibility" Value="Visible"/>
+                                                                            </DataTrigger>
+                                                                        </DataTemplate.Triggers>
+                                                                    </DataTemplate>
+                                                                </ListBox.ItemTemplate>
+                                                            </ListBox>
+
+                                                            <Grid Grid.Row="1" Margin="0,8,0,0">
+                                                                <Grid.ColumnDefinitions>
+                                                                    <ColumnDefinition Width="Auto"/>
+                                                                    <ColumnDefinition Width="6"/>
+                                                                    <ColumnDefinition Width="Auto"/>
+                                                                    <ColumnDefinition Width="*"/>
+                                                                    <ColumnDefinition Width="Auto"/>
+                                                                </Grid.ColumnDefinitions>
+                                                                <Button x:Name="BtnMoveItemUp" Width="30" Height="30" Padding="0"
+                                                                        Background="{DynamicResource ControlBrush}"
+                                                                        ToolTip="{loc:Loc Common.MoveUp}" Click="BtnMoveItemUp_Click"
+                                                                        AutomationProperties.Name="{loc:Loc Menus.MoveItemUpAutomation}">
+                                                                    <TextBlock Text="&#xE74A;" FontFamily="{StaticResource IconFont}" FontSize="13"/>
+                                                                </Button>
+                                                                <Button x:Name="BtnMoveItemDown" Grid.Column="2" Width="30" Height="30" Padding="0"
+                                                                        Background="{DynamicResource ControlBrush}"
+                                                                        ToolTip="{loc:Loc Common.MoveDown}" Click="BtnMoveItemDown_Click"
+                                                                        AutomationProperties.Name="{loc:Loc Menus.MoveItemDownAutomation}">
+                                                                    <TextBlock Text="&#xE74B;" FontFamily="{StaticResource IconFont}" FontSize="13"/>
+                                                                </Button>
+                                                                <Button x:Name="BtnRemoveMenuItem" Grid.Column="4" Width="30" Height="30" Padding="0"
+                                                                        Background="{DynamicResource ControlBrush}"
+                                                                        ToolTip="{loc:Loc Common.Remove}"
+                                                                        Foreground="{DynamicResource DangerBrush}"
+                                                                        Click="BtnRemoveMenuItem_Click"
+                                                                        AutomationProperties.Name="{loc:Loc Menus.RemoveItemAutomation}">
+                                                                    <TextBlock Text="&#xE74D;" FontFamily="{StaticResource IconFont}" FontSize="13"/>
+                                                                </Button>
+                                                            </Grid>
+                                                        </Grid>
+
+                                                        <Border Grid.Column="2" Style="{StaticResource Card}" Padding="14,4,14,14"
+                                                                Margin="0" VerticalAlignment="Stretch">
+                                                            <Grid>
+                                                                <StackPanel x:Name="PnlItemEditor">
+                                                                    <ContentControl Content="{loc:Loc Menus.AppearanceSection}"
+                                                                                    Style="{StaticResource SectionHeader}" Margin="2,8,0,4"/>
+                                                                    <Grid>
+                                                                        <Grid.ColumnDefinitions>
+                                                                            <ColumnDefinition Width="*"/>
+                                                                            <ColumnDefinition Width="10"/>
+                                                                            <ColumnDefinition Width="136"/>
+                                                                        </Grid.ColumnDefinitions>
+                                                                        <StackPanel>
+                                                                            <TextBlock Text="{loc:Loc Common.Label}" Style="{StaticResource FieldLabel}"
+                                                                                       Margin="0,0,0,5"/>
+                                                                            <TextBox x:Name="TxtItemLabel" MaxLength="24" TextChanged="ItemField_Changed"
+                                                                                     LostFocus="TxtItemLabel_LostFocus"/>
+                                                                        </StackPanel>
+                                                                        <StackPanel Grid.Column="2">
+                                                                            <TextBlock Text="{loc:Loc Common.Icon}" Style="{StaticResource FieldLabel}"
+                                                                                       Margin="0,0,0,5"/>
+                                                                            <ComboBox x:Name="CmbItemGlyph" HorizontalAlignment="Stretch"
+                                                                                      SelectionChanged="ItemField_Changed">
+                                                                                <ComboBox.ItemTemplate>
+                                                                                    <DataTemplate>
+                                                                                        <StackPanel Orientation="Horizontal">
+                                                                                            <TextBlock Text="{Binding Glyph}" FontFamily="{StaticResource IconFont}"
+                                                                                                       FontSize="15" Width="22" VerticalAlignment="Center"/>
+                                                                                            <TextBlock Text="{Binding Label}" Margin="2,0,0,0" VerticalAlignment="Center"/>
+                                                                                        </StackPanel>
+                                                                                    </DataTemplate>
+                                                                                </ComboBox.ItemTemplate>
+                                                                            </ComboBox>
+                                                                        </StackPanel>
+                                                                    </Grid>
+
+                                                                    <TextBlock Text="{loc:Loc Common.DescriptionOptional}" Style="{StaticResource FieldLabel}"/>
+                                                                    <TextBox x:Name="TxtItemDescription" MaxLength="120" TextChanged="ItemField_Changed"/>
+                                                                    <CheckBox x:Name="ChkItemEnabled" Content="{loc:Loc Menus.ItemActive}" Margin="0,8,0,0"
+                                                                              Checked="ItemField_Changed" Unchecked="ItemField_Changed"/>
+
+                                                                    <Border Style="{StaticResource Divider}" Margin="0,10,0,10"/>
+
+                                                                    <ContentControl Content="{loc:Loc Menus.ActionSection}"
+                                                                                    Style="{StaticResource SectionHeader}" Margin="2,0,0,4"/>
+                                                                    <TextBlock Text="{loc:Loc Menus.ItemKind}" Style="{StaticResource FieldLabel}" Margin="0,0,0,5"/>
+                                                                    <ComboBox x:Name="CmbItemKind" SelectionChanged="CmbItemKind_SelectionChanged"/>
+
+                                                                    <Border x:Name="BdItemTarget" Background="{DynamicResource SurfaceBrush}"
+                                                                            BorderBrush="{DynamicResource CardBorderBrush}"
+                                                                            BorderThickness="1" CornerRadius="10" Padding="12,2,12,10" Margin="0,10,0,0">
+                                                                        <Grid>
+                                                                            <StackPanel x:Name="PnlItemAction">
+                                                                                <TextBlock Text="{loc:Loc Choices.Kind.Action}" Style="{StaticResource FieldLabel}"/>
+                                                                                <ComboBox x:Name="CmbItemAction" SelectionChanged="ItemField_Changed"/>
+                                                                            </StackPanel>
+
+                                                                            <StackPanel x:Name="PnlItemLaunch">
+                                                                                <TextBlock Text="{loc:Loc Menus.Executable}" Style="{StaticResource FieldLabel}"/>
+                                                                                <Grid>
+                                                                                    <Grid.ColumnDefinitions>
+                                                                                        <ColumnDefinition Width="*"/>
+                                                                                        <ColumnDefinition Width="Auto"/>
+                                                                                    </Grid.ColumnDefinitions>
+                                                                                    <TextBox x:Name="TxtItemLaunch" MaxLength="2048" TextChanged="ItemField_Changed"/>
+                                                                                    <Button Grid.Column="1" Content="{loc:Loc Common.Browse}" Margin="8,0,0,0" Padding="10,6"
+                                                                                            Click="BtnBrowseExecutable_Click"/>
+                                                                                </Grid>
+                                                                                <TextBlock Text="{loc:Loc Menus.ExecutableHint}"
+                                                                                           Style="{StaticResource FieldHint}"/>
+                                                                            </StackPanel>
+
+                                                                            <StackPanel x:Name="PnlItemUrl">
+                                                                                <TextBlock Text="{loc:Loc Menus.UrlLabel}" Style="{StaticResource FieldLabel}"/>
+                                                                                <TextBox x:Name="TxtItemUrl" MaxLength="2048" TextChanged="ItemField_Changed"/>
+                                                                            </StackPanel>
+
+                                                                            <StackPanel x:Name="PnlItemPath">
+                                                                                <TextBlock Text="{loc:Loc Menus.PathLabel}" Style="{StaticResource FieldLabel}"/>
+                                                                                <TextBox x:Name="TxtItemPath" MaxLength="2048" TextChanged="ItemField_Changed"/>
+                                                                                <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                                                                                    <Button Content="{loc:Loc Menus.FileButton}" Padding="10,6" Margin="0,0,6,0" Click="BtnBrowseFile_Click"/>
+                                                                                    <Button Content="{loc:Loc Menus.FolderButton}" Padding="10,6" Click="BtnBrowseFolder_Click"/>
+                                                                                </StackPanel>
+                                                                                <TextBlock Text="{loc:Loc Menus.PathHint}"
+                                                                                           Style="{StaticResource FieldHint}"/>
+                                                                            </StackPanel>
+
+                                                                            <StackPanel x:Name="PnlItemHotkey">
+                                                                                <TextBlock Text="{loc:Loc Menus.HotkeyLabel}" Style="{StaticResource FieldLabel}"/>
+                                                                                <TextBox x:Name="TxtItemHotkey" MaxLength="80" TextChanged="ItemField_Changed"/>
+                                                                                <TextBlock Text="{loc:Loc Menus.HotkeyHint}"
+                                                                                           Style="{StaticResource FieldHint}"/>
+                                                                            </StackPanel>
+
+                                                                            <StackPanel x:Name="PnlItemText">
+                                                                                <TextBlock Text="{loc:Loc Menus.TextLabel}" Style="{StaticResource FieldLabel}"/>
+                                                                                <TextBox x:Name="TxtItemText" MaxLength="4096" Height="86" AcceptsReturn="True"
+                                                                                         TextWrapping="Wrap" VerticalScrollBarVisibility="Auto"
+                                                                                         TextChanged="ItemField_Changed"/>
+                                                                            </StackPanel>
+
+                                                                            <StackPanel x:Name="PnlItemTextTransform">
+                                                                                <TextBlock Text="{loc:Loc Menus.TransformLabel}" Style="{StaticResource FieldLabel}"/>
+                                                                                <ComboBox x:Name="CmbItemTransform" SelectionChanged="ItemField_Changed"/>
+                                                                                <TextBlock Text="{loc:Loc Menus.TransformHint}"
+                                                                                           Style="{StaticResource FieldHint}"/>
+                                                                            </StackPanel>
+                                                                        </Grid>
+                                                                    </Border>
+
+                                                                    <StackPanel x:Name="PnlItemSubmenu" Visibility="Collapsed">
+                                                                        <Border Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource CardBorderBrush}"
+                                                                                BorderThickness="1" CornerRadius="10" Padding="12,10" Margin="0,10,0,0">
+                                                                            <StackPanel>
+                                                                                <Grid>
+                                                                                    <Grid.ColumnDefinitions>
+                                                                                        <ColumnDefinition Width="*"/>
+                                                                                        <ColumnDefinition Width="Auto"/>
+                                                                                    </Grid.ColumnDefinitions>
+                                                                                    <StackPanel VerticalAlignment="Center">
+                                                                                        <TextBlock x:Name="TxtSubmenuCount" Text="{loc:Loc Menus.SubmenuCountZero}"
+                                                                                                   FontSize="12.5" FontWeight="SemiBold"/>
+                                                                                        <TextBlock x:Name="TxtSubmenuPreview" Text="{loc:Loc Menus.NoOptionsYet}"
+                                                                                                   Style="{StaticResource FieldHint}" TextWrapping="Wrap"/>
+                                                                                    </StackPanel>
+                                                                                    <Button x:Name="BtnEditSubmenuOptions" Grid.Column="1" Content="{loc:Loc Menus.EditOptions}"
+                                                                                            Padding="10,6" Margin="10,0,0,0" VerticalAlignment="Center"
+                                                                                            Click="BtnEditSubmenuOptions_Click"
+                                                                                            AutomationProperties.Name="{loc:Loc Menus.EditOptionsAutomation}"/>
+                                                                                </Grid>
+                                                                                <TextBlock Text="{loc:Loc Menus.SubmenuHint}"
+                                                                                           Style="{StaticResource FieldHint}"/>
+                                                                            </StackPanel>
+                                                                        </Border>
+                                                                    </StackPanel>
+
+                                                                    <StackPanel x:Name="PnlItemRoutine" Visibility="Collapsed">
+                                                                        <Border Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource CardBorderBrush}"
+                                                                                BorderThickness="1" CornerRadius="10" Padding="12,10" Margin="0,10,0,0">
+                                                                            <StackPanel>
+                                                                                <Grid>
+                                                                                    <Grid.ColumnDefinitions>
+                                                                                        <ColumnDefinition Width="*"/>
+                                                                                        <ColumnDefinition Width="Auto"/>
+                                                                                    </Grid.ColumnDefinitions>
+                                                                                    <StackPanel VerticalAlignment="Center">
+                                                                                        <TextBlock x:Name="TxtRoutineCount" Text="{loc:Loc Menus.RoutineCountZero}"
+                                                                                                   FontSize="12.5" FontWeight="SemiBold"/>
+                                                                                        <TextBlock x:Name="TxtRoutinePreview" Text="{loc:Loc Menus.NoStepsYet}"
+                                                                                                   Style="{StaticResource FieldHint}" TextWrapping="Wrap"/>
+                                                                                    </StackPanel>
+                                                                                    <Button x:Name="BtnEditRoutineSteps" Grid.Column="1" Content="{loc:Loc Menus.EditSteps}"
+                                                                                            Padding="10,6" Margin="10,0,0,0" VerticalAlignment="Center"
+                                                                                            Click="BtnEditRoutineSteps_Click"
+                                                                                            AutomationProperties.Name="{loc:Loc Menus.EditStepsAutomation}"/>
+                                                                                </Grid>
+                                                                                <TextBlock x:Name="TxtRoutineWarning" FontSize="11.5" TextWrapping="Wrap"
+                                                                                           Margin="0,6,0,0" Foreground="{DynamicResource WarningBrush}"
+                                                                                           Visibility="Collapsed"/>
+                                                                                <TextBlock Text="{loc:Loc Menus.RoutineHint}"
+                                                                                           Style="{StaticResource FieldHint}"/>
+                                                                            </StackPanel>
+                                                                        </Border>
+                                                                    </StackPanel>
+                                                                </StackPanel>
+
+                                                                <Border x:Name="PnlNoItemSelected" Background="{DynamicResource SurfaceBrush}"
+                                                                        BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1"
+                                                                        CornerRadius="10" Padding="20" Visibility="Collapsed">
+                                                                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" MaxWidth="220">
+                                                                        <TextBlock Style="{StaticResource IconGlyph}" Text="&#xE70F;"
+                                                                                   FontSize="18" HorizontalAlignment="Center"/>
+                                                                        <TextBlock Text="{loc:Loc Menus.NoItemSelected}" FontSize="12.5" FontWeight="SemiBold"
+                                                                                   HorizontalAlignment="Center" Margin="0,8,0,0"/>
+                                                                        <TextBlock Text="{loc:Loc Menus.NoItemSelectedHint}"
+                                                                                   Style="{StaticResource CardHint}" FontSize="11.5" TextAlignment="Center"
+                                                                                   Margin="0,3,0,0"/>
+                                                                    </StackPanel>
+                                                                </Border>
+                                                            </Grid>
+                                                        </Border>
+                                                    </Grid>
+
+                                                    <!-- Um único convite quando o menu ainda não tem fatias. -->
+                                                    <Border x:Name="PnlNoItems" Style="{StaticResource Card}" Margin="0" Padding="24"
+                                                            MinHeight="200" Visibility="Collapsed">
+                                                        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" MaxWidth="300">
+                                                            <Border Style="{StaticResource IconBadge}" HorizontalAlignment="Center">
+                                                                <TextBlock Style="{StaticResource IconGlyph}" Text="&#xE710;"/>
+                                                            </Border>
+                                                            <TextBlock Text="{loc:Loc Menus.NoItems}" FontSize="13.5" FontWeight="SemiBold"
+                                                                       HorizontalAlignment="Center" Margin="0,8,0,0"/>
+                                                            <TextBlock Text="{loc:Loc Menus.NoItemsHint}" Style="{StaticResource CardHint}"
+                                                                       FontSize="11.5" TextAlignment="Center" Margin="0,3,0,0"/>
+                                                            <Button x:Name="BtnAddFirstItem" Content="{loc:Loc Menus.AddFirstItem}"
+                                                                    Style="{StaticResource PrimaryButton}"
+                                                                    HorizontalAlignment="Center" Margin="0,14,0,0"
+                                                                    Click="BtnAddMenuItem_Click"
+                                                                    AutomationProperties.Name="{loc:Loc Menus.AddItemAutomation}"/>
+                                                        </StackPanel>
+                                                    </Border>
+                                                </Grid>
                                             </StackPanel>
                                         </Grid>
 
-                                        <Border Style="{StaticResource Divider}" Margin="0,12,0,12"/>
+                                        <!-- ================= APLICAÇÃO ================= -->
+                                        <Grid x:Name="PnlSectionApplication" Visibility="Collapsed">
+                                            <Border Style="{StaticResource Card}" Padding="16" Margin="0">
+                                                <StackPanel>
+                                                    <TextBlock Text="{loc:Loc Menus.ConditionsTitle}" Style="{StaticResource CardTitle}"/>
+                                                    <TextBlock Text="{loc:Loc Menus.ConditionsHint}" Style="{StaticResource CardHint}"/>
 
-                                        <TextBlock Text="{loc:Loc Menus.ContextsLabel}" Style="{StaticResource FieldLabel}" Margin="0,0,0,6"/>
-                                        <WrapPanel x:Name="PnlContexts"/>
-                                        <TextBlock Text="{loc:Loc Menus.ContextsHint}" Style="{StaticResource FieldHint}"/>
+                                                    <Grid Margin="0,10,0,0">
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="*"/>
+                                                            <ColumnDefinition Width="12"/>
+                                                            <ColumnDefinition Width="*"/>
+                                                        </Grid.ColumnDefinitions>
+                                                        <StackPanel>
+                                                            <TextBlock Text="{loc:Loc Menus.ProcessLabel}" Style="{StaticResource FieldLabel}" Margin="0,0,0,5"/>
+                                                            <TextBox x:Name="TxtProfileProcess" MaxLength="120" TextChanged="ProfileField_Changed"/>
+                                                        </StackPanel>
+                                                        <StackPanel Grid.Column="2">
+                                                            <TextBlock Text="{loc:Loc Menus.TitleContains}" Style="{StaticResource FieldLabel}" Margin="0,0,0,5"/>
+                                                            <TextBox x:Name="TxtProfileTitle" MaxLength="120" TextChanged="ProfileField_Changed"/>
+                                                        </StackPanel>
+                                                    </Grid>
 
-                                        <Border Style="{StaticResource Divider}" Margin="0,12,0,12"/>
+                                                    <Grid Margin="0,10,0,0">
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="*"/>
+                                                            <ColumnDefinition Width="12"/>
+                                                            <ColumnDefinition Width="*"/>
+                                                        </Grid.ColumnDefinitions>
+                                                        <StackPanel>
+                                                            <TextBlock Text="{loc:Loc Menus.ExtensionsLabel}" Style="{StaticResource FieldLabel}" Margin="0,0,0,5"/>
+                                                            <TextBox x:Name="TxtProfileExtensions" MaxLength="200" TextChanged="ProfileField_Changed"/>
+                                                            <TextBlock Text="{loc:Loc Menus.ExtensionsHint}" Style="{StaticResource FieldHint}"/>
+                                                        </StackPanel>
+                                                        <StackPanel Grid.Column="2">
+                                                            <TextBlock Text="{loc:Loc Menus.WindowClassLabel}" Style="{StaticResource FieldLabel}" Margin="0,0,0,5"/>
+                                                            <TextBox x:Name="TxtProfileWindowClass" MaxLength="128" TextChanged="ProfileField_Changed"/>
+                                                            <TextBlock Text="{loc:Loc Menus.WindowClassHint}" Style="{StaticResource FieldHint}"/>
+                                                        </StackPanel>
+                                                    </Grid>
 
-                                        <Grid>
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="*"/>
-                                                <ColumnDefinition Width="Auto"/>
-                                            </Grid.ColumnDefinitions>
-                                            <TextBlock Text="{loc:Loc Menus.Priority}" Style="{StaticResource FieldLabel}" Margin="0,0,0,5"/>
-                                            <Border Grid.Column="1" Style="{StaticResource ValuePill}" MinWidth="48"
-                                                    VerticalAlignment="Top">
-                                                <TextBlock x:Name="TxtPriorityValue" Style="{StaticResource ValueText}"
-                                                           MinWidth="36" Text="0"/>
+                                                    <Border Style="{StaticResource Divider}" Margin="0,12,0,12"/>
+
+                                                    <TextBlock Text="{loc:Loc Menus.ContextsLabel}" Style="{StaticResource FieldLabel}" Margin="0,0,0,6"/>
+                                                    <WrapPanel x:Name="PnlContexts"/>
+                                                    <TextBlock Text="{loc:Loc Menus.ContextsHint}" Style="{StaticResource FieldHint}"/>
+
+                                                    <Border Style="{StaticResource Divider}" Margin="0,12,0,12"/>
+
+                                                    <Grid>
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="*"/>
+                                                            <ColumnDefinition Width="Auto"/>
+                                                        </Grid.ColumnDefinitions>
+                                                        <TextBlock Text="{loc:Loc Menus.Priority}" Style="{StaticResource FieldLabel}" Margin="0,0,0,5"/>
+                                                        <Border Grid.Column="1" Style="{StaticResource ValuePill}" MinWidth="48"
+                                                                VerticalAlignment="Top">
+                                                            <TextBlock x:Name="TxtPriorityValue" Style="{StaticResource ValueText}"
+                                                                       MinWidth="36" Text="0"/>
+                                                        </Border>
+                                                    </Grid>
+                                                    <Grid>
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="Auto"/>
+                                                            <ColumnDefinition Width="*"/>
+                                                            <ColumnDefinition Width="Auto"/>
+                                                        </Grid.ColumnDefinitions>
+                                                        <TextBlock Text="-100" Style="{StaticResource EndpointText}"
+                                                                   VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                                        <Slider x:Name="SliderProfilePriority" Grid.Column="1" Minimum="-100" Maximum="100"
+                                                                TickFrequency="1" IsSnapToTickEnabled="True" SmallChange="1" LargeChange="10"
+                                                                ValueChanged="ProfileField_Changed" AutomationProperties.Name="{loc:Loc Menus.PriorityAutomation}"/>
+                                                        <TextBlock Grid.Column="2" Text="100" Style="{StaticResource EndpointText}"
+                                                                   VerticalAlignment="Center" Margin="8,0,0,0"/>
+                                                    </Grid>
+                                                    <TextBlock Text="{loc:Loc Menus.PriorityHint}" Style="{StaticResource FieldHint}"/>
+
+                                                    <Border Style="{StaticResource Divider}" Margin="0,12,0,12"/>
+
+                                                    <ContentControl Content="{loc:Loc Menus.ProfileHotkeyTitle}"
+                                                                    Style="{StaticResource SectionHeader}" Margin="0,0,0,4"/>
+                                                    <TextBlock Text="{loc:Loc Menus.ProfileHotkeyHint}" Style="{StaticResource CardHint}"/>
+                                                    <TextBox x:Name="TxtProfileHotkey" MaxLength="64" Margin="0,8,0,0"
+                                                             TextChanged="ProfileField_Changed" LostFocus="TxtProfileHotkey_LostFocus"
+                                                             AutomationProperties.Name="{loc:Loc Menus.ProfileHotkeyAutomation}"/>
+                                                    <TextBlock Text="{loc:Loc Menus.ProfileHotkeyExample}" Style="{StaticResource FieldHint}"/>
+                                                </StackPanel>
                                             </Border>
                                         </Grid>
-                                        <Grid>
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="Auto"/>
-                                                <ColumnDefinition Width="*"/>
-                                                <ColumnDefinition Width="Auto"/>
-                                            </Grid.ColumnDefinitions>
-                                            <TextBlock Text="-100" Style="{StaticResource EndpointText}"
-                                                       VerticalAlignment="Center" Margin="0,0,8,0"/>
-                                            <Slider x:Name="SliderProfilePriority" Grid.Column="1" Minimum="-100" Maximum="100"
-                                                    TickFrequency="1" IsSnapToTickEnabled="True" SmallChange="1" LargeChange="10"
-                                                    ValueChanged="ProfileField_Changed" AutomationProperties.Name="{loc:Loc Menus.PriorityAutomation}"/>
-                                            <TextBlock Grid.Column="2" Text="100" Style="{StaticResource EndpointText}"
-                                                       VerticalAlignment="Center" Margin="8,0,0,0"/>
+
+                                        <!-- ================= PRÉVIA ================= -->
+                                        <Grid x:Name="PnlSectionPreview" Visibility="Collapsed">
+                                            <Border Style="{StaticResource Card}" Padding="16,16,16,8" Margin="0">
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="280"/>
+                                                        <ColumnDefinition Width="*"/>
+                                                    </Grid.ColumnDefinitions>
+
+                                                    <!-- A roda ocupa a coluna inteira: o texto fica ao lado e o conjunto cabe sem rolagem. -->
+                                                    <Border x:Name="MenuPreviewHost" Width="280" Height="280"
+                                                            HorizontalAlignment="Left" VerticalAlignment="Top"/>
+
+                                                    <StackPanel Grid.Column="1" Margin="18,0,0,0">
+                                                        <TextBlock Text="{loc:Loc Menus.PreviewTitle}" Style="{StaticResource CardTitle}"/>
+                                                        <TextBlock x:Name="PreviewContext" Style="{StaticResource CardHint}" Margin="0,3,0,0"/>
+
+                                                        <TextBlock x:Name="PreviewSummary" Style="{StaticResource CardHint}"
+                                                                   Margin="0,10,0,0" TextWrapping="Wrap"/>
+
+                                                        <Border Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource CardBorderBrush}"
+                                                                BorderThickness="1" CornerRadius="8" Padding="10,8" Margin="0,10,0,0">
+                                                            <StackPanel>
+                                                                <TextBlock Text="{loc:Loc Menus.Legend}" Style="{StaticResource SectionLabel}" Margin="0,0,0,5"/>
+                                                                <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                                                                    <Border Width="11" Height="11" CornerRadius="3" VerticalAlignment="Center"
+                                                                            Background="{DynamicResource ControlBrush}"
+                                                                            BorderBrush="{DynamicResource ControlBorderBrush}" BorderThickness="1"/>
+                                                                    <TextBlock Text="{loc:Loc Menus.LegendAutomatic}" FontSize="11" Margin="6,0,0,0"
+                                                                               Foreground="{DynamicResource TextDimBrush}"/>
+                                                                </StackPanel>
+                                                                <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                                                                    <Border Width="11" Height="11" CornerRadius="3" VerticalAlignment="Center"
+                                                                            Background="{DynamicResource AccentSoftBrush}"
+                                                                            BorderBrush="{DynamicResource AccentBrush}" BorderThickness="1"/>
+                                                                    <TextBlock Text="{loc:Loc Menus.LegendReplaces}" FontSize="11" Margin="6,0,0,0"
+                                                                               Foreground="{DynamicResource TextDimBrush}"/>
+                                                                </StackPanel>
+                                                                <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                                                                    <Border Width="11" Height="11" CornerRadius="3" VerticalAlignment="Center"
+                                                                            Background="{DynamicResource AccentBrush}"/>
+                                                                    <TextBlock Text="{loc:Loc Menus.LegendExtra}" FontSize="11" Margin="6,0,0,0"
+                                                                               Foreground="{DynamicResource TextDimBrush}"/>
+                                                                </StackPanel>
+                                                                <StackPanel Orientation="Horizontal" ToolTip="{loc:Loc Menus.SubmenuLegendToolTip}">
+                                                                    <TextBlock Text="&#xE70D;" FontFamily="{StaticResource IconFont}" FontSize="10"
+                                                                               Width="11" TextAlignment="Center" VerticalAlignment="Center"
+                                                                               Foreground="{DynamicResource TextDimBrush}"/>
+                                                                    <TextBlock Text="{loc:Loc Menus.LegendSubmenu}" FontSize="11" Margin="6,0,0,0"
+                                                                               Foreground="{DynamicResource TextDimBrush}"/>
+                                                                </StackPanel>
+                                                            </StackPanel>
+                                                        </Border>
+
+                                                        <TextBlock Style="{StaticResource CardHint}" Margin="0,10,0,0" TextWrapping="Wrap"
+                                                                   Text="{loc:Loc Menus.PreviewHint}"/>
+                                                    </StackPanel>
+                                                </Grid>
+                                            </Border>
                                         </Grid>
-                                        <TextBlock Text="{loc:Loc Menus.PriorityHint}"
-                                                   Style="{StaticResource FieldHint}"/>
+
                                     </StackPanel>
-                                </Border>
-
-                                <Border Style="{StaticResource Card}" Padding="16">
-                                    <StackPanel>
-                                        <TextBlock Text="{loc:Loc Menus.PreviewTitle}" Style="{StaticResource CardTitle}"/>
-                                        <TextBlock x:Name="PreviewContext" Style="{StaticResource CardHint}"/>
-
-                                        <!-- Empilhado: em janela estreita uma coluna de texto ao lado da roda ficaria ilegível. -->
-                                        <Border x:Name="MenuPreviewHost" Width="280" Height="280"
-                                                Margin="0,14,0,0" HorizontalAlignment="Center" VerticalAlignment="Top"/>
-
-                                        <TextBlock x:Name="PreviewSummary" Style="{StaticResource CardHint}"
-                                                   Margin="0,12,0,0" TextAlignment="Center" TextWrapping="Wrap"/>
-                                        <TextBlock x:Name="PreviewWarning" Style="{StaticResource CardHint}" Margin="0,8,0,0"
-                                                   FontWeight="SemiBold" Foreground="{DynamicResource TextBrush}" TextWrapping="Wrap"/>
-
-                                        <Border Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource CardBorderBrush}"
-                                                BorderThickness="1" CornerRadius="8" Padding="10,8" Margin="0,12,0,0">
-                                            <StackPanel>
-                                                <TextBlock Text="{loc:Loc Menus.Legend}" Style="{StaticResource SectionLabel}" Margin="0,0,0,4"/>
-                                                <WrapPanel>
-                                                    <StackPanel Orientation="Horizontal" Margin="0,0,16,4">
-                                                        <Border Width="11" Height="11" CornerRadius="3" VerticalAlignment="Center"
-                                                                Background="{DynamicResource ControlBrush}"
-                                                                BorderBrush="{DynamicResource ControlBorderBrush}" BorderThickness="1"/>
-                                                        <TextBlock Text="{loc:Loc Menus.LegendAutomatic}" FontSize="11" Margin="5,0,0,0"
-                                                                   Foreground="{DynamicResource TextDimBrush}"/>
-                                                    </StackPanel>
-                                                    <StackPanel Orientation="Horizontal" Margin="0,0,16,4">
-                                                        <Border Width="11" Height="11" CornerRadius="3" VerticalAlignment="Center"
-                                                                Background="{DynamicResource AccentSoftBrush}"
-                                                                BorderBrush="{DynamicResource AccentBrush}" BorderThickness="1"/>
-                                                        <TextBlock Text="{loc:Loc Menus.LegendReplaces}" FontSize="11" Margin="5,0,0,0"
-                                                                   Foreground="{DynamicResource TextDimBrush}"/>
-                                                    </StackPanel>
-                                                    <StackPanel Orientation="Horizontal" Margin="0,0,16,4">
-                                                        <Border Width="11" Height="11" CornerRadius="3" VerticalAlignment="Center"
-                                                                Background="{DynamicResource AccentBrush}"/>
-                                                        <TextBlock Text="{loc:Loc Menus.LegendExtra}" FontSize="11" Margin="5,0,0,0"
-                                                                   Foreground="{DynamicResource TextDimBrush}"/>
-                                                    </StackPanel>
-                                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,4"
-                                                                ToolTip="{loc:Loc Menus.SubmenuLegendToolTip}">
-                                                        <TextBlock Text="&#xE70D;" FontFamily="{StaticResource IconFont}" FontSize="10"
-                                                                   VerticalAlignment="Center" Foreground="{DynamicResource TextDimBrush}"/>
-                                                        <TextBlock Text="{loc:Loc Menus.LegendSubmenu}" FontSize="11" Margin="5,0,0,0"
-                                                                   Foreground="{DynamicResource TextDimBrush}"/>
-                                                    </StackPanel>
-                                                </WrapPanel>
-                                            </StackPanel>
-                                        </Border>
-
-                                        <TextBlock Style="{StaticResource CardHint}" Margin="0,10,0,0" TextWrapping="Wrap"
-                                                   Text="{loc:Loc Menus.PreviewHint}"/>
-                                    </StackPanel>
-                                </Border>
-
-                            </StackPanel>
-                        </ScrollViewer>
+                                </ScrollViewer>
                             </Grid>
 
-                        <Border x:Name="PnlNoProfileSelected" Style="{StaticResource Card}"
-                                Padding="24,40" MaxWidth="460" HorizontalAlignment="Center" VerticalAlignment="Center">
-                            <StackPanel HorizontalAlignment="Center">
-                                <Border Style="{StaticResource IconBadge}" Width="48" Height="48" CornerRadius="24"
-                                        HorizontalAlignment="Center">
-                                    <TextBlock Style="{StaticResource IconGlyph}" Text="&#xE8FD;" FontSize="21"/>
-                                </Border>
-                                <TextBlock Text="{loc:Loc Menus.NoProfileSelected}" FontSize="15" FontWeight="SemiBold"
-                                           HorizontalAlignment="Center" Margin="0,10,0,0"/>
-                                <TextBlock Text="{loc:Loc Menus.NoProfileSelectedHint}"
-                                           Style="{StaticResource CardHint}" TextAlignment="Center" Margin="0,4,0,0"/>
-                            </StackPanel>
-                        </Border>
+                            <Border x:Name="PnlNoProfileSelected" Style="{StaticResource Card}"
+                                    Padding="24,40" MaxWidth="460" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                <StackPanel HorizontalAlignment="Center">
+                                    <Border Style="{StaticResource IconBadge}" Width="48" Height="48" CornerRadius="24"
+                                            HorizontalAlignment="Center">
+                                        <TextBlock Style="{StaticResource IconGlyph}" Text="&#xE8FD;" FontSize="21"/>
+                                    </Border>
+                                    <TextBlock Text="{loc:Loc Menus.NoProfileSelected}" FontSize="15" FontWeight="SemiBold"
+                                               HorizontalAlignment="Center" Margin="0,10,0,0"/>
+                                    <TextBlock Text="{loc:Loc Menus.NoProfileSelectedHint}"
+                                               Style="{StaticResource CardHint}" TextAlignment="Center" Margin="0,4,0,0"/>
+                                </StackPanel>
+                            </Border>
                         </Grid>
                     </Grid>
 
                     <Border x:Name="PnlNoMenus" Grid.Row="1" Margin="32,4,20,20" Visibility="Collapsed">
-                        <StackPanel MaxWidth="420" Margin="0,6,0,0"
-                                    HorizontalAlignment="Left" VerticalAlignment="Top">
+                        <StackPanel MaxWidth="420"
+                                    HorizontalAlignment="Center" VerticalAlignment="Center">
                             <Border Style="{StaticResource IconBadge}" Width="36" Height="36" CornerRadius="18"
-                                    HorizontalAlignment="Left">
+                                    HorizontalAlignment="Center">
                                 <Path Data="{StaticResource IconMenus}" Width="18" Height="18"
                                       Stroke="{DynamicResource AccentOnSoftBrush}" StrokeThickness="1.6"
                                       StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"
@@ -1176,11 +1332,11 @@
                                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
                             </Border>
                             <TextBlock Text="{loc:Loc Menus.EmptyTitle}" Margin="0,12,0,0"
-                                       FontSize="15" FontWeight="SemiBold"
+                                       FontSize="15" FontWeight="SemiBold" TextAlignment="Center"
                                        Foreground="{DynamicResource TextBrush}"/>
                             <TextBlock Text="{loc:Loc Menus.EmptyHint}" Margin="0,4,0,0"
-                                       Style="{StaticResource CardHint}" FontSize="12.5" MaxWidth="380"/>
-                            <StackPanel Orientation="Horizontal" Margin="0,20,0,0">
+                                       Style="{StaticResource CardHint}" FontSize="12.5" TextAlignment="Center"/>
+                            <StackPanel Orientation="Horizontal" Margin="0,20,0,0" HorizontalAlignment="Center">
                                 <Button x:Name="BtnAddMenuProfile" Content="{loc:Loc Menus.CreateFirst}"
                                         Style="{StaticResource PrimaryButton}" Margin="0,0,12,0"
                                         Click="BtnAddMenuProfile_Click"

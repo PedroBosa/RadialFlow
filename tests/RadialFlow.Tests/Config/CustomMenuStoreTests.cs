@@ -167,6 +167,113 @@ public sealed class CustomMenuStoreTests : IDisposable
     }
 
     [Fact]
+    public void Normalize_NormalizaExtensoesEClasseDaJanela()
+    {
+        var profile = new CustomMenuProfile
+        {
+            Name = "PDFs",
+            Extensions = ["PDF", " *.png ", "er r", ".jpg", ".PDF", "/x", "a.b", new string('a', 20)],
+            WindowClass = "  CabinetWClass  "
+        };
+
+        SettingsStore.Normalize(SettingsWith(profile));
+
+        Assert.Equal([".pdf", ".png", ".jpg"], profile.Extensions.ToArray());
+        Assert.Equal("CabinetWClass", profile.WindowClass);
+    }
+
+    [Fact]
+    public void Normalize_Extensoes_RespeitaOLimite()
+    {
+        var profile = new CustomMenuProfile
+        {
+            Name = "Muitos",
+            Extensions = Enumerable.Range(0, 12).Select(n => $"f{n}").ToList()
+        };
+
+        SettingsStore.Normalize(SettingsWith(profile));
+
+        Assert.Equal(CustomMenuNormalizer.MaxExtensions, profile.Extensions.Count);
+    }
+
+    [Fact]
+    public void SaveELoad_PreservaAtalhoDoMenu()
+    {
+        SettingsStore store = Create();
+        CustomMenuProfile profile = Profile();
+        profile.Hotkey = "Ctrl+Alt+1";
+
+        store.Save(SettingsWith(profile));
+        var loaded = store.Load();
+
+        Assert.Equal("Ctrl+Alt+1", loaded.Settings.CustomProfiles[0].Hotkey);
+    }
+
+    [Fact]
+    public void Normalize_NormalizaAtalhoEClimpaInvalido()
+    {
+        CustomMenuProfile valid = Profile("Válido");
+        valid.Hotkey = " alt + ctrl + 1 ";
+        CustomMenuProfile tooManyModifiers = Profile("Inválido");
+        tooManyModifiers.Hotkey = "Ctrl+Alt";
+        CustomMenuProfile garbage = Profile("Lixo");
+        garbage.Hotkey = "Ctrl+";
+
+        var settings = SettingsWith(valid, tooManyModifiers, garbage);
+        SettingsStore.Normalize(settings);
+
+        Assert.Equal("Ctrl+Alt+1", settings.CustomProfiles[0].Hotkey);
+        Assert.Equal("", settings.CustomProfiles[1].Hotkey);
+        Assert.Equal("", settings.CustomProfiles[2].Hotkey);
+    }
+
+    [Fact]
+    public void SaveELoad_PreservaTransformacaoDeTexto()
+    {
+        SettingsStore store = Create();
+        CustomMenuProfile profile = Profile();
+        profile.Items.Add(new CustomMenuItem
+        {
+            Label = "Maiúsculas",
+            Kind = CustomMenuItemKind.TextTransform,
+            Transform = CustomTextTransform.TitleCase,
+        });
+
+        store.Save(SettingsWith(profile));
+        var loaded = store.Load();
+
+        CustomMenuItem item = loaded.Settings.CustomProfiles[0].Items[^1];
+        Assert.Equal(CustomMenuItemKind.TextTransform, item.Kind);
+        Assert.Equal(CustomTextTransform.TitleCase, item.Transform);
+    }
+
+    [Fact]
+    public void Normalize_DescartaTransformacaoInvalidaEZeraNasDemais()
+    {
+        CustomMenuProfile profile = Profile();
+        profile.Items.Add(new CustomMenuItem
+        {
+            Label = "Transformação ruim",
+            Kind = CustomMenuItemKind.TextTransform,
+            Transform = (CustomTextTransform)999,
+        });
+        profile.Items.Add(new CustomMenuItem
+        {
+            Label = "Copiar",
+            Kind = CustomMenuItemKind.Action,
+            Action = RadialAction.CopyPath,
+            Transform = CustomTextTransform.Lower,
+        });
+
+        var settings = SettingsWith(profile);
+        SettingsStore.Normalize(settings);
+
+        CustomMenuProfile normalized = Assert.Single(settings.CustomProfiles);
+        Assert.Equal(["Calc", "Fechar", "Copiar"], normalized.Items.Select(i => i.Label).ToArray());
+        Assert.Equal(CustomTextTransform.Upper, normalized.Items[^1].Transform);
+    }
+
+    [Fact]
     public void Normalize_LimitaPerfisEItens()
     {
         CustomMenuProfile[] profiles = Enumerable.Range(0, 25)

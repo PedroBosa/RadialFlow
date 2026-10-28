@@ -51,12 +51,26 @@ internal static class CustomMenuChoices
         CustomMenuItemKind.OpenPath,
         CustomMenuItemKind.Hotkey,
         CustomMenuItemKind.Text,
+        CustomMenuItemKind.TextTransform,
         CustomMenuItemKind.Submenu,
         CustomMenuItemKind.Routine,
     ];
 
     internal static (CustomMenuItemKind Kind, string Label)[] Kinds =>
         KindValues.Select(k => (k, Loc.Get($"Choices.Kind.{k}"))).ToArray();
+
+    private static readonly CustomTextTransform[] TransformValues =
+    [
+        CustomTextTransform.Upper,
+        CustomTextTransform.Lower,
+        CustomTextTransform.TitleCase,
+        CustomTextTransform.SentenceCase,
+        CustomTextTransform.Trim,
+        CustomTextTransform.RemoveLineBreaks,
+    ];
+
+    internal static (CustomTextTransform Transform, string Label)[] Transforms =>
+        TransformValues.Select(t => (t, Loc.Get($"Choices.Transform.{t}"))).ToArray();
 
     /// <summary>Ações oferecidas no editor de rotinas: as mesmas que a execução aceita.</summary>
     internal static (RadialAction Action, string Label)[] RoutineActions =>

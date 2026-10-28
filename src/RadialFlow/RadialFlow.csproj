@@ -9,8 +9,6 @@
     <RootNamespace>RadialFlow</RootNamespace>
     <!-- Ícone do executável (gerado por tools/IconGenerator a partir do mesmo código que desenha a bandeja). -->
     <ApplicationIcon>Assets\RadialFlow.ico</ApplicationIcon>
-    <!-- Projetos irmãos que moram dentro desta pasta: sem isso, os .cs deles entrariam no app. -->
-    <DefaultItemExcludes>$(DefaultItemExcludes);RadialFlow.Tests\**;tools\**</DefaultItemExcludes>
   </PropertyGroup>
 
   <!-- Identidade do produto (aparece nas propriedades do .exe, no log e na janela "Sobre"). -->
@@ -42,7 +40,7 @@
 
   <ItemGroup>
     <!-- A licença MIT vai junto do programa (instalador e versão portátil). -->
-    <None Include="LICENSE" Link="LICENSE.txt" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    <None Include="..\..\LICENSE" Link="LICENSE.txt" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>

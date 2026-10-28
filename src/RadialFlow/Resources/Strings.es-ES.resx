@@ -128,7 +128,7 @@
   <data name="Settings.Discard" xml:space="preserve"><value>Descartar</value></data>
   <data name="Settings.ContinueEditing" xml:space="preserve"><value>Seguir editando</value></data>
   <data name="Menus.PageTitle" xml:space="preserve"><value>Menús personalizados</value></data>
-  <data name="Menus.PageSubtitle" xml:space="preserve"><value>Crea menús que aparecen solo en las aplicaciones y contextos que elijas. Cada elemento se convierte en una porción de la rueda.</value></data>
+  <data name="Menus.PageSubtitle" xml:space="preserve"><value>Menús que aparecen solo en las aplicaciones y contextos que elijas.</value></data>
   <data name="Menus.ProfilesTitle" xml:space="preserve"><value>Tus menús</value></data>
   <data name="Menus.ProfilesCountAutomation" xml:space="preserve"><value>Total de menús</value></data>
   <data name="Menus.NewMenu" xml:space="preserve"><value>Menú nuevo</value></data>
@@ -145,7 +145,7 @@
   <data name="Menus.DisabledBadge" xml:space="preserve"><value>DESACTIVADO</value></data>
   <data name="Menus.ProcessFormat" xml:space="preserve"><value>Proceso: {0}</value></data>
   <data name="Menus.AnyApp" xml:space="preserve"><value>Cualquier aplicación</value></data>
-  <data name="Menus.ConditionsTitle" xml:space="preserve"><value>Condiciones del menú</value></data>
+  <data name="Menus.ConditionsTitle" xml:space="preserve"><value>Dónde aparece este menú</value></data>
   <data name="Menus.ConditionsHint" xml:space="preserve"><value>Todos los campos son opcionales. Si se rellenan, deben coincidir para que el menú aparezca.</value></data>
   <data name="Menus.NameLabel" xml:space="preserve"><value>Nombre del menú</value></data>
   <data name="Menus.Active" xml:space="preserve"><value>Activo</value></data>
@@ -153,6 +153,10 @@
   <data name="Menus.ProcessHint" xml:space="preserve"><value>Vacío = cualquier aplicación.</value></data>
   <data name="Menus.TitleContains" xml:space="preserve"><value>El título contiene</value></data>
   <data name="Menus.TitleHint" xml:space="preserve"><value>Vacío = cualquier título.</value></data>
+  <data name="Menus.ExtensionsLabel" xml:space="preserve"><value>Extensiones</value></data>
+  <data name="Menus.ExtensionsHint" xml:space="preserve"><value>Separadas por comas, con o sin punto; vacío = cualquiera. Ej.: pdf, .png</value></data>
+  <data name="Menus.WindowClassLabel" xml:space="preserve"><value>Clase de ventana</value></data>
+  <data name="Menus.WindowClassHint" xml:space="preserve"><value>Clase Win32 exacta; vacío = cualquiera. Ej.: CabinetWClass</value></data>
   <data name="Menus.Priority" xml:space="preserve"><value>Prioridad</value></data>
   <data name="Menus.PriorityHint" xml:space="preserve"><value>La prioridad más alta se considera primero cuando la rueda no tiene espacio para todo.</value></data>
   <data name="Menus.PriorityAutomation" xml:space="preserve"><value>Prioridad del menú</value></data>
@@ -160,17 +164,25 @@
   <data name="Menus.ContextAll" xml:space="preserve"><value>Todos</value></data>
   <data name="Menus.ContextsHint" xml:space="preserve"><value>Marca dónde debe aparecer este menú.</value></data>
   <data name="Menus.ItemsTitle" xml:space="preserve"><value>Elementos del menú</value></data>
-  <data name="Menus.ItemsHint" xml:space="preserve"><value>Hasta 8 elementos por menú.</value></data>
+  <data name="Menus.ItemsHint" xml:space="preserve"><value>Cada elemento se convierte en una porción de la rueda.</value></data>
   <data name="Menus.ItemsCountFormat" xml:space="preserve"><value>{0} de {1}</value></data>
   <data name="Menus.ItemsCountZero" xml:space="preserve"><value>0 de 8</value></data>
   <data name="Menus.ItemsCountAutomation" xml:space="preserve"><value>Elementos en este menú</value></data>
   <data name="Menus.AddItemAutomation" xml:space="preserve"><value>Añadir elemento al menú</value></data>
+  <data name="Menus.AddItem" xml:space="preserve"><value>Añadir elemento</value></data>
+  <data name="Menus.AddFirstItem" xml:space="preserve"><value>Añadir el primer elemento</value></data>
+  <data name="Menus.TabItems" xml:space="preserve"><value>Elementos</value></data>
+  <data name="Menus.TabApplication" xml:space="preserve"><value>Aplicación</value></data>
+  <data name="Menus.TabPreview" xml:space="preserve"><value>Vista previa</value></data>
+  <data name="Menus.SummaryItemsOne" xml:space="preserve"><value>1 elemento</value></data>
+  <data name="Menus.SummaryItemsMany" xml:space="preserve"><value>{0} elementos</value></data>
+  <data name="Menus.SummaryTitleContains" xml:space="preserve"><value>título: {0}</value></data>
   <data name="Menus.RemoveItemAutomation" xml:space="preserve"><value>Quitar elemento seleccionado</value></data>
   <data name="Menus.MoveItemUpAutomation" xml:space="preserve"><value>Mover elemento hacia arriba</value></data>
   <data name="Menus.MoveItemDownAutomation" xml:space="preserve"><value>Mover elemento hacia abajo</value></data>
   <data name="Menus.SubmenuBadgeFormat" xml:space="preserve"><value>{0} opciones</value></data>
   <data name="Menus.NoItems" xml:space="preserve"><value>Ningún elemento</value></data>
-  <data name="Menus.NoItemsHint" xml:space="preserve"><value>Usa + abajo para crear el primero.</value></data>
+  <data name="Menus.NoItemsHint" xml:space="preserve"><value>Crea el primer elemento para empezar.</value></data>
   <data name="Menus.AppearanceSection" xml:space="preserve"><value>APARIENCIA</value></data>
   <data name="Menus.ActionSection" xml:space="preserve"><value>ACCIÓN</value></data>
   <data name="Menus.ItemKind" xml:space="preserve"><value>Tipo de elemento</value></data>
@@ -184,6 +196,12 @@
   <data name="Menus.HotkeyLabel" xml:space="preserve"><value>Atajo (p. ej. Ctrl+Shift+P)</value></data>
   <data name="Menus.HotkeyHint" xml:space="preserve"><value>Modificadores Ctrl/Alt/Shift/Win y una tecla final. El foco debe estar en la ventana de origen.</value></data>
   <data name="Menus.TextLabel" xml:space="preserve"><value>Texto para pegar</value></data>
+  <data name="Menus.TransformLabel" xml:space="preserve"><value>Transformación</value></data>
+  <data name="Menus.TransformHint" xml:space="preserve"><value>Copia el texto seleccionado en la ventana de origen, lo transforma y lo pega encima.</value></data>
+  <data name="Menus.ProfileHotkeyTitle" xml:space="preserve"><value>Atajo propio</value></data>
+  <data name="Menus.ProfileHotkeyHint" xml:space="preserve"><value>Opcional. Abre este menú directamente en el cursor, incluso fuera de sus condiciones y del proceso.</value></data>
+  <data name="Menus.ProfileHotkeyExample" xml:space="preserve"><value>Necesita Ctrl, Alt, Shift o Win más una tecla. P. ej. Ctrl+Alt+1.</value></data>
+  <data name="Menus.ProfileHotkeyAutomation" xml:space="preserve"><value>Atajo que abre este menú directamente</value></data>
   <data name="Menus.SubmenuSection" xml:space="preserve"><value>OPCIONES DEL SUBMENÚ</value></data>
   <data name="Menus.SubmenuCountFormat" xml:space="preserve"><value>{0} de {1} opciones</value></data>
   <data name="Menus.SubmenuCountZero" xml:space="preserve"><value>0 de 8 opciones</value></data>
@@ -199,7 +217,7 @@
   <data name="Menus.EditStepsAutomation" xml:space="preserve"><value>Editar pasos de la rutina</value></data>
   <data name="Menus.RoutineHint" xml:space="preserve"><value>Acciones nativas de RadialFlow, en el orden definido. Sin shell, argumentos ni URLs.</value></data>
   <data name="Menus.NoItemSelected" xml:space="preserve"><value>Ningún elemento seleccionado</value></data>
-  <data name="Menus.NoItemSelectedHint" xml:space="preserve"><value>Selecciona un elemento de la lista o usa + abajo.</value></data>
+  <data name="Menus.NoItemSelectedHint" xml:space="preserve"><value>Selecciona un elemento de la lista para editarlo.</value></data>
   <data name="Menus.PreviewTitle" xml:space="preserve"><value>Vista previa de la rueda</value></data>
   <data name="Menus.Legend" xml:space="preserve"><value>LEYENDA</value></data>
   <data name="Menus.LegendAutomatic" xml:space="preserve"><value>automática</value></data>
@@ -207,7 +225,7 @@
   <data name="Menus.LegendExtra" xml:space="preserve"><value>extra</value></data>
   <data name="Menus.SubmenuLegendToolTip" xml:space="preserve"><value>La porción abre un segundo anillo al mantenerla.</value></data>
   <data name="Menus.LegendSubmenu" xml:space="preserve"><value>abre submenú</value></data>
-  <data name="Menus.PreviewHint" xml:space="preserve"><value>Las porciones destacadas vienen de este menú; las demás son automáticas del contexto. Mantén una porción con ▾ para abrir el segundo anillo. Los elementos que superan el límite de 8 quedan fuera de la rueda.</value></data>
+  <data name="Menus.PreviewHint" xml:space="preserve"><value>Las porciones destacadas vienen de este menú; las demás son automáticas del contexto. Mantén una porción con ▾ para abrir el segundo anillo.</value></data>
   <data name="Menus.NoProfileSelected" xml:space="preserve"><value>Ningún menú seleccionado</value></data>
   <data name="Menus.NoProfileSelectedHint" xml:space="preserve"><value>Crea un menú con «Menú nuevo» o selecciona uno en la lista de la izquierda. Sus elementos aparecen solo en las aplicaciones y contextos que elijas.</value></data>
   <data name="Menus.EmptyTitle" xml:space="preserve"><value>Aún no hay menús</value></data>
@@ -273,6 +291,10 @@
   <data name="Menus.ValidateDescriptionTooLong" xml:space="preserve"><value>La descripción del elemento «{0}» supera los {1} caracteres.</value></data>
   <data name="Menus.ValidateSubmenuTooMany" xml:space="preserve"><value>El submenú «{0}» supera las {1} opciones.</value></data>
   <data name="Menus.ValidateSubmenuMinOptions" xml:space="preserve"><value>El submenú «{0}» necesita al menos {1} opciones activas.</value></data>
+  <data name="Menus.ValidateProfileHotkeyInvalid" xml:space="preserve"><value>El atajo del menú «{0}» no es válido. Usa Ctrl, Alt, Shift o Win más una tecla, como Ctrl+Alt+1.</value></data>
+  <data name="Menus.ValidateProfileHotkeyGlobal" xml:space="preserve"><value>El menú «{0}» usa el mismo atajo que la rueda principal ({1}). Elige otro.</value></data>
+  <data name="Menus.ValidateProfileHotkeyDuplicate" xml:space="preserve"><value>El menú «{0}» repite el atajo {1} de otro menú.</value></data>
+  <data name="Menus.ValidateProfileHotkeyNoItems" xml:space="preserve"><value>El menú «{0}» tiene atajo pero ningún elemento activo. Añade uno o borra el atajo.</value></data>
   <data name="Menus.CustomGlyph" xml:space="preserve"><value>Personalizado</value></data>
   <data name="Converters.PageTitle" xml:space="preserve"><value>Convertidores</value></data>
   <data name="Converters.PageSubtitle" xml:space="preserve"><value>Formatos adicionales para vídeo, audio y documentos. Los programas son gratuitos, vienen del sitio oficial de cada uno y se verifican antes de instalar.</value></data>
@@ -378,8 +400,15 @@
   <data name="Choices.Kind.OpenPath" xml:space="preserve"><value>Abrir archivo o carpeta</value></data>
   <data name="Choices.Kind.Hotkey" xml:space="preserve"><value>Enviar atajo</value></data>
   <data name="Choices.Kind.Text" xml:space="preserve"><value>Pegar texto</value></data>
+  <data name="Choices.Kind.TextTransform" xml:space="preserve"><value>Transformar texto seleccionado</value></data>
   <data name="Choices.Kind.Submenu" xml:space="preserve"><value>Submenú (segundo anillo)</value></data>
   <data name="Choices.Kind.Routine" xml:space="preserve"><value>Rutina de acciones</value></data>
+  <data name="Choices.Transform.Upper" xml:space="preserve"><value>MAYÚSCULAS</value></data>
+  <data name="Choices.Transform.Lower" xml:space="preserve"><value>minúsculas</value></data>
+  <data name="Choices.Transform.TitleCase" xml:space="preserve"><value>Cada Palabra Con Mayúscula</value></data>
+  <data name="Choices.Transform.SentenceCase" xml:space="preserve"><value>Primera letra de cada frase</value></data>
+  <data name="Choices.Transform.Trim" xml:space="preserve"><value>Quitar espacios de los extremos</value></data>
+  <data name="Choices.Transform.RemoveLineBreaks" xml:space="preserve"><value>Unir líneas en un párrafo</value></data>
   <data name="Glyph.Apps" xml:space="preserve"><value>Aplicaciones</value></data>
   <data name="Glyph.Edit" xml:space="preserve"><value>Editar</value></data>
   <data name="Glyph.Document" xml:space="preserve"><value>Documento</value></data>
@@ -490,6 +519,7 @@
   <data name="MenuValidation.NestedSubmenu" xml:space="preserve"><value>El submenú «{0}» no puede contener otro submenú.</value></data>
   <data name="MenuValidation.RoutineInside" xml:space="preserve"><value>El submenú «{0}» no puede contener una rutina: las rutinas van en el primer anillo.</value></data>
   <data name="MenuValidation.ActionMissing" xml:space="preserve"><value>La acción {0} «{1}» ya no existe.</value></data>
+  <data name="MenuValidation.TransformInvalid" xml:space="preserve"><value>La transformación {0} «{1}» ya no existe.</value></data>
   <data name="MenuValidation.LaunchRequired" xml:space="preserve"><value>Indica el ejecutable {0} «{1}».</value></data>
   <data name="MenuValidation.UrlInvalid" xml:space="preserve"><value>La URL {0} «{1}» debe empezar por http:// o https://.</value></data>
   <data name="MenuValidation.PathRequired" xml:space="preserve"><value>Indica el archivo o la carpeta {0} «{1}».</value></data>
@@ -531,6 +561,9 @@
   <data name="Transfer.ItemTextTooLong" xml:space="preserve"><value>{0}: el texto supera los {1} caracteres.</value></data>
   <data name="Transfer.ItemKindUnknown" xml:space="preserve"><value>{0}: el tipo {1} no existe.</value></data>
   <data name="Transfer.ItemActionUnknown" xml:space="preserve"><value>{0}: la acción {1} no existe.</value></data>
+  <data name="Transfer.ItemTransformUnknown" xml:space="preserve"><value>{0}: la transformación {1} no existe.</value></data>
+  <data name="Transfer.HotkeyInvalid" xml:space="preserve"><value>{0}: el atajo «{1}» no es válido.</value></data>
+  <data name="Transfer.HotkeyDuplicate" xml:space="preserve"><value>{0}: el atajo {1} aparece en más de un menú.</value></data>
   <data name="Transfer.NestedSubmenu" xml:space="preserve"><value>{0}: un submenú no puede estar dentro de otro submenú.</value></data>
   <data name="Transfer.TooManyOptions" xml:space="preserve"><value>{0}: supera las {1} opciones.</value></data>
   <data name="Transfer.AdvancedInsideSubmenu" xml:space="preserve"><value>{0}, opción {1}: submenú y rutina van en el primer anillo.</value></data>

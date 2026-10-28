@@ -11,6 +11,7 @@ using System.Windows.Media;
 using System.Windows.Threading;
 using RadialFlow.Config;
 using RadialFlow.Context;
+using RadialFlow.Infrastructure;
 using RadialFlow.Tests.TestSupport;
 using RadialFlow.UI;
 using Xunit;
@@ -133,6 +134,19 @@ public sealed class MenusTabTests : IDisposable
         OnShown(w => Click(ButtonsOf(w).Single(b => (string)b.Content == "Descartar")));
         window.Close();
         Assert.False(window.IsVisible);
+    }
+
+    /// <summary>Captura o texto do próximo diálogo que contiver o fragmento e o fecha com OK.</summary>
+    private static Func<string?> CaptureDialog(string fragment)
+    {
+        string? shown = null;
+        OnShown(w =>
+        {
+            shown = Descendants(w).OfType<TextBlock>()
+                .FirstOrDefault(t => t.Visibility == Visibility.Visible && t.Text.Contains(fragment))?.Text;
+            Click(ButtonsOf(w).Single(b => (string)b.Content == "OK"));
+        });
+        return () => shown;
     }
 
     private static MenuPreview PreviewOf(SettingsWindow window) =>
@@ -285,6 +299,122 @@ public sealed class MenusTabTests : IDisposable
             Click(Find<Button>(window, "BtnRemoveMenuProfile"));
             Pump(50);
             Assert.True(Find<Button>(window, "BtnAddMenuProfile").IsKeyboardFocusWithin);
+
+            CloseDiscarding(window);
+        });
+    }
+
+    [Fact]
+    public void Secoes_UmAssuntoPorVezEMenuNovoComecaNosItens()
+    {
+        RunSta(() =>
+        {
+            SettingsWindow window = OpenSettings();
+            Click(Find<Button>(window, "BtnAddMenuProfile"));
+
+            var items = Find<Grid>(window, "PnlSectionItems");
+            var application = Find<Grid>(window, "PnlSectionApplication");
+            var preview = Find<Grid>(window, "PnlSectionPreview");
+            var segItems = Find<RadioButton>(window, "SegItems");
+            var segApplication = Find<RadioButton>(window, "SegApplication");
+            var segPreview = Find<RadioButton>(window, "SegPreview");
+
+            Assert.True(segItems.IsChecked);
+            Assert.Equal(Visibility.Visible, items.Visibility);
+            Assert.Equal(Visibility.Collapsed, application.Visibility);
+            Assert.Equal(Visibility.Collapsed, preview.Visibility);
+
+            segApplication.IsChecked = true;
+            Assert.Equal(Visibility.Collapsed, items.Visibility);
+            Assert.Equal(Visibility.Visible, application.Visibility);
+            Assert.Equal(Visibility.Collapsed, preview.Visibility);
+
+            segPreview.IsChecked = true;
+            Assert.Equal(Visibility.Collapsed, items.Visibility);
+            Assert.Equal(Visibility.Collapsed, application.Visibility);
+            Assert.Equal(Visibility.Visible, preview.Visibility);
+
+            // Criar um menu a partir de outra seção abre os itens: é o primeiro passo de quem cria.
+            Click(Find<Button>(window, "BtnNewMenuProfile"));
+            Assert.True(segItems.IsChecked);
+            Assert.Equal(Visibility.Visible, items.Visibility);
+
+            CloseDiscarding(window);
+        });
+    }
+
+    [Fact]
+    public void Cabecalho_ResumeAsCondicoesDoMenuSelecionado()
+    {
+        RunSta(() =>
+        {
+            var settings = AppSettings.CreateDefault();
+            var profile = new CustomMenuProfile
+            {
+                Name = "Downloads",
+                ProcessName = "explorer",
+                TitleContains = "Downloads",
+                WindowClass = "CabinetWClass",
+                Hotkey = "Ctrl+Alt+1",
+                Contexts = { RadialContextKind.FileOrFolder },
+            };
+            profile.Extensions.AddRange(["pdf", "docx"]);
+            profile.Items.Add(new CustomMenuItem
+            {
+                Label = "Renomear", Kind = CustomMenuItemKind.Action, Action = RadialAction.Rename,
+            });
+            settings.CustomProfiles.Add(profile);
+            settings.CustomProfiles.Add(new CustomMenuProfile { Name = "Sem nada" });
+            SettingsService.OverrideCurrentForTests(settings);
+
+            SettingsWindow window = OpenSettings();
+            var summary = Find<TextBlock>(window, "ProfileSummary");
+
+            Assert.Contains("explorer", summary.Text);
+            Assert.Contains("pdf, docx", summary.Text);
+            Assert.Contains(Loc.Format("Menus.SummaryTitleContains", "Downloads"), summary.Text);
+            Assert.Contains("CabinetWClass", summary.Text);
+            Assert.Contains(Loc.Get("Menus.SummaryItemsOne"), summary.Text);
+            Assert.Contains("Ctrl+Alt+1", summary.Text);
+
+            // Editar em Aplicação atualiza o resumo na hora, mesmo com a seção oculta.
+            Find<TextBox>(window, "TxtProfileProcess").Text = "";
+            Assert.StartsWith(Loc.Get("Menus.AnyApp"), summary.Text);
+
+            // Um menu sem condições nem itens resume exatamente isso.
+            Find<ListBox>(window, "ListMenuProfiles").SelectedIndex = 1;
+            Assert.Equal(
+                $"{Loc.Get("Menus.AnyApp")}  ·  {Loc.Format("Menus.SummaryItemsMany", 0)}",
+                summary.Text);
+
+            CloseDiscarding(window);
+        });
+    }
+
+    [Fact]
+    public void EstadoVazio_AdicionarPrimeiroItem_RevelaListaEEditor()
+    {
+        RunSta(() =>
+        {
+            SettingsWindow window = OpenSettings();
+            Click(Find<Button>(window, "BtnAddMenuProfile"));
+
+            Assert.Equal(Visibility.Visible, Find<Border>(window, "PnlNoItems").Visibility);
+            Assert.Equal(Visibility.Collapsed, Find<Grid>(window, "ItemsWorkspace").Visibility);
+
+            Click(Find<Button>(window, "BtnAddFirstItem"));
+
+            Assert.Equal(Visibility.Collapsed, Find<Border>(window, "PnlNoItems").Visibility);
+            Assert.Equal(Visibility.Visible, Find<Grid>(window, "ItemsWorkspace").Visibility);
+            Assert.Equal(Visibility.Visible, Find<StackPanel>(window, "PnlItemEditor").Visibility);
+
+            var profile = (CustomMenuProfile)Find<ListBox>(window, "ListMenuProfiles").Items[0];
+            Assert.Single(profile.Items);
+
+            // Remover o único item devolve o convite em vez de uma lista vazia.
+            Click(Find<Button>(window, "BtnRemoveMenuItem"));
+            Assert.Equal(Visibility.Visible, Find<Border>(window, "PnlNoItems").Visibility);
+            Assert.Equal(Visibility.Collapsed, Find<Grid>(window, "ItemsWorkspace").Visibility);
 
             CloseDiscarding(window);
         });
@@ -660,6 +790,35 @@ public sealed class MenusTabTests : IDisposable
             Assert.NotNull(shown);
             Assert.True(window.IsVisible);
             window.Close();
+        });
+    }
+
+    [Fact]
+    public void Submenu_Dialogo_SalvaOpcaoComTransformacao()
+    {
+        RunSta(() =>
+        {
+            SettingsService.OverrideCurrentForTests(SettingsWithSubmenu(SubmenuItem()));
+            SettingsWindow window = OpenSettings();
+            Find<ListBox>(window, "ListItems").SelectedIndex = 0;
+
+            SubmenuEditorWindow.BeforeShowForTests = dialog =>
+            {
+                Find<ListBox>(dialog, "ListOptions").SelectedIndex = 0;
+                SelectTag(Find<ComboBox>(dialog, "CmbOptionKind"), CustomMenuItemKind.TextTransform);
+                Assert.Equal(Visibility.Visible, Find<StackPanel>(dialog, "PnlOptionTextTransform").Visibility);
+                SelectTag(Find<ComboBox>(dialog, "CmbOptionTransform"), CustomTextTransform.SentenceCase);
+                Click(Find<Button>(dialog, "BtnDone"));
+            };
+
+            Click(Find<Button>(window, "BtnEditSubmenuOptions"));
+            Click(Find<Button>(window, "BtnSave"));
+
+            Assert.NotNull(_saved);
+            CustomMenuItem saved = Assert.Single(Assert.Single(_saved!.CustomProfiles).Items);
+            Assert.Equal(CustomMenuItemKind.TextTransform, saved.Options[0].Kind);
+            Assert.Equal(CustomTextTransform.SentenceCase, saved.Options[0].Transform);
+            Assert.Equal(CustomTextTransform.Upper, saved.Options[1].Transform);
         });
     }
 
@@ -1093,6 +1252,223 @@ public sealed class MenusTabTests : IDisposable
             Assert.NotSame(draft.Items[0], savedItem);
             Assert.False(window.IsVisible);
             Assert.True(PreviewTimerOf(window) is null or { IsEnabled: false });
+        });
+    }
+
+    [Fact]
+    public void Salvar_NormalizaExtensoesEClasseDaJanela()
+    {
+        RunSta(() =>
+        {
+            var original = AppSettings.CreateDefault();
+            original.CustomProfiles =
+            [
+                new CustomMenuProfile
+                {
+                    Id = "p1",
+                    Name = "PDFs",
+                    Extensions = [".pdf", ".png"],
+                    WindowClass = "CabinetWClass"
+                }
+            ];
+            SettingsService.OverrideCurrentForTests(original);
+
+            SettingsWindow window = OpenSettings();
+            Assert.Equal(".pdf, .png", Find<TextBox>(window, "TxtProfileExtensions").Text);
+            Assert.Equal("CabinetWClass", Find<TextBox>(window, "TxtProfileWindowClass").Text);
+
+            Find<TextBox>(window, "TxtProfileExtensions").Text = "PDF, *.jpg, com espaço";
+            Find<TextBox>(window, "TxtProfileWindowClass").Text = "  Chrome_WidgetWin_1  ";
+
+            Click(Find<Button>(window, "BtnSave"));
+
+            Assert.NotNull(_saved);
+            CustomMenuProfile saved = Assert.Single(_saved!.CustomProfiles);
+            Assert.Equal([".pdf", ".jpg"], saved.Extensions.ToArray());
+            Assert.Equal("Chrome_WidgetWin_1", saved.WindowClass);
+            Assert.False(window.IsVisible);
+        });
+    }
+
+    [Fact]
+    public void Salvar_PersisteTransformacaoDeTexto()
+    {
+        RunSta(() =>
+        {
+            var original = AppSettings.CreateDefault();
+            original.CustomProfiles =
+            [
+                new CustomMenuProfile
+                {
+                    Id = "p1",
+                    Name = "Texto",
+                    Items =
+                    {
+                        new CustomMenuItem
+                        {
+                            Id = "i1",
+                            Label = "Maiúsculas",
+                            Kind = CustomMenuItemKind.TextTransform,
+                            Transform = CustomTextTransform.TitleCase,
+                        }
+                    }
+                }
+            ];
+            SettingsService.OverrideCurrentForTests(original);
+
+            SettingsWindow window = OpenSettings();
+            Find<ListBox>(window, "ListItems").SelectedIndex = 0;
+
+            Assert.Equal(Visibility.Visible, Find<StackPanel>(window, "PnlItemTextTransform").Visibility);
+            Assert.Equal(
+                CustomTextTransform.TitleCase,
+                ((ComboBoxItem)Find<ComboBox>(window, "CmbItemTransform").SelectedItem).Tag);
+
+            SelectTag(Find<ComboBox>(window, "CmbItemTransform"), CustomTextTransform.RemoveLineBreaks);
+            Click(Find<Button>(window, "BtnSave"));
+
+            Assert.NotNull(_saved);
+            CustomMenuItem savedItem = Assert.Single(Assert.Single(_saved!.CustomProfiles).Items);
+            Assert.Equal(CustomMenuItemKind.TextTransform, savedItem.Kind);
+            Assert.Equal(CustomTextTransform.RemoveLineBreaks, savedItem.Transform);
+            Assert.False(window.IsVisible);
+        });
+    }
+
+    [Fact]
+    public void Salvar_PersisteAtalhoDoMenu()
+    {
+        RunSta(() =>
+        {
+            var original = AppSettings.CreateDefault();
+            original.CustomProfiles =
+            [
+                new CustomMenuProfile
+                {
+                    Id = "p1",
+                    Name = "Meus atalhos",
+                    Hotkey = "Ctrl+Alt+2",
+                    Items =
+                    {
+                        new CustomMenuItem
+                        {
+                            Id = "i1",
+                            Label = "Bloco de notas",
+                            Kind = CustomMenuItemKind.Launch,
+                            Target = "notepad.exe",
+                        }
+                    }
+                }
+            ];
+            SettingsService.OverrideCurrentForTests(original);
+
+            SettingsWindow window = OpenSettings();
+            Assert.Equal("Ctrl+Alt+2", Find<TextBox>(window, "TxtProfileHotkey").Text);
+
+            Find<TextBox>(window, "TxtProfileHotkey").Text = " ctrl + alt + 1 ";
+            Click(Find<Button>(window, "BtnSave"));
+
+            Assert.NotNull(_saved);
+            CustomMenuProfile saved = Assert.Single(_saved!.CustomProfiles);
+            Assert.Equal("Ctrl+Alt+1", saved.Hotkey);
+            Assert.False(window.IsVisible);
+        });
+    }
+
+    private static void AddProfileWithLaunchItem(SettingsWindow window, string name)
+    {
+        Click(Find<Button>(window, "BtnAddMenuProfile"));
+        Find<TextBox>(window, "TxtProfileName").Text = name;
+        Click(Find<Button>(window, "BtnAddMenuItem"));
+        Find<TextBox>(window, "TxtItemLabel").Text = "Bloco de notas";
+        SelectTag(Find<ComboBox>(window, "CmbItemKind"), CustomMenuItemKind.Launch);
+        Find<TextBox>(window, "TxtItemLaunch").Text = "notepad.exe";
+    }
+
+    [Fact]
+    public void Salvar_AtalhoInvalido_MostraErroENaoPersiste()
+    {
+        RunSta(() =>
+        {
+            SettingsWindow window = OpenSettings();
+            AddProfileWithLaunchItem(window, "Inválido");
+            Find<TextBox>(window, "TxtProfileHotkey").Text = "Ctrl+Alt";
+
+            Func<string?> message = CaptureDialog("não é válido");
+            Click(Find<Button>(window, "BtnSave"));
+
+            Assert.NotNull(message());
+            Assert.Null(_saved);
+            Assert.True(window.IsVisible);
+            CloseDiscarding(window);
+        });
+    }
+
+    [Fact]
+    public void Salvar_AtalhoDaRodaPrincipal_MostraErroENaoPersiste()
+    {
+        RunSta(() =>
+        {
+            var original = AppSettings.CreateDefault();
+            original.Hotkey = "Ctrl+Alt+Space";
+            SettingsService.OverrideCurrentForTests(original);
+
+            SettingsWindow window = OpenSettings();
+            AddProfileWithLaunchItem(window, "Conflito");
+            Find<TextBox>(window, "TxtProfileHotkey").Text = "ctrl+alt+space";
+
+            Func<string?> message = CaptureDialog("roda principal");
+            Click(Find<Button>(window, "BtnSave"));
+
+            Assert.NotNull(message());
+            Assert.Null(_saved);
+            Assert.True(window.IsVisible);
+            CloseDiscarding(window);
+        });
+    }
+
+    [Fact]
+    public void Salvar_AtalhoRepetido_MostraErroENaoPersiste()
+    {
+        RunSta(() =>
+        {
+            SettingsWindow window = OpenSettings();
+            AddProfileWithLaunchItem(window, "Primeiro");
+            Find<TextBox>(window, "TxtProfileHotkey").Text = "Ctrl+Alt+1";
+
+            Click(Find<Button>(window, "BtnDuplicateMenuProfile"));
+
+            // A cópia herda os itens, mas não o atalho: dois menus com o mesmo atalho não salvam.
+            Assert.Equal("", Find<TextBox>(window, "TxtProfileHotkey").Text);
+            Find<TextBox>(window, "TxtProfileHotkey").Text = "Ctrl+Alt+1";
+
+            Func<string?> message = CaptureDialog("repete o atalho");
+            Click(Find<Button>(window, "BtnSave"));
+
+            Assert.NotNull(message());
+            Assert.Null(_saved);
+            Assert.True(window.IsVisible);
+            CloseDiscarding(window);
+        });
+    }
+
+    [Fact]
+    public void Salvar_AtalhoSemItens_MostraErroENaoPersiste()
+    {
+        RunSta(() =>
+        {
+            SettingsWindow window = OpenSettings();
+            Click(Find<Button>(window, "BtnAddMenuProfile"));
+            Find<TextBox>(window, "TxtProfileName").Text = "Sem itens";
+            Find<TextBox>(window, "TxtProfileHotkey").Text = "Ctrl+Alt+1";
+
+            Func<string?> message = CaptureDialog("nenhum item ativo");
+            Click(Find<Button>(window, "BtnSave"));
+
+            Assert.NotNull(message());
+            Assert.Null(_saved);
+            Assert.True(window.IsVisible);
+            CloseDiscarding(window);
         });
     }
 

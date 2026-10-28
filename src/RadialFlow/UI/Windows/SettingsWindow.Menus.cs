@@ -25,6 +25,7 @@ using Microsoft.Win32;
 using RadialFlow.Config;
 using RadialFlow.Context;
 using RadialFlow.Infrastructure;
+using RadialFlow.Input;
 using RadialFlow.Services;
 
 namespace RadialFlow.UI;
@@ -95,6 +96,9 @@ public partial class SettingsWindow
             foreach (var (action, label) in CustomMenuChoices.Actions)
                 CmbItemAction.Items.Add(new ComboBoxItem { Content = label, Tag = action });
 
+            foreach (var (transform, label) in CustomMenuChoices.Transforms)
+                CmbItemTransform.Items.Add(new ComboBoxItem { Content = label, Tag = transform });
+
             _contextAllChip = AddContextChip(Loc.Get("Menus.ContextAll"), null);
             foreach (var (kind, labelKey) in ContextChoices)
                 AddContextChip(Loc.Get(labelKey), kind);
@@ -122,6 +126,7 @@ public partial class SettingsWindow
         }
 
         _menusDirty = false;
+        ApplyMenuSection();
         UpdateMenuButtons();
         RefreshPreview();
     }
@@ -234,6 +239,9 @@ public partial class SettingsWindow
             ChkProfileEnabled.IsChecked = false;
             TxtProfileProcess.Text = "";
             TxtProfileTitle.Text = "";
+            TxtProfileExtensions.Text = "";
+            TxtProfileWindowClass.Text = "";
+            TxtProfileHotkey.Text = "";
             SliderProfilePriority.Value = 0;
             TxtPriorityValue.Text = "0";
             ApplyContexts(Array.Empty<RadialContextKind>());
@@ -247,6 +255,9 @@ public partial class SettingsWindow
         ChkProfileEnabled.IsChecked = profile.Enabled;
         TxtProfileProcess.Text = profile.ProcessName ?? "";
         TxtProfileTitle.Text = profile.TitleContains ?? "";
+        TxtProfileExtensions.Text = string.Join(", ", profile.Extensions ?? new List<string>());
+        TxtProfileWindowClass.Text = profile.WindowClass ?? "";
+        TxtProfileHotkey.Text = profile.Hotkey ?? "";
         SliderProfilePriority.Value = Math.Clamp(profile.Priority, -100, 100);
         TxtPriorityValue.Text = ((int)SliderProfilePriority.Value).ToString(CultureInfo.InvariantCulture);
 
@@ -279,6 +290,7 @@ public partial class SettingsWindow
 
         _menuProfiles.Add(profile);
         ListMenuProfiles.SelectedItem = profile;
+        ShowItemsSection();
         MarkMenusDirty();
         FocusAfterProfileChange();
     }
@@ -297,6 +309,7 @@ public partial class SettingsWindow
         CustomMenuProfile copy = CloneProfile(_selectedProfile);
         copy.Id = Guid.NewGuid().ToString("N");
         copy.Name = UniqueName(_menuProfiles.Select(p => p.Name), Loc.Format("Menus.CopySuffix", _selectedProfile.Name));
+        copy.Hotkey = "";   // dois menus com o mesmo atalho não podem ser salvos; a cópia começa sem
         foreach (CustomMenuItem item in copy.Items)
             item.Id = Guid.NewGuid().ToString("N");   // itens com o mesmo Id seriam deduplicados entre os perfis
 
@@ -335,6 +348,36 @@ public partial class SettingsWindow
             TxtProfileName.Focus();
             TxtProfileName.SelectAll();
         }));
+    }
+
+    // ------------------------------------------------------------------
+    // Seções do editor
+    // ------------------------------------------------------------------
+
+    private void MenuSection_Checked(object sender, RoutedEventArgs e)
+    {
+        if (PnlSectionItems is null) return;   // durante o InitializeComponent as seções ainda não existem
+        ApplyMenuSection();
+    }
+
+    private void ApplyMenuSection()
+    {
+        bool items = SegItems.IsChecked == true;
+        bool application = SegApplication.IsChecked == true;
+        bool preview = SegPreview.IsChecked == true;
+
+        PnlSectionItems.Visibility = items ? Visibility.Visible : Visibility.Collapsed;
+        PnlSectionApplication.Visibility = application ? Visibility.Visible : Visibility.Collapsed;
+        PnlSectionPreview.Visibility = preview ? Visibility.Visible : Visibility.Collapsed;
+        MenusScroll?.ScrollToTop();
+    }
+
+    /// <summary>Um menu novo começa pelos itens: é o primeiro passo de quem está criando.</summary>
+    private void ShowItemsSection()
+    {
+        if (SegItems is null) return;
+        SegItems.IsChecked = true;
+        MenusScroll?.ScrollToTop();
     }
 
     // ------------------------------------------------------------------
@@ -458,6 +501,9 @@ public partial class SettingsWindow
         _selectedProfile.Enabled = ChkProfileEnabled.IsChecked == true;
         _selectedProfile.ProcessName = (TxtProfileProcess.Text ?? "").Trim();
         _selectedProfile.TitleContains = (TxtProfileTitle.Text ?? "").Trim();
+        _selectedProfile.Extensions = CustomMenuNormalizer.ParseExtensions(TxtProfileExtensions.Text);
+        _selectedProfile.WindowClass = (TxtProfileWindowClass.Text ?? "").Trim();
+        _selectedProfile.Hotkey = (TxtProfileHotkey.Text ?? "").Trim();
         _selectedProfile.Priority = (int)Math.Round(SliderProfilePriority.Value);
         TxtPriorityValue.Text = _selectedProfile.Priority.ToString(CultureInfo.InvariantCulture);
         _selectedProfile.Contexts = _contextChips
@@ -472,6 +518,31 @@ public partial class SettingsWindow
     {
         if (_loadingMenus) return;
         RefreshProfileListSelection();
+    }
+
+    /// <summary>Ao sair do campo, mostra a forma canônica ("ctrl+alt+1" → "Ctrl+Alt+1").</summary>
+    private void TxtProfileHotkey_LostFocus(object sender, RoutedEventArgs e)
+    {
+        if (_loadingMenus) return;
+
+        string raw = (TxtProfileHotkey.Text ?? "").Trim();
+        if (raw.Length == 0) return;
+
+        string normalized = HotkeyGesture.Normalize(raw);
+        if (normalized.Length == 0 || normalized == TxtProfileHotkey.Text) return;
+
+        // A troca é só de forma (o valor salvo seria o mesmo): não pode marcar o rascunho como alterado.
+        bool loading = _loadingMenus;
+        _loadingMenus = true;
+        try
+        {
+            TxtProfileHotkey.Text = normalized;
+            TxtProfileHotkey.CaretIndex = normalized.Length;
+        }
+        finally
+        {
+            _loadingMenus = loading;
+        }
     }
 
     // ------------------------------------------------------------------
@@ -510,6 +581,7 @@ public partial class SettingsWindow
             CmbItemGlyph.SelectedItem = null;
             CmbItemKind.SelectedIndex = -1;
             CmbItemAction.SelectedIndex = -1;
+            CmbItemTransform.SelectedIndex = -1;
             TxtItemLaunch.Text = "";
             TxtItemUrl.Text = "";
             TxtItemPath.Text = "";
@@ -528,6 +600,7 @@ public partial class SettingsWindow
         SelectGlyph(item.Glyph);
         SelectKind(item.Kind);
         SelectAction(item.Action);
+        SelectTransform(item.Transform);
         TxtItemLaunch.Text = item.Kind == CustomMenuItemKind.Launch ? item.Target ?? "" : "";
         TxtItemUrl.Text = item.Kind == CustomMenuItemKind.OpenUrl ? item.Target ?? "" : "";
         TxtItemPath.Text = item.Kind == CustomMenuItemKind.OpenPath ? item.Target ?? "" : "";
@@ -641,6 +714,8 @@ public partial class SettingsWindow
         _selectedItem.Glyph = (CmbItemGlyph.SelectedItem as GlyphChoice)?.Glyph ?? DefaultGlyph;
         if (CmbItemAction.SelectedItem is ComboBoxItem { Tag: RadialAction action })
             _selectedItem.Action = action;
+        if (CmbItemTransform.SelectedItem is ComboBoxItem { Tag: CustomTextTransform transform })
+            _selectedItem.Transform = transform;
 
         _selectedItem.Target = kind switch
         {
@@ -983,9 +1058,53 @@ public partial class SettingsWindow
         BtnMoveItemUp.IsEnabled = hasItem && index > 0;
         BtnMoveItemDown.IsEnabled = hasItem && index >= 0 && index < _menuItems.Count - 1;
 
-        PnlNoItems.Visibility = hasProfile && _menuItems.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
+        bool hasItems = _menuItems.Count > 0;
+        ItemsWorkspace.Visibility = hasItems ? Visibility.Visible : Visibility.Collapsed;
+        PnlNoItems.Visibility = hasProfile && !hasItems ? Visibility.Visible : Visibility.Collapsed;
+
         MenuProfileCount.Text = _menuProfiles.Count.ToString(CultureInfo.InvariantCulture);
         MenuItemCount.Text = Loc.Format("Menus.ItemsCountFormat", _menuItems.Count, CustomMenuNormalizer.MaxItems);
+        UpdateProfileSummary();
+    }
+
+    /// <summary>Resumo do cabeçalho: as condições que valem agora, sem abrir a seção Aplicação.</summary>
+    private void UpdateProfileSummary()
+    {
+        if (ProfileSummary is null) return;
+
+        if (_selectedProfile is null)
+        {
+            ProfileSummary.Text = "";
+            return;
+        }
+
+        var parts = new List<string>();
+
+        string process = (_selectedProfile.ProcessName ?? "").Trim();
+        parts.Add(process.Length == 0 ? Loc.Get("Menus.AnyApp") : process);
+
+        var extensions = _selectedProfile.Extensions ?? new List<string>();
+        if (extensions.Count > 0)
+        {
+            string list = string.Join(", ", extensions.Take(3));
+            if (extensions.Count > 3) list += "…";
+            parts.Add(list);
+        }
+
+        string title = (_selectedProfile.TitleContains ?? "").Trim();
+        if (title.Length > 0)
+            parts.Add(Loc.Format("Menus.SummaryTitleContains", title.Length > 24 ? title[..24] + "…" : title));
+
+        string windowClass = (_selectedProfile.WindowClass ?? "").Trim();
+        if (windowClass.Length > 0) parts.Add(windowClass);
+
+        int items = _menuItems.Count;
+        parts.Add(items == 1 ? Loc.Get("Menus.SummaryItemsOne") : Loc.Format("Menus.SummaryItemsMany", items));
+
+        string hotkey = HotkeyGesture.Normalize(_selectedProfile.Hotkey ?? "");
+        if (hotkey.Length > 0) parts.Add(hotkey);
+
+        ProfileSummary.Text = string.Join("  ·  ", parts);
     }
 
     private void MarkMenusDirty(bool debouncePreview = false)
@@ -1034,8 +1153,10 @@ public partial class SettingsWindow
     }
 
     /// <summary>Mesmas regras para o rascunho e para menus importados.</summary>
-    private static string? ValidateProfiles(IEnumerable<CustomMenuProfile> profiles)
+    private string? ValidateProfiles(IEnumerable<CustomMenuProfile> profiles)
     {
+        var hotkeys = new HashSet<string>(StringComparer.Ordinal);
+
         foreach (CustomMenuProfile profile in profiles)
         {
             string name = (profile.Name ?? "").Trim();
@@ -1045,6 +1166,9 @@ public partial class SettingsWindow
                 return Loc.Format("Menus.ValidateNameTooLong", CustomMenuNormalizer.MaxNameLength);
 
             if (!profile.Enabled) continue;
+
+            string? hotkeyError = ValidateProfileHotkey(profile, name, hotkeys);
+            if (hotkeyError is not null) return hotkeyError;
 
             foreach (CustomMenuItem item in profile.Items ?? new List<CustomMenuItem>())
             {
@@ -1072,6 +1196,28 @@ public partial class SettingsWindow
                 }
             }
         }
+
+        return null;
+    }
+
+    private string? ValidateProfileHotkey(CustomMenuProfile profile, string name, HashSet<string> hotkeys)
+    {
+        string raw = (profile.Hotkey ?? "").Trim();
+        string hotkey = HotkeyGesture.Normalize(raw);
+
+        if (raw.Length > 0 && hotkey.Length == 0)
+            return Loc.Format("Menus.ValidateProfileHotkeyInvalid", name);
+
+        if (hotkey.Length == 0) return null;
+
+        if (string.Equals(hotkey, HotkeyGesture.Normalize(_hotkey), StringComparison.Ordinal))
+            return Loc.Format("Menus.ValidateProfileHotkeyGlobal", name, hotkey);
+
+        if (!hotkeys.Add(hotkey))
+            return Loc.Format("Menus.ValidateProfileHotkeyDuplicate", name, hotkey);
+
+        if (!CustomMenuHotkeys.HasActiveItem(profile))
+            return Loc.Format("Menus.ValidateProfileHotkeyNoItems", name);
 
         return null;
     }
@@ -1108,6 +1254,9 @@ public partial class SettingsWindow
             profile.Name = (profile.Name ?? "").Trim();
             profile.ProcessName = CustomMenuNormalizer.NormalizeProcessName(profile.ProcessName);
             profile.TitleContains = (profile.TitleContains ?? "").Trim();
+            profile.Extensions = CustomMenuNormalizer.NormalizeExtensions(profile.Extensions);
+            profile.WindowClass = CustomMenuNormalizer.NormalizeWindowClass(profile.WindowClass);
+            profile.Hotkey = CustomMenuNormalizer.NormalizeHotkey(profile.Hotkey, profile.Name);
             profile.Priority = Math.Clamp(profile.Priority, -100, 100);
 
             foreach (CustomMenuItem item in profile.Items ?? new List<CustomMenuItem>())
@@ -1127,6 +1276,9 @@ public partial class SettingsWindow
                 {
                     item.Steps?.Clear();
                 }
+
+                if (item.Kind != CustomMenuItemKind.TextTransform)
+                    item.Transform = CustomTextTransform.Upper;
 
                 foreach (CustomMenuItem option in item.Options ?? new List<CustomMenuItem>())
                 {
@@ -1182,6 +1334,9 @@ public partial class SettingsWindow
         Priority = profile.Priority,
         ProcessName = profile.ProcessName,
         TitleContains = profile.TitleContains,
+        Extensions = new List<string>(profile.Extensions ?? new List<string>()),
+        WindowClass = profile.WindowClass,
+        Hotkey = profile.Hotkey,
         Contexts = new List<RadialContextKind>(profile.Contexts ?? new List<RadialContextKind>()),
         Items = (profile.Items ?? new List<CustomMenuItem>())
             .Where(i => i is not null)
@@ -1200,6 +1355,7 @@ public partial class SettingsWindow
         Action = item.Action,
         Target = item.Target,
         Text = item.Text,
+        Transform = item.Transform,
         Options = (item.Options ?? new List<CustomMenuItem>())
             .Where(o => o is not null)
             .Select(CloneItem)
@@ -1276,6 +1432,20 @@ public partial class SettingsWindow
         CmbItemAction.SelectedIndex = 0;
     }
 
+    private void SelectTransform(CustomTextTransform transform)
+    {
+        foreach (ComboBoxItem entry in CmbItemTransform.Items)
+        {
+            if (entry.Tag is CustomTextTransform candidate && candidate == transform)
+            {
+                CmbItemTransform.SelectedItem = entry;
+                return;
+            }
+        }
+
+        CmbItemTransform.SelectedIndex = 0;
+    }
+
     private CustomMenuItemKind SelectedKind() =>
         CmbItemKind.SelectedItem is ComboBoxItem { Tag: CustomMenuItemKind kind } ? kind : CustomMenuItemKind.Action;
 
@@ -1293,6 +1463,7 @@ public partial class SettingsWindow
         PnlItemPath.Visibility = kind == CustomMenuItemKind.OpenPath ? Visibility.Visible : Visibility.Collapsed;
         PnlItemHotkey.Visibility = kind == CustomMenuItemKind.Hotkey ? Visibility.Visible : Visibility.Collapsed;
         PnlItemText.Visibility = kind == CustomMenuItemKind.Text ? Visibility.Visible : Visibility.Collapsed;
+        PnlItemTextTransform.Visibility = kind == CustomMenuItemKind.TextTransform ? Visibility.Visible : Visibility.Collapsed;
     }
 
     private void RefreshProfileListSelection()

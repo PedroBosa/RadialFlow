@@ -192,6 +192,90 @@ public sealed class CustomMenuTransferTests : IDisposable
     }
 
     [Fact]
+    public void ExportarEImportar_PreservaTransformacaoDeTexto()
+    {
+        CustomMenuProfile source = Profile();
+        source.Items.Add(new CustomMenuItem
+        {
+            Label = "Maiúsculas",
+            Kind = CustomMenuItemKind.TextTransform,
+            Transform = CustomTextTransform.TitleCase,
+        });
+        source.Items.Add(new CustomMenuItem
+        {
+            Label = "Ação",
+            Kind = CustomMenuItemKind.Action,
+            Action = RadialAction.CopyPath,
+            Transform = CustomTextTransform.Lower,
+        });
+
+        CustomMenuProfile copy = Assert.Single(Import(Export(source)));
+
+        Assert.Equal(CustomMenuItemKind.TextTransform, copy.Items[0].Kind);
+        Assert.Equal(CustomTextTransform.TitleCase, copy.Items[0].Transform);
+        Assert.Equal(CustomTextTransform.Upper, copy.Items[1].Transform);
+    }
+
+    [Fact]
+    public void Importar_RecusaTransformacaoDesconhecida()
+    {
+        Reject(
+            BundleWith(new CustomMenuItem
+            {
+                Label = "Ruim",
+                Kind = CustomMenuItemKind.TextTransform,
+                Transform = (CustomTextTransform)999,
+            }),
+            "transformação 999");
+    }
+
+    [Fact]
+    public void ExportarEImportar_PreservaAtalhoDoMenu()
+    {
+        CustomMenuProfile source = Profile();
+        source.Hotkey = "ctrl+shift+9";
+
+        CustomMenuProfile copy = Assert.Single(Import(Export(source)));
+
+        Assert.Equal("Ctrl+Shift+9", copy.Hotkey);
+    }
+
+    [Fact]
+    public void Importar_RecusaAtalhoInvalido()
+    {
+        CustomMenuProfile profile = Profile();
+        profile.Hotkey = "Ctrl+Alt";
+
+        Reject(RawBundle([profile]), "atalho");
+    }
+
+    [Fact]
+    public void Importar_RecusaAtalhoRepetido()
+    {
+        CustomMenuProfile first = Profile("Primeiro");
+        first.Hotkey = "Ctrl+Alt+1";
+        CustomMenuProfile second = Profile("Segundo");
+        second.Hotkey = "ctrl+alt+1";
+
+        Reject(RawBundle([first, second]), "aparece em mais de um menu");
+    }
+
+    [Fact]
+    public void Importar_MenuDesligadoNaoDisputaAtalho()
+    {
+        CustomMenuProfile enabled = Profile("Ativo");
+        enabled.Hotkey = "Ctrl+Alt+1";
+        CustomMenuProfile disabled = Profile("Desligado");
+        disabled.Enabled = false;
+        disabled.Hotkey = "ctrl+alt+1";
+
+        List<CustomMenuProfile> imported = Import(RawBundle([enabled, disabled]));
+
+        Assert.Equal("Ctrl+Alt+1", imported[0].Hotkey);
+        Assert.Equal("Ctrl+Alt+1", imported[1].Hotkey);
+    }
+
+    [Fact]
     public void Importar_NomesRepetidosGanhamSufixo()
     {
         string json = Export(Profile("Meu menu"), Profile("Meu menu"));

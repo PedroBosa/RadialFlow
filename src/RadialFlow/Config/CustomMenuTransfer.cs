@@ -22,6 +22,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using RadialFlow.Context;
 using RadialFlow.Infrastructure;
+using RadialFlow.Input;
 
 namespace RadialFlow.Config;
 
@@ -161,6 +162,7 @@ internal static class CustomMenuTransfer
             copy.Id = NewId();
             copy.Name = UniqueName(usedNames, copy.Name);
             usedNames.Add(copy.Name);
+            copy.Hotkey = HotkeyGesture.Normalize(copy.Hotkey);   // o editor recebe a forma canônica
             AssignNewIds(copy.Items);
             imported.Add(copy);
         }
@@ -328,6 +330,9 @@ internal static class CustomMenuTransfer
             Priority = source.Priority,
             ProcessName = CustomMenuNormalizer.NormalizeProcessName(source.ProcessName),
             TitleContains = (source.TitleContains ?? "").Trim(),
+            Extensions = CustomMenuNormalizer.NormalizeExtensions(source.Extensions),
+            WindowClass = CustomMenuNormalizer.NormalizeWindowClass(source.WindowClass),
+            Hotkey = (source.Hotkey ?? "").Trim(),
             Contexts = (source.Contexts ?? new List<RadialContextKind>()).Distinct().ToList(),
             Items = CloneItems(source.Items, newIds),
         };
@@ -351,6 +356,9 @@ internal static class CustomMenuTransfer
             Action = source.Action,
             Target = (source.Target ?? "").Trim(),
             Text = source.Text ?? "",
+            Transform = source.Kind == CustomMenuItemKind.TextTransform
+                ? source.Transform
+                : CustomTextTransform.Upper,
             RoutineVersion = source.Kind == CustomMenuItemKind.Routine
                 ? source.RoutineVersion
                 : CustomMenuItem.RoutineSchemaVersion,
@@ -393,6 +401,8 @@ internal static class CustomMenuTransfer
             return false;
         }
 
+        var hotkeys = new HashSet<string>(StringComparer.Ordinal);
+
         for (int i = 0; i < profiles.Count; i++)
         {
             CustomMenuProfile profile = profiles[i];
@@ -402,6 +412,25 @@ internal static class CustomMenuTransfer
             {
                 reason = Loc.Format("Transfer.NameTooLong", where, CustomMenuNormalizer.MaxNameLength);
                 return false;
+            }
+
+            // Só menus ativos disputam um atalho: os desligados ficam guardados sem registrar nada,
+            // do mesmo jeito que o editor deixa um menu desligado fora da validação.
+            if (profile.Enabled)
+            {
+                string hotkeyText = (profile.Hotkey ?? "").Trim();
+                string hotkey = HotkeyGesture.Normalize(hotkeyText);
+                if (hotkeyText.Length > 0 && hotkey.Length == 0)
+                {
+                    reason = Loc.Format("Transfer.HotkeyInvalid", where, Shorten(hotkeyText));
+                    return false;
+                }
+
+                if (hotkey.Length > 0 && !hotkeys.Add(hotkey))
+                {
+                    reason = Loc.Format("Transfer.HotkeyDuplicate", where, hotkey);
+                    return false;
+                }
             }
 
             if (profile.TitleContains.Length > CustomMenuNormalizer.MaxDescriptionLength)
@@ -488,6 +517,12 @@ internal static class CustomMenuTransfer
         if (!Enum.IsDefined(item.Action))
         {
             reason = Loc.Format("Transfer.ItemActionUnknown", where, (int)item.Action);
+            return false;
+        }
+
+        if (item.Kind == CustomMenuItemKind.TextTransform && !Enum.IsDefined(item.Transform))
+        {
+            reason = Loc.Format("Transfer.ItemTransformUnknown", where, (int)item.Transform);
             return false;
         }
 
@@ -582,6 +617,9 @@ internal static class CustomMenuTransfer
         string text = (label ?? "").Trim();
         return text.Length == 0 ? Loc.Get("Transfer.UnnamedLabel") : text;
     }
+
+    private static string Shorten(string value) =>
+        value.Length <= HotkeyGesture.MaxTextLength ? value : value[..HotkeyGesture.MaxTextLength] + "…";
 
     private static string NewId() => Guid.NewGuid().ToString("N");
 }

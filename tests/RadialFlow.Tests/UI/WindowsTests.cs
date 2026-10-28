@@ -391,7 +391,7 @@ public sealed class WindowsTests : IDisposable
     [Fact]
     public void Paleta_ExportaTodasAsChavesUsadasPeloEstilo()
     {
-        string xaml = System.IO.File.ReadAllText(System.IO.Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "UI", "Theme", "Controls.xaml"));
+        string xaml = System.IO.File.ReadAllText(System.IO.Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "..", "src", "RadialFlow", "UI", "Theme", "Controls.xaml"));
         var keys = UiPalette.Create(RadialTheme.Create(false, Colors.CornflowerBlue)).Entries().Select(e => e.Key + "Brush")
             .Concat(UiTheme.GradientBrushKeys).ToHashSet();
 

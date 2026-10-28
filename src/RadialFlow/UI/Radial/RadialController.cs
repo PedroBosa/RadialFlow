@@ -37,6 +37,7 @@ public sealed class RadialController : IDisposable
 {
     private readonly MouseHookService _hook = new();
     private readonly GlobalHotkeyService _hotkeys = new();
+    private readonly Dictionary<string, (GlobalHotkeyService Service, CustomMenuProfile Profile)> _profileHotkeys = new(StringComparer.Ordinal);
     private readonly RadialMenuWindow _wheel = new();
     private readonly ForegroundBlacklist _blacklist;
     private readonly Dispatcher _ui = Dispatcher.CurrentDispatcher;
@@ -61,11 +62,13 @@ public sealed class RadialController : IDisposable
                 _hook.HotkeyMode = false;
                 _wheel.Cancel();
                 _hotkeyError = _hotkeys.SetEnabled(false);
+                SetProfileHotkeysEnabled(false);
             }
             else
             {
                 // Durante a gravação a combinação continua solta; EndHotkeyCapture religa depois.
                 _hotkeyError = _hotkeys.SetEnabled(!_hotkeyCaptureActive);
+                SetProfileHotkeysEnabled(!_hotkeyCaptureActive);
             }
         }
     }
@@ -84,6 +87,44 @@ public sealed class RadialController : IDisposable
         _hotkeyError = _hotkeys.TrySet(settings.Hotkey, out _);
         if (_hotkeyError is HotkeyRegistrationError.AlreadyInUse or HotkeyRegistrationError.Unavailable)
             AppLog.Warning("Hotkey", $"O atalho global não pôde ser ativado ({_hotkeyError}).");
+
+        ApplyProfileHotkeys(settings);
+    }
+
+    /// <summary>
+    /// (Re)registra o atalho de cada menu. Os serviços antigos são descartados: registrar de novo
+    /// é a única forma de refletir remoções e trocas sem deixar combinações presas no sistema.
+    /// </summary>
+    private void ApplyProfileHotkeys(AppSettings settings)
+    {
+        foreach ((GlobalHotkeyService service, _) in _profileHotkeys.Values)
+            service.Dispose();
+        _profileHotkeys.Clear();
+
+        foreach ((CustomMenuProfile profile, string hotkey) in
+                 CustomMenuHotkeys.Resolve(settings.CustomProfiles, settings.Hotkey))
+        {
+            var service = new GlobalHotkeyService();
+            HotkeyRegistrationError error = service.TrySet(hotkey, out _);
+            if (error != HotkeyRegistrationError.None)
+            {
+                AppLog.Warning("Hotkey", $"O atalho do menu '{profile.Name}' não pôde ser ativado ({error}).");
+                service.Dispose();
+                continue;
+            }
+
+            string profileId = profile.Id;
+            service.Pressed += () => OnProfileHotkey(profileId);
+            if (IsPaused || _hotkeyCaptureActive) service.SetEnabled(false);
+
+            _profileHotkeys[profileId] = (service, profile);
+        }
+    }
+
+    private void SetProfileHotkeysEnabled(bool enabled)
+    {
+        foreach ((GlobalHotkeyService service, _) in _profileHotkeys.Values)
+            service.SetEnabled(enabled);
     }
 
     /// <summary>Estado do registro do atalho (Configurações mostram um aviso quando não é None).</summary>
@@ -114,6 +155,7 @@ public sealed class RadialController : IDisposable
 
         _hotkeyCaptureActive = true;
         _hotkeyError = _hotkeys.SetEnabled(false);
+        SetProfileHotkeysEnabled(false);
     }
 
     /// <summary>Fim da gravação: volta a valer o atalho desejado, respeitando a pausa da bandeja.</summary>
@@ -125,6 +167,7 @@ public sealed class RadialController : IDisposable
         if (_disposed) return;
 
         _hotkeyError = _hotkeys.SetEnabled(!IsPaused);
+        SetProfileHotkeysEnabled(!IsPaused);
     }
 
     // Compartilhados entre a thread do hook e a UI.
@@ -263,7 +306,37 @@ public sealed class RadialController : IDisposable
         if (_hook.IsGestureActive || _wheel.IsVisible || IsPaused) return;
         if (!RadialMenuWindow.TryGetCursorPosition(out int x, out int y)) return;
 
-        _ = BeginHotkeyAsync(x, y);
+        _ = BeginHotkeyAsync(x, y, profile: null);
+    }
+
+    private void OnProfileHotkey(string profileId)
+    {
+        try
+        {
+            ToggleProfileHotkey(profileId);
+        }
+        catch (Exception ex)
+        {
+            AppLog.Error("Hotkey", "Falha ao alternar a roda pelo atalho do menu", ex);
+        }
+    }
+
+    /// <summary>Atalho de um menu: abre a roda com os itens dele sobre o contexto sob o cursor.</summary>
+    private void ToggleProfileHotkey(string profileId)
+    {
+        if (_disposed) return;
+
+        if (_hotkeyWheelOpen)
+        {
+            _wheel.Cancel();   // qualquer atalho fecha a roda aberta por atalho
+            return;
+        }
+
+        if (_hook.IsGestureActive || _wheel.IsVisible || IsPaused) return;
+        if (!_profileHotkeys.TryGetValue(profileId, out var entry)) return;
+        if (!RadialMenuWindow.TryGetCursorPosition(out int x, out int y)) return;
+
+        _ = BeginHotkeyAsync(x, y, entry.Profile);
     }
 
     private void OnHotkeyClicked(MouseHookService.POINT pt)
@@ -295,7 +368,7 @@ public sealed class RadialController : IDisposable
         _hook.HotkeyMode = false;
     }
 
-    private async Task BeginHotkeyAsync(int x, int y)
+    private async Task BeginHotkeyAsync(int x, int y, CustomMenuProfile? profile)
     {
         if (_disposed) return;
         int generation = ++_generation;
@@ -304,7 +377,7 @@ public sealed class RadialController : IDisposable
         {
             (int cx, int cy) = RadialMenuWindow.PlaceOnScreen(x, y, _preset.Scale);
 
-            var content = await BuildWheelContentAsync(x, y, cx, cy, generation);
+            var content = await BuildWheelContentAsync(x, y, cx, cy, generation, profile);
             if (content is null) return;
 
             // A preparação é assíncrona: um gesto pode ter começado (ou a pausa sido ligada) nesse meio-tempo.
@@ -351,7 +424,7 @@ public sealed class RadialController : IDisposable
             // FINAL, em paralelo com a detecção de contexto (que leva dezenas de ms): não soma atraso.
             (int cx, int cy) = RadialMenuWindow.PlaceOnScreen(x, y, _preset.Scale);
 
-            var content = await BuildWheelContentAsync(x, y, cx, cy, generation);
+            var content = await BuildWheelContentAsync(x, y, cx, cy, generation, profile: null);
             if (content is null) return;   // botão já foi solto ou o controller foi descartado
 
             _wheel.Present(cx, cy, content.Value.Slices, content.Value.Backdrop);
@@ -378,7 +451,7 @@ public sealed class RadialController : IDisposable
     /// (<paramref name="generation"/> mudou) ou o controller foi descartado nesse meio-tempo.
     /// </summary>
     private async Task<(IReadOnlyList<RadialSlice> Slices, System.Windows.Media.Imaging.BitmapSource? Backdrop)?>
-        BuildWheelContentAsync(int x, int y, int cx, int cy, int generation)
+        BuildWheelContentAsync(int x, int y, int cx, int cy, int generation, CustomMenuProfile? profile)
     {
         int sizePx = (int)Math.Round(RadialMenuWindow.SizeDip * _preset.Scale * RadialMenuWindow.GetMonitorScale(cx, cy));
         Task<System.Windows.Media.Imaging.BitmapSource?> backdropTask = _preset.UsesHighContrast
@@ -389,7 +462,9 @@ public sealed class RadialController : IDisposable
         if (generation != _generation || _disposed) return null;
 
         // Monta as fatias fora da UI: consulta disco/ferramentas (File.Exists, etc.).
-        var slices = await Task.Run(() => SliceFactory.Build(context));
+        var slices = await Task.Run(() => profile is null
+            ? SliceFactory.Build(context)
+            : SliceFactory.BuildProfile(context, profile, SliceFactoryDependencies.Default));
         if (generation != _generation || _disposed) return null;
 
         // Normalmente já está pronto. Se atrasar, a roda aparece sem o vidro (tinta mais opaca) em vez de esperar.
@@ -432,6 +507,11 @@ public sealed class RadialController : IDisposable
         _hook.HotkeyMode = false;
 
         _blacklist.Dispose();
+
+        foreach ((GlobalHotkeyService service, _) in _profileHotkeys.Values)
+            service.Dispose();
+        _profileHotkeys.Clear();
+
         _hotkeys.Dispose();
         _hook.Dispose();    // encerra a thread do hook (Join)
 

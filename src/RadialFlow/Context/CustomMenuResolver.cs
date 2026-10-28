@@ -14,6 +14,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using RadialFlow.Config;
 using RadialFlow.Infrastructure;
@@ -168,6 +169,15 @@ internal static class CustomMenuResolver
 
         if (profile.TitleContains is { Length: > 0 } &&
             !ctx.WindowTitle.Contains(profile.TitleContains, StringComparison.OrdinalIgnoreCase))
+            return false;
+
+        if (profile.Extensions is { Count: > 0 } extensions &&
+            !ctx.Paths.Any(path =>
+                extensions.Contains(Path.GetExtension(path), StringComparer.OrdinalIgnoreCase)))
+            return false;
+
+        if (profile.WindowClass is { Length: > 0 } windowClass &&
+            !string.Equals(windowClass, ctx.WindowClass, StringComparison.OrdinalIgnoreCase))
             return false;
 
         return true;

@@ -471,6 +471,67 @@ public sealed class SliceFactoryTests
     }
 
     // ------------------------------------------------------------------
+    // Abertura direta por atalho (perfil único)
+    // ------------------------------------------------------------------
+
+    [Fact]
+    public void BuildProfile_IgnoraCondicoesDoPerfil()
+    {
+        var item = new CustomMenuItem
+        {
+            Label = "Relatórios",
+            Kind = CustomMenuItemKind.OpenPath,
+            Target = @"C:\Docs",
+        };
+        CustomMenuProfile profile = Profile(item);
+        profile.ProcessName = "notepad";
+        profile.WindowClass = "CabinetWClass";
+        profile.TitleContains = "planilha";
+        profile.Extensions = [".pdf"];
+        profile.Contexts = [RadialContextKind.TextField];
+
+        var slices = SliceFactory.BuildProfile(Context(RadialContextKind.TitleBar), profile, Deps());
+
+        Assert.Equal(8, slices.Count);
+        Assert.Equal("Relatórios", slices[^1].Label);
+    }
+
+    [Fact]
+    public void BuildProfile_SoUsaItensAtivos()
+    {
+        var active = new CustomMenuItem { Label = "Ativo", Kind = CustomMenuItemKind.OpenUrl, Target = "https://example.com" };
+        var disabled = new CustomMenuItem
+        {
+            Label = "Desligado",
+            Enabled = false,
+            Kind = CustomMenuItemKind.OpenUrl,
+            Target = "https://example.org",
+        };
+
+        var slices = SliceFactory.BuildProfile(Context(RadialContextKind.Generic), Profile(active, disabled), Deps());
+
+        Assert.Equal("Ativo", slices[^1].Label);
+        Assert.DoesNotContain(slices, s => s.Label == "Desligado");
+    }
+
+    [Fact]
+    public void BuildProfile_SemItens_MantemAutomaticas()
+    {
+        var ctx = Context(RadialContextKind.Generic);
+
+        var slices = SliceFactory.BuildProfile(ctx, Profile(), Deps());
+
+        Assert.Equal(
+            new[] { "Apps favoritos", "Ajustes rápidos", "Área de transf.", "Bloquear" },
+            slices.Select(s => s.Label));
+
+        foreach (var slice in slices) slice.Execute!();
+
+        Assert.Empty(_actions.CustomRuns);
+        Assert.All(_actions.Runs, r => Assert.Same(ctx, r.Context));
+    }
+
+    // ------------------------------------------------------------------
     // Glifos
     // ------------------------------------------------------------------
 

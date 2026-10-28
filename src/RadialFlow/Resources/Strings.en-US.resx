@@ -128,7 +128,7 @@
   <data name="Settings.Discard" xml:space="preserve"><value>Discard</value></data>
   <data name="Settings.ContinueEditing" xml:space="preserve"><value>Keep editing</value></data>
   <data name="Menus.PageTitle" xml:space="preserve"><value>Custom menus</value></data>
-  <data name="Menus.PageSubtitle" xml:space="preserve"><value>Create menus that appear only in the apps and contexts you choose. Each item becomes a wheel slice.</value></data>
+  <data name="Menus.PageSubtitle" xml:space="preserve"><value>Menus that appear only in the apps and contexts you choose.</value></data>
   <data name="Menus.ProfilesTitle" xml:space="preserve"><value>Your menus</value></data>
   <data name="Menus.ProfilesCountAutomation" xml:space="preserve"><value>Total menus</value></data>
   <data name="Menus.NewMenu" xml:space="preserve"><value>New menu</value></data>
@@ -145,7 +145,7 @@
   <data name="Menus.DisabledBadge" xml:space="preserve"><value>DISABLED</value></data>
   <data name="Menus.ProcessFormat" xml:space="preserve"><value>Process: {0}</value></data>
   <data name="Menus.AnyApp" xml:space="preserve"><value>Any app</value></data>
-  <data name="Menus.ConditionsTitle" xml:space="preserve"><value>Menu conditions</value></data>
+  <data name="Menus.ConditionsTitle" xml:space="preserve"><value>Where this menu appears</value></data>
   <data name="Menus.ConditionsHint" xml:space="preserve"><value>All fields are optional. When filled in, they must match for the menu to appear.</value></data>
   <data name="Menus.NameLabel" xml:space="preserve"><value>Menu name</value></data>
   <data name="Menus.Active" xml:space="preserve"><value>Active</value></data>
@@ -153,6 +153,10 @@
   <data name="Menus.ProcessHint" xml:space="preserve"><value>Empty = any app.</value></data>
   <data name="Menus.TitleContains" xml:space="preserve"><value>Title contains</value></data>
   <data name="Menus.TitleHint" xml:space="preserve"><value>Empty = any title.</value></data>
+  <data name="Menus.ExtensionsLabel" xml:space="preserve"><value>Extensions</value></data>
+  <data name="Menus.ExtensionsHint" xml:space="preserve"><value>Comma-separated, with or without a dot; empty = any. E.g. pdf, .png</value></data>
+  <data name="Menus.WindowClassLabel" xml:space="preserve"><value>Window class</value></data>
+  <data name="Menus.WindowClassHint" xml:space="preserve"><value>Exact Win32 class; empty = any. E.g. CabinetWClass</value></data>
   <data name="Menus.Priority" xml:space="preserve"><value>Priority</value></data>
   <data name="Menus.PriorityHint" xml:space="preserve"><value>Higher priority is considered first when the wheel does not have room for everything.</value></data>
   <data name="Menus.PriorityAutomation" xml:space="preserve"><value>Menu priority</value></data>
@@ -160,17 +164,25 @@
   <data name="Menus.ContextAll" xml:space="preserve"><value>All</value></data>
   <data name="Menus.ContextsHint" xml:space="preserve"><value>Pick where this menu should appear.</value></data>
   <data name="Menus.ItemsTitle" xml:space="preserve"><value>Menu items</value></data>
-  <data name="Menus.ItemsHint" xml:space="preserve"><value>Up to 8 items per menu.</value></data>
+  <data name="Menus.ItemsHint" xml:space="preserve"><value>Each item becomes a wheel slice.</value></data>
   <data name="Menus.ItemsCountFormat" xml:space="preserve"><value>{0} of {1}</value></data>
   <data name="Menus.ItemsCountZero" xml:space="preserve"><value>0 of 8</value></data>
   <data name="Menus.ItemsCountAutomation" xml:space="preserve"><value>Items in this menu</value></data>
   <data name="Menus.AddItemAutomation" xml:space="preserve"><value>Add item to menu</value></data>
+  <data name="Menus.AddItem" xml:space="preserve"><value>Add item</value></data>
+  <data name="Menus.AddFirstItem" xml:space="preserve"><value>Add the first item</value></data>
+  <data name="Menus.TabItems" xml:space="preserve"><value>Items</value></data>
+  <data name="Menus.TabApplication" xml:space="preserve"><value>Application</value></data>
+  <data name="Menus.TabPreview" xml:space="preserve"><value>Preview</value></data>
+  <data name="Menus.SummaryItemsOne" xml:space="preserve"><value>1 item</value></data>
+  <data name="Menus.SummaryItemsMany" xml:space="preserve"><value>{0} items</value></data>
+  <data name="Menus.SummaryTitleContains" xml:space="preserve"><value>title: {0}</value></data>
   <data name="Menus.RemoveItemAutomation" xml:space="preserve"><value>Remove selected item</value></data>
   <data name="Menus.MoveItemUpAutomation" xml:space="preserve"><value>Move item up</value></data>
   <data name="Menus.MoveItemDownAutomation" xml:space="preserve"><value>Move item down</value></data>
   <data name="Menus.SubmenuBadgeFormat" xml:space="preserve"><value>{0} options</value></data>
   <data name="Menus.NoItems" xml:space="preserve"><value>No items</value></data>
-  <data name="Menus.NoItemsHint" xml:space="preserve"><value>Use + below to create the first one.</value></data>
+  <data name="Menus.NoItemsHint" xml:space="preserve"><value>Create the first item to get started.</value></data>
   <data name="Menus.AppearanceSection" xml:space="preserve"><value>APPEARANCE</value></data>
   <data name="Menus.ActionSection" xml:space="preserve"><value>ACTION</value></data>
   <data name="Menus.ItemKind" xml:space="preserve"><value>Item type</value></data>
@@ -184,6 +196,12 @@
   <data name="Menus.HotkeyLabel" xml:space="preserve"><value>Shortcut (e.g. Ctrl+Shift+P)</value></data>
   <data name="Menus.HotkeyHint" xml:space="preserve"><value>Ctrl/Alt/Shift/Win modifiers and a final key. Focus must be on the source window.</value></data>
   <data name="Menus.TextLabel" xml:space="preserve"><value>Text to paste</value></data>
+  <data name="Menus.TransformLabel" xml:space="preserve"><value>Transformation</value></data>
+  <data name="Menus.TransformHint" xml:space="preserve"><value>Copies the selected text in the source window, transforms it and pastes over it.</value></data>
+  <data name="Menus.ProfileHotkeyTitle" xml:space="preserve"><value>Own shortcut</value></data>
+  <data name="Menus.ProfileHotkeyHint" xml:space="preserve"><value>Optional. Opens this menu right at the cursor, even outside its conditions and process.</value></data>
+  <data name="Menus.ProfileHotkeyExample" xml:space="preserve"><value>Needs Ctrl, Alt, Shift or Win plus a key. E.g. Ctrl+Alt+1.</value></data>
+  <data name="Menus.ProfileHotkeyAutomation" xml:space="preserve"><value>Shortcut that opens this menu directly</value></data>
   <data name="Menus.SubmenuSection" xml:space="preserve"><value>SUBMENU OPTIONS</value></data>
   <data name="Menus.SubmenuCountFormat" xml:space="preserve"><value>{0} of {1} options</value></data>
   <data name="Menus.SubmenuCountZero" xml:space="preserve"><value>0 of 8 options</value></data>
@@ -199,7 +217,7 @@
   <data name="Menus.EditStepsAutomation" xml:space="preserve"><value>Edit routine steps</value></data>
   <data name="Menus.RoutineHint" xml:space="preserve"><value>Native RadialFlow actions, in the defined order. No shell, arguments or URLs.</value></data>
   <data name="Menus.NoItemSelected" xml:space="preserve"><value>No item selected</value></data>
-  <data name="Menus.NoItemSelectedHint" xml:space="preserve"><value>Select an item in the list or use + below.</value></data>
+  <data name="Menus.NoItemSelectedHint" xml:space="preserve"><value>Select an item in the list to edit it.</value></data>
   <data name="Menus.PreviewTitle" xml:space="preserve"><value>Wheel preview</value></data>
   <data name="Menus.Legend" xml:space="preserve"><value>LEGEND</value></data>
   <data name="Menus.LegendAutomatic" xml:space="preserve"><value>automatic</value></data>
@@ -207,7 +225,7 @@
   <data name="Menus.LegendExtra" xml:space="preserve"><value>extra</value></data>
   <data name="Menus.SubmenuLegendToolTip" xml:space="preserve"><value>The slice opens a second ring when held.</value></data>
   <data name="Menus.LegendSubmenu" xml:space="preserve"><value>opens submenu</value></data>
-  <data name="Menus.PreviewHint" xml:space="preserve"><value>Highlighted slices come from this menu; the others are automatic for the context. Hold a slice with ▾ to open the second ring. Items beyond the limit of 8 stay out of the wheel.</value></data>
+  <data name="Menus.PreviewHint" xml:space="preserve"><value>Highlighted slices come from this menu; the others are automatic for the context. Hold a slice with ▾ to open the second ring.</value></data>
   <data name="Menus.NoProfileSelected" xml:space="preserve"><value>No menu selected</value></data>
   <data name="Menus.NoProfileSelectedHint" xml:space="preserve"><value>Create a menu with “New menu” or select one in the list on the left. Its items appear only in the apps and contexts you choose.</value></data>
   <data name="Menus.EmptyTitle" xml:space="preserve"><value>No menus yet</value></data>
@@ -273,6 +291,10 @@
   <data name="Menus.ValidateDescriptionTooLong" xml:space="preserve"><value>The item description “{0}” exceeds {1} characters.</value></data>
   <data name="Menus.ValidateSubmenuTooMany" xml:space="preserve"><value>The submenu “{0}” exceeds {1} options.</value></data>
   <data name="Menus.ValidateSubmenuMinOptions" xml:space="preserve"><value>The submenu “{0}” needs at least {1} active options.</value></data>
+  <data name="Menus.ValidateProfileHotkeyInvalid" xml:space="preserve"><value>The shortcut for menu “{0}” is not valid. Use Ctrl, Alt, Shift or Win plus a key, such as Ctrl+Alt+1.</value></data>
+  <data name="Menus.ValidateProfileHotkeyGlobal" xml:space="preserve"><value>Menu “{0}” uses the main wheel shortcut ({1}). Choose another one.</value></data>
+  <data name="Menus.ValidateProfileHotkeyDuplicate" xml:space="preserve"><value>Menu “{0}” repeats shortcut {1} from another menu.</value></data>
+  <data name="Menus.ValidateProfileHotkeyNoItems" xml:space="preserve"><value>Menu “{0}” has a shortcut but no active item. Add an item or clear the shortcut.</value></data>
   <data name="Menus.CustomGlyph" xml:space="preserve"><value>Custom</value></data>
   <data name="Converters.PageTitle" xml:space="preserve"><value>Converters</value></data>
   <data name="Converters.PageSubtitle" xml:space="preserve"><value>Extra formats for video, audio and documents. The programs are free, come from each one's official website and are verified before installing.</value></data>
@@ -378,8 +400,15 @@
   <data name="Choices.Kind.OpenPath" xml:space="preserve"><value>Open file or folder</value></data>
   <data name="Choices.Kind.Hotkey" xml:space="preserve"><value>Send shortcut</value></data>
   <data name="Choices.Kind.Text" xml:space="preserve"><value>Paste text</value></data>
+  <data name="Choices.Kind.TextTransform" xml:space="preserve"><value>Transform selected text</value></data>
   <data name="Choices.Kind.Submenu" xml:space="preserve"><value>Submenu (second ring)</value></data>
   <data name="Choices.Kind.Routine" xml:space="preserve"><value>Action routine</value></data>
+  <data name="Choices.Transform.Upper" xml:space="preserve"><value>UPPERCASE</value></data>
+  <data name="Choices.Transform.Lower" xml:space="preserve"><value>lowercase</value></data>
+  <data name="Choices.Transform.TitleCase" xml:space="preserve"><value>Title Case</value></data>
+  <data name="Choices.Transform.SentenceCase" xml:space="preserve"><value>Sentence case</value></data>
+  <data name="Choices.Transform.Trim" xml:space="preserve"><value>Trim surrounding spaces</value></data>
+  <data name="Choices.Transform.RemoveLineBreaks" xml:space="preserve"><value>Join lines into one paragraph</value></data>
   <data name="Glyph.Apps" xml:space="preserve"><value>Apps</value></data>
   <data name="Glyph.Edit" xml:space="preserve"><value>Edit</value></data>
   <data name="Glyph.Document" xml:space="preserve"><value>Document</value></data>
@@ -490,6 +519,7 @@
   <data name="MenuValidation.NestedSubmenu" xml:space="preserve"><value>The submenu “{0}” cannot contain another submenu.</value></data>
   <data name="MenuValidation.RoutineInside" xml:space="preserve"><value>The submenu “{0}” cannot contain a routine: routines stay on the first ring.</value></data>
   <data name="MenuValidation.ActionMissing" xml:space="preserve"><value>The action {0} “{1}” no longer exists.</value></data>
+  <data name="MenuValidation.TransformInvalid" xml:space="preserve"><value>The transformation {0} “{1}” no longer exists.</value></data>
   <data name="MenuValidation.LaunchRequired" xml:space="preserve"><value>Enter the executable {0} “{1}”.</value></data>
   <data name="MenuValidation.UrlInvalid" xml:space="preserve"><value>The URL {0} “{1}” must start with http:// or https://.</value></data>
   <data name="MenuValidation.PathRequired" xml:space="preserve"><value>Enter the file or folder {0} “{1}”.</value></data>
@@ -531,6 +561,9 @@
   <data name="Transfer.ItemTextTooLong" xml:space="preserve"><value>{0}: the text exceeds {1} characters.</value></data>
   <data name="Transfer.ItemKindUnknown" xml:space="preserve"><value>{0}: type {1} does not exist.</value></data>
   <data name="Transfer.ItemActionUnknown" xml:space="preserve"><value>{0}: action {1} does not exist.</value></data>
+  <data name="Transfer.ItemTransformUnknown" xml:space="preserve"><value>{0}: transformation {1} does not exist.</value></data>
+  <data name="Transfer.HotkeyInvalid" xml:space="preserve"><value>{0}: shortcut “{1}” is not valid.</value></data>
+  <data name="Transfer.HotkeyDuplicate" xml:space="preserve"><value>{0}: shortcut {1} appears in more than one menu.</value></data>
   <data name="Transfer.NestedSubmenu" xml:space="preserve"><value>{0}: a submenu cannot be inside another submenu.</value></data>
   <data name="Transfer.TooManyOptions" xml:space="preserve"><value>{0}: exceeds {1} options.</value></data>
   <data name="Transfer.AdvancedInsideSubmenu" xml:space="preserve"><value>{0}, option {1}: submenu and routine stay on the first ring.</value></data>

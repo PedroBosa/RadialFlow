@@ -74,6 +74,11 @@ internal static class CustomMenuValidation
                     return Loc.Format("MenuValidation.TextTooLong", noun, label, CustomMenuNormalizer.MaxTextLength);
                 break;
 
+            case CustomMenuItemKind.TextTransform:
+                if (!System.Enum.IsDefined(item.Transform))
+                    return Loc.Format("MenuValidation.TransformInvalid", noun, label);
+                break;
+
             case CustomMenuItemKind.Routine:
                 if (!CustomRoutineLogic.TryBuildPlan(item, out _, out string? routineReason))
                     return Loc.Format("MenuValidation.RoutineInvalid", noun, label, routineReason);

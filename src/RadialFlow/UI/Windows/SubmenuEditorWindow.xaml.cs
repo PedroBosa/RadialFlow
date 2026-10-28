@@ -55,6 +55,9 @@ public partial class SubmenuEditorWindow : Window
         foreach (var (action, label) in CustomMenuChoices.Actions)
             CmbOptionAction.Items.Add(new ComboBoxItem { Content = label, Tag = action });
 
+        foreach (var (transform, label) in CustomMenuChoices.Transforms)
+            CmbOptionTransform.Items.Add(new ComboBoxItem { Content = label, Tag = transform });
+
         _loading = true;
         try
         {
@@ -120,6 +123,7 @@ public partial class SubmenuEditorWindow : Window
             CmbOptionGlyph.SelectedItem = null;
             CmbOptionKind.SelectedIndex = -1;
             CmbOptionAction.SelectedIndex = -1;
+            CmbOptionTransform.SelectedIndex = -1;
             TxtOptionLaunch.Text = "";
             TxtOptionUrl.Text = "";
             TxtOptionPath.Text = "";
@@ -135,6 +139,7 @@ public partial class SubmenuEditorWindow : Window
         SelectGlyph(option.Glyph);
         SelectKind(option.Kind);
         SelectAction(option.Action);
+        SelectTransform(option.Transform);
         TxtOptionLaunch.Text = option.Kind == CustomMenuItemKind.Launch ? option.Target ?? "" : "";
         TxtOptionUrl.Text = option.Kind == CustomMenuItemKind.OpenUrl ? option.Target ?? "" : "";
         TxtOptionPath.Text = option.Kind == CustomMenuItemKind.OpenPath ? option.Target ?? "" : "";
@@ -238,6 +243,8 @@ public partial class SubmenuEditorWindow : Window
         _selected.Description = TxtOptionDescription.Text;
         if (CmbOptionAction.SelectedItem is ComboBoxItem { Tag: RadialAction action })
             _selected.Action = action;
+        if (CmbOptionTransform.SelectedItem is ComboBoxItem { Tag: CustomTextTransform transform })
+            _selected.Transform = transform;
 
         _selected.Target = kind switch
         {
@@ -408,6 +415,7 @@ public partial class SubmenuEditorWindow : Window
         Action = item.Action,
         Target = item.Target,
         Text = item.Text,
+        Transform = item.Transform,
     };
 
     private static string UniqueName(IEnumerable<string?> names, string baseName)
@@ -465,6 +473,20 @@ public partial class SubmenuEditorWindow : Window
         CmbOptionAction.SelectedIndex = 0;
     }
 
+    private void SelectTransform(CustomTextTransform transform)
+    {
+        foreach (ComboBoxItem entry in CmbOptionTransform.Items)
+        {
+            if (entry.Tag is CustomTextTransform candidate && candidate == transform)
+            {
+                CmbOptionTransform.SelectedItem = entry;
+                return;
+            }
+        }
+
+        CmbOptionTransform.SelectedIndex = 0;
+    }
+
     private CustomMenuItemKind SelectedKind() =>
         CmbOptionKind.SelectedItem is ComboBoxItem { Tag: CustomMenuItemKind kind } ? kind : CustomMenuItemKind.Action;
 
@@ -476,5 +498,6 @@ public partial class SubmenuEditorWindow : Window
         PnlOptionPath.Visibility = kind == CustomMenuItemKind.OpenPath ? Visibility.Visible : Visibility.Collapsed;
         PnlOptionHotkey.Visibility = kind == CustomMenuItemKind.Hotkey ? Visibility.Visible : Visibility.Collapsed;
         PnlOptionText.Visibility = kind == CustomMenuItemKind.Text ? Visibility.Visible : Visibility.Collapsed;
+        PnlOptionTextTransform.Visibility = kind == CustomMenuItemKind.TextTransform ? Visibility.Visible : Visibility.Collapsed;
     }
 }

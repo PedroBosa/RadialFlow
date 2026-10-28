@@ -30,6 +30,7 @@ public enum RadialContextKind
 /// <param name="ProcessName">Nome do processo dono da janela (sem .exe).</param>
 /// <param name="Paths">Caminhos resolvidos (apenas em FileOrFolder; pode ter vários).</param>
 /// <param name="WindowTitle">Título da janela de origem; vazio se indisponível. Transitório, nunca persistido.</param>
+/// <param name="WindowClass">Classe Win32 da janela de origem (ex.: "CabinetWClass"). Transitória, nunca persistida.</param>
 public sealed record ContextInfo(
     RadialContextKind Kind,
     IntPtr RootWindow,
@@ -37,7 +38,8 @@ public sealed record ContextInfo(
     int OriginX,
     int OriginY,
     IReadOnlyList<string> Paths,
-    string WindowTitle = "")
+    string WindowTitle = "",
+    string WindowClass = "")
 {
     public static readonly IReadOnlyList<string> NoPaths = Array.Empty<string>();
 }

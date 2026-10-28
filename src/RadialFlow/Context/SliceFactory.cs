@@ -72,17 +72,33 @@ public static class SliceFactory
     /// <summary>Monta as fatias do contexto com dependências explícitas (testes).</summary>
     internal static IReadOnlyList<RadialSlice> Build(ContextInfo ctx, SliceFactoryDependencies deps)
     {
-        IReadOnlyList<RadialSlice> automatic = ctx.Kind switch
+        IReadOnlyList<RadialSlice> automatic = BuildAutomatic(ctx, deps);
+        var custom = CustomMenuResolver.Match(ctx, deps.GetCustomProfiles?.Invoke());
+        return CustomMenuResolver.Merge(automatic, custom, item => deps.Actions.RunCustom(item, ctx));
+    }
+
+    /// <summary>
+    /// Fatias do atalho próprio de um menu: os itens do perfil sobre as fatias automáticas do
+    /// contexto, IGNORANDO as condições do perfil (o usuário escolheu abrir justamente este menu).
+    /// </summary>
+    internal static IReadOnlyList<RadialSlice> BuildProfile(
+        ContextInfo ctx, CustomMenuProfile profile, SliceFactoryDependencies deps)
+    {
+        var items = new List<CustomMenuItem>();
+        foreach (CustomMenuItem item in profile.Items ?? new List<CustomMenuItem>())
+            if (item is not null && item.Enabled) items.Add(item);
+
+        return CustomMenuResolver.Merge(BuildAutomatic(ctx, deps), items, item => deps.Actions.RunCustom(item, ctx));
+    }
+
+    private static RadialSlice[] BuildAutomatic(ContextInfo ctx, SliceFactoryDependencies deps) =>
+        ctx.Kind switch
         {
             RadialContextKind.FileOrFolder => FileSlices(ctx, deps),
             RadialContextKind.TitleBar     => TitleBarSlices(ctx, deps.Actions),
             RadialContextKind.TextField    => TextFieldSlices(ctx, deps.Actions),
             _                              => SystemSlices(ctx, deps)   // DesktopBackground e Generic
         };
-
-        var custom = CustomMenuResolver.Match(ctx, deps.GetCustomProfiles?.Invoke());
-        return CustomMenuResolver.Merge(automatic, custom, item => deps.Actions.RunCustom(item, ctx));
-    }
 
     // ------------------------------------------------------------------
     // Contexto 1: Arquivo ou pasta

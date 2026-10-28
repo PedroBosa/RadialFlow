@@ -14,6 +14,7 @@
 //    recusados (a associação do Windows os executaria).
 //  * Hotkey: modificadores conhecidos + uma tecla de uma lista curada.
 //  * Text: 1..4096 caracteres, colados via clipboard.
+//  * TextTransform: lê a seleção via Ctrl+C, transforma localmente e cola por cima.
 // ============================================================================
 
 using System;
@@ -31,7 +32,8 @@ internal sealed record CustomActionPlan(
     CustomMenuItemKind Kind,
     string Target,
     byte[] Keys,
-    string Text);
+    string Text,
+    CustomTextTransform Transform = CustomTextTransform.Upper);
 
 internal static class CustomActionLogic
 {
@@ -137,6 +139,16 @@ internal static class CustomActionLogic
                     return false;
                 }
                 plan = new(CustomMenuItemKind.Text, "", Array.Empty<byte>(), text);
+                return true;
+
+            case CustomMenuItemKind.TextTransform:
+                if (!Enum.IsDefined(item.Transform))
+                {
+                    reason = "transformação inválida";
+                    return false;
+                }
+                plan = new(CustomMenuItemKind.TextTransform, "", Array.Empty<byte>(), "",
+                    item.Transform);
                 return true;
 
             case CustomMenuItemKind.Action:

@@ -267,6 +267,27 @@ public sealed class CustomActionLogicTests : IDisposable
     }
 
     [Fact]
+    public void TextTransform_AceitaTransformacaoValida()
+    {
+        var item = Item(CustomMenuItemKind.TextTransform);
+        item.Transform = CustomTextTransform.TitleCase;
+
+        Assert.True(CustomActionLogic.TryValidate(item, out CustomActionPlan plan, out _));
+
+        Assert.Equal(CustomMenuItemKind.TextTransform, plan.Kind);
+        Assert.Equal(CustomTextTransform.TitleCase, plan.Transform);
+    }
+
+    [Fact]
+    public void TextTransform_RecusaTransformacaoDesconhecida()
+    {
+        var item = Item(CustomMenuItemKind.TextTransform);
+        item.Transform = (CustomTextTransform)999;
+
+        Assert.Equal("transformação inválida", Rejection(item));
+    }
+
+    [Fact]
     public void ItemDesabilitado_EhRecusado()
     {
         Assert.Equal("item desabilitado",

@@ -1,6 +1,7 @@
 # RadialFlow
 
 <p align="center">
+  <a href="https://github.com/PedroBosa/RadialFlow/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/PedroBosa/RadialFlow/actions/workflows/ci.yml/badge.svg"></a>
   <a href="https://github.com/PedroBosa/RadialFlow/releases/latest"><img alt="Versão" src="https://img.shields.io/github/v/release/PedroBosa/RadialFlow?label=vers%C3%A3o&color=2563eb"></a>
   <a href="LICENSE"><img alt="Licença MIT" src="https://img.shields.io/badge/licen%C3%A7a-MIT-2563eb"></a>
   <img alt="Windows 10 e 11" src="https://img.shields.io/badge/Windows-10%20e%2011-2563eb">
@@ -89,6 +90,9 @@ seus itens à roda do contexto. Clique em **Novo**, dê um nome e preencha as co
 
 - **Processo**: o aplicativo onde o menu vale, sem o `.exe` (por exemplo, `notepad`); vazio vale para todos.
 - **Título contém**: um trecho do título da janela (como o nome de uma aba); vazio vale para todos.
+- **Extensões**: só com arquivos desses tipos, como `.pdf, .docx`; vazio vale para todos.
+- **Classe da janela**: a classe técnica da janela (como `CabinetWClass`, do Explorer), para alvos que o processo e o
+  título não distinguem; vazio vale para todos.
 - **Contextos**: arquivos e pastas, área de trabalho, barra de título, campos de texto ou genérico; nenhum vale para todos.
 - **Prioridade**: com vários menus ao mesmo tempo, todos entram; ela decide a ordem quando falta espaço na roda.
 
@@ -102,6 +106,7 @@ Depois, adicione os itens. Cada um pode ser:
 | Abrir arquivo ou pasta | Abre com o programa padrão | Executáveis, scripts e atalhos são recusados. |
 | Enviar atalho | Envia teclas, como `Ctrl+Shift+P` | Foco na janela onde a roda abriu. |
 | Colar texto | Cola um texto no campo em foco | Devolve o conteúdo anterior depois. |
+| Transformar texto | Muda a seleção: maiúsculas, minúsculas, título, frase, sem espaços sobrando ou em uma linha | Copia a seleção, transforma e cola por cima. |
 | Rotina | Até 8 passos em sequência, com pausas | Abrir outra janela só no último passo. |
 | Submenu | Segundo anel com até 8 opções | 2 a 8 opções, exceto submenu e rotina. |
 
@@ -112,6 +117,10 @@ que não couber fica de fora, e a prévia avisa quantos itens serão ignorados. 
 **Rotinas** encadeiam até 8 passos — ações do RadialFlow ou pausas de 50 a 2.000 ms (até 5 s) —, e ações que abrem
 outra janela, como **Pesquisar**, só podem ser o último; em **Editar passos…** você monta a sequência, e a prévia
 avisa se ela ficar inválida.
+
+Cada menu aceita um **atalho próprio** (como `Ctrl+Alt+1`): ele abre a roda direto com os itens do menu, no cursor e
+sem exigir as condições, desde que o menu esteja ativo e tenha ao menos um item. O atalho não pode repetir o atalho
+global nem o de outro menu, e importar menus recusa o arquivo inteiro se um atalho for inválido ou repetido.
 
 Salvar vale para o próximo menu aberto; para voltar à roda automática, desative ou remova o menu. **Importar…** e
 **Exportar…** trocam somente os menus, num `.json` versionado: importar **acrescenta** cópias ao rascunho — a edição
@@ -193,7 +202,7 @@ dotnet build              # app, testes e gerador de ícone; qualquer aviso cont
 dotnet test               # todos os testes
 ```
 
-Para rodar, abra `bin\Debug\net10.0-windows\RadialFlow.exe` como administrador; o `dotnet run` falha com o erro 740.
+Para rodar, abra `src\RadialFlow\bin\Debug\net10.0-windows\RadialFlow.exe` como administrador; o `dotnet run` falha com o erro 740.
 
 ### Gerar os arquivos de distribuição
 
@@ -201,12 +210,12 @@ Para rodar, abra `bin\Debug\net10.0-windows\RadialFlow.exe` como administrador; 
 powershell -ExecutionPolicy Bypass -File .\publish.ps1
 ```
 
-O script roda os testes e, se passarem, cria `dist\` (fora do Git) com o programa sem o .NET
-(`RadialFlow-<versão>-win-x64\`), o `.zip` portátil, o instalador `Setup.exe` (Inno Setup), o `SHA256SUMS.txt` e a
-documentação (`README.md`, `CHANGELOG.md`, `LICENSE` e `docs\`).
+O script roda os testes e, se passarem, cria `dist\` (fora do Git) com o `.zip` portátil, o instalador `Setup.exe`
+(Inno Setup) e o `SHA256SUMS.txt`; a pasta `RadialFlow-<versão>-win-x64\` que os dois empacotam é apagada no fim
+(use `-KeepStaging` para mantê-la). O README, o CHANGELOG, a licença e `docs\` vão dentro do zip e do instalador.
 
-A versão vem do `<Version>` em `RadialFlow.csproj`. Feche o RadialFlow antes do script: aberto a partir de `bin\`, ele
-trava o `.exe`.
+A versão vem do `<Version>` em `src\RadialFlow\RadialFlow.csproj`; o script falha se o `#define AppVersion` do
+`RadialFlow.iss` divergir. Feche o RadialFlow antes do script: aberto a partir de `bin\`, ele trava o `.exe`.
 
 **Assinatura digital (opcional).** Sem certificado, o Windows mostra o aviso do SmartScreen. Com um certificado
 instalado, informe a impressão digital e o script assina tudo, com carimbo de tempo (ou defina
@@ -218,21 +227,22 @@ instalado, informe a impressão digital e o script assina tudo, com carimbo de t
 
 ### Ícone
 
-O ícone é desenhado pelo código, com a geometria da roda (`UI/Tray/AppIconRenderer.cs`); depois de mudar o desenho,
-gere-o com `dotnet run --project tools/IconGenerator`. Um teste falha se `Assets/RadialFlow.ico` divergir.
+O ícone é desenhado pelo código, com a geometria da roda (`src/RadialFlow/UI/Tray/AppIconRenderer.cs`); depois de mudar
+o desenho, gere-o com `dotnet run --project tools/IconGenerator`. Um teste falha se
+`src/RadialFlow/Assets/RadialFlow.ico` divergir.
 
 ### Como o código está organizado
 
 | Pasta | O que tem |
 |---|---|
-| `Input/` | o hook do mouse e a blacklist |
-| `Context/` | descobre o que está sob o cursor e executa as ações |
-| `Services/` | conversão, instalação de conversores, compactação e lançamento de programas sem administrador |
-| `Security/` | validação de caminhos e de executáveis |
-| `Config/` e `Infrastructure/` | configurações, log, instância única e versão |
-| `UI/` | a roda, as janelas, a bandeja e o tema |
-| `RadialFlow.Tests/` | os testes, na mesma organização do app |
-| `tools/IconGenerator/` | gera o `Assets/RadialFlow.ico` |
+| `src/RadialFlow/Input/` | o hook do mouse e a blacklist |
+| `src/RadialFlow/Context/` | descobre o que está sob o cursor e executa as ações |
+| `src/RadialFlow/Services/` | conversão, instalação de conversores, compactação e lançamento de programas sem administrador |
+| `src/RadialFlow/Security/` | validação de caminhos e de executáveis |
+| `src/RadialFlow/Config/` e `src/RadialFlow/Infrastructure/` | configurações, log, instância única e versão |
+| `src/RadialFlow/UI/` | a roda, as janelas, a bandeja e o tema |
+| `tests/RadialFlow.Tests/` | os testes, na mesma organização do app |
+| `tools/IconGenerator/` | gera o `src/RadialFlow/Assets/RadialFlow.ico` |
 
 ## Segurança
 

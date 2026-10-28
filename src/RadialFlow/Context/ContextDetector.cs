@@ -59,7 +59,7 @@ public static class ContextDetector
     {
         IntPtr hit = WindowFromPoint(new NativePoint { X = x, Y = y });
         if (hit == IntPtr.Zero)
-            return new(Make(RadialContextKind.Generic, IntPtr.Zero, x, y), true, false, "");
+            return new(Make(RadialContextKind.Generic, IntPtr.Zero, x, y, ""), true, false, "");
 
         IntPtr root = GetAncestor(hit, GA_ROOT);
         if (root == IntPtr.Zero) root = hit;
@@ -67,23 +67,23 @@ public static class ContextDetector
 
         // Barra de título: pergunta à janela raiz o que há naquele ponto.
         if (NcHitTest(root, x, y) == HTCAPTION)
-            return new(Make(RadialContextKind.TitleBar, root, x, y), true, false, rootClass);
+            return new(Make(RadialContextKind.TitleBar, root, x, y, rootClass), true, false, rootClass);
 
         // Barra de tarefas: sem contexto (evita probe inútil).
         if (rootClass is "Shell_TrayWnd" or "Shell_SecondaryTrayWnd")
-            return new(Make(RadialContextKind.Generic, root, x, y), true, false, rootClass);
+            return new(Make(RadialContextKind.Generic, root, x, y, rootClass), true, false, rootClass);
 
         // Desktop / Explorer: só UI Automation sabe se é item ou fundo.
         // Fallback conservador (timeout): fundo.
         if (rootClass is "Progman" or "WorkerW" or "CabinetWClass")
-            return new(Make(RadialContextKind.DesktopBackground, root, x, y), false, true, rootClass);
+            return new(Make(RadialContextKind.DesktopBackground, root, x, y, rootClass), false, true, rootClass);
 
         // Campos de texto clássicos (Notepad, caixas de diálogo...).
         if (ClassicEditClasses.Contains(ClassOf(hit)))
-            return new(Make(RadialContextKind.TextField, root, x, y), true, false, rootClass);
+            return new(Make(RadialContextKind.TextField, root, x, y, rootClass), true, false, rootClass);
 
         // Qualquer outra coisa: UI Automation decide se é campo de texto.
-        return new(Make(RadialContextKind.Generic, root, x, y), false, false, rootClass);
+        return new(Make(RadialContextKind.Generic, root, x, y, rootClass), false, false, rootClass);
     }
 
     // ------------------------------------------------------------------
@@ -151,8 +151,9 @@ public static class ContextDetector
     // Helpers Win32
     // ------------------------------------------------------------------
 
-    private static ContextInfo Make(RadialContextKind kind, IntPtr root, int x, int y) =>
-        new(kind, root, root == IntPtr.Zero ? "" : ProcessNameOf(root), x, y, ContextInfo.NoPaths, WindowTitleOf(root));
+    private static ContextInfo Make(RadialContextKind kind, IntPtr root, int x, int y, string windowClass) =>
+        new(kind, root, root == IntPtr.Zero ? "" : ProcessNameOf(root), x, y, ContextInfo.NoPaths,
+            WindowTitleOf(root), windowClass);
 
     internal static string ClassOf(IntPtr hwnd)
     {

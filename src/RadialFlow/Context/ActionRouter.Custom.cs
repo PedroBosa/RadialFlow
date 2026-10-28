@@ -124,7 +124,7 @@ public static partial class ActionRouter
         return true;
     }
 
-    private static Task DispatchCustomAsync(CustomActionPlan plan, ContextInfo ctx)
+    private static async Task DispatchCustomAsync(CustomActionPlan plan, ContextInfo ctx)
     {
         switch (plan.Kind)
         {
@@ -149,12 +149,14 @@ public static partial class ActionRouter
                 PasteCustomText(plan.Text, ctx);
                 break;
 
+            case CustomMenuItemKind.TextTransform:
+                await TransformSelectedTextAsync(plan, ctx).ConfigureAwait(false);
+                break;
+
             default:
                 AppLog.Warning("Menus", $"Tipo de item desconhecido: {plan.Kind}");
                 break;
         }
-
-        return Task.CompletedTask;
     }
 
     /// <summary>Cola o texto e tenta devolver o conteúdo anterior do clipboard.</summary>
@@ -202,5 +204,37 @@ public static partial class ActionRouter
         });
 
         AppLog.Debug("Menus", "Texto colado.");
+    }
+
+    /// <summary>
+    /// Captura a seleção (Ctrl+C), transforma localmente e cola por cima. O clipboard anterior é
+    /// restaurado pela captura e novamente pela colagem; texto vazio ou inalterado não mexe no alvo.
+    /// </summary>
+    private static async Task TransformSelectedTextAsync(CustomActionPlan plan, ContextInfo ctx)
+    {
+        string? text = await CaptureSelectedTextAsync(ctx).ConfigureAwait(false);
+        if (string.IsNullOrEmpty(text))
+        {
+            AppLog.Debug("Menus", $"Transformação {plan.Transform}: seleção vazia ou indisponível.");
+            return;
+        }
+
+        string transformed = TextTransforms.Apply(text, plan.Transform);
+        if (transformed.Length == 0 || string.Equals(transformed, text, StringComparison.Ordinal))
+        {
+            AppLog.Debug("Menus", $"Transformação {plan.Transform}: nada a alterar.");
+            return;
+        }
+
+        if (transformed.Length > CustomMenuNormalizer.MaxTextLength)
+        {
+            AppLog.Warning("Menus",
+                $"Transformação {plan.Transform} ignorada: resultado acima de {CustomMenuNormalizer.MaxTextLength} caracteres.");
+            return;
+        }
+
+        PasteCustomText(transformed, ctx);
+        AppLog.Debug("Menus",
+            $"Transformação {plan.Transform} aplicada ({text.Length} → {transformed.Length} caracteres).");
     }
 }

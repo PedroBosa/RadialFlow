@@ -15,8 +15,10 @@ public sealed class CustomMenuResolverTests
     private static ContextInfo Context(
         RadialContextKind kind = RadialContextKind.FileOrFolder,
         string process = "explorer",
-        string title = "") =>
-        new(kind, Window, process, 10, 20, ContextInfo.NoPaths, title);
+        string title = "",
+        IReadOnlyList<string>? paths = null,
+        string windowClass = "") =>
+        new(kind, Window, process, 10, 20, paths ?? ContextInfo.NoPaths, title, windowClass);
 
     private static CustomMenuProfile Profile(
         string id,
@@ -118,6 +120,66 @@ public sealed class CustomMenuResolverTests
 
         Assert.Single(CustomMenuResolver.Match(Context(title: "Meus DOCUMENTOS - Bloco"), [profile]));
         Assert.Empty(CustomMenuResolver.Match(Context(title: "Planilha"), [profile]));
+    }
+
+    [Fact]
+    public void Match_FiltraPorExtensao_QuandoAlgumCaminhoCasa()
+    {
+        CustomMenuProfile profile = Profile("p1");
+        profile.Extensions = [".pdf"];
+        profile.Items = [Item("i1")];
+
+        Assert.Single(CustomMenuResolver.Match(
+            Context(paths: [@"C:\a.png", @"C:\b.PDF"]), [profile]));
+        Assert.Empty(CustomMenuResolver.Match(
+            Context(paths: [@"C:\a.png", @"C:\b.txt"]), [profile]));
+    }
+
+    [Fact]
+    public void Match_FiltraPorExtensao_SemArquivoNoContexto()
+    {
+        CustomMenuProfile profile = Profile("p1");
+        profile.Extensions = [".pdf"];
+        profile.Items = [Item("i1")];
+
+        Assert.Empty(CustomMenuResolver.Match(Context(RadialContextKind.DesktopBackground), [profile]));
+        Assert.Empty(CustomMenuResolver.Match(Context(RadialContextKind.TextField), [profile]));
+        Assert.Empty(CustomMenuResolver.Match(Context(paths: [@"C:\pasta"]), [profile]));
+    }
+
+    [Fact]
+    public void Match_FiltraPorClasseDaJanela_SemDiferenciarCaixa()
+    {
+        CustomMenuProfile profile = Profile("p1");
+        profile.WindowClass = "CabinetWClass";
+        profile.Items = [Item("i1")];
+
+        Assert.Single(CustomMenuResolver.Match(Context(windowClass: "CABINETWCLASS"), [profile]));
+        Assert.Empty(CustomMenuResolver.Match(Context(windowClass: "Chrome_WidgetWin_1"), [profile]));
+        Assert.Empty(CustomMenuResolver.Match(Context(windowClass: ""), [profile]));
+    }
+
+    [Fact]
+    public void Match_CondicoesCombinadas_ExigemTodas()
+    {
+        CustomMenuProfile profile = Profile("p1", process: "explorer", title: "Documentos");
+        profile.Extensions = [".pdf"];
+        profile.WindowClass = "CabinetWClass";
+        profile.Items = [Item("i1")];
+
+        Assert.Single(CustomMenuResolver.Match(
+            Context(title: "DOCUMENTOS", paths: [@"C:\relatorio.pdf"], windowClass: "cabinetwclass"),
+            [profile]));
+
+        Assert.Empty(CustomMenuResolver.Match(
+            Context(title: "DOCUMENTOS", paths: [@"C:\relatorio.pdf"], windowClass: "Chrome_WidgetWin_1"),
+            [profile]));
+        Assert.Empty(CustomMenuResolver.Match(
+            Context(title: "DOCUMENTOS", paths: [@"C:\relatorio.png"], windowClass: "CabinetWClass"),
+            [profile]));
+        Assert.Empty(CustomMenuResolver.Match(
+            Context(title: "Planilhas", paths: [@"C:\relatorio.pdf"], windowClass: "CabinetWClass"),
+            [profile]));
     }
 
     [Fact]

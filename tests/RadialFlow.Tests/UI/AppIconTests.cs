@@ -15,7 +15,7 @@ namespace RadialFlow.Tests;
 
 /// <summary>
 /// Ícone do aplicativo: estrutura do .ico, pixels de cada variante, ida e volta por HICON e o guarda
-/// que avisa quando Assets/RadialFlow.ico fica diferente do que o código desenha.
+/// que avisa quando src/RadialFlow/Assets/RadialFlow.ico fica diferente do que o código desenha.
 /// </summary>
 public sealed class AppIconTests
 {
@@ -55,7 +55,7 @@ public sealed class AppIconTests
     private static bool IsBlue(Px p) => p.A > 200 && p.B > p.R + 70;
 
     private static string RepoFile(params string[] parts) =>
-        Path.GetFullPath(Path.Combine([AppContext.BaseDirectory, "..", "..", "..", "..", .. parts]));
+        Path.GetFullPath(Path.Combine([AppContext.BaseDirectory, "..", "..", "..", "..", "..", .. parts]));
 
     /// <summary>Diferença média absoluta por canal entre duas imagens do mesmo tamanho (0 = idênticas).</summary>
     private static double MeanDifference(byte[] a, byte[] b)
@@ -476,8 +476,8 @@ public sealed class AppIconTests
             string[] candidates =
             [
                 Path.Combine(AppContext.BaseDirectory, "RadialFlow.exe"),
-                RepoFile("bin", "Debug", "net10.0-windows", "RadialFlow.exe"),
-                RepoFile("bin", "Release", "net10.0-windows", "RadialFlow.exe")
+                RepoFile("src", "RadialFlow", "bin", "Debug", "net10.0-windows", "RadialFlow.exe"),
+                RepoFile("src", "RadialFlow", "bin", "Release", "net10.0-windows", "RadialFlow.exe")
             ];
             string exe = candidates.FirstOrDefault(File.Exists) ?? throw new FileNotFoundException("RadialFlow.exe não foi encontrado: compile o projeto do app.");
 
@@ -509,8 +509,8 @@ public sealed class AppIconTests
     {
         RunSta(() =>
         {
-            string path = RepoFile("Assets", "RadialFlow.ico");
-            Assert.True(File.Exists(path), $"Assets/RadialFlow.ico não encontrado em {path}");
+            string path = RepoFile("src", "RadialFlow", "Assets", "RadialFlow.ico");
+            Assert.True(File.Exists(path), $"src/RadialFlow/Assets/RadialFlow.ico não encontrado em {path}");
 
             BitmapDecoder file = BitmapDecoder.Create(new MemoryStream(File.ReadAllBytes(path)), BitmapCreateOptions.PreservePixelFormat, BitmapCacheOption.OnLoad);
 
@@ -524,7 +524,7 @@ public sealed class AppIconTests
 
                 // Tolerância: o rasterizador do WPF pode variar 1–2 níveis entre máquinas; um desenho diferente passa MUITO disso.
                 Assert.True(MeanDifference(onDisk, fresh) < 2.0,
-                    $"{size}px: Assets/RadialFlow.ico está desatualizado. Rode: dotnet run --project tools/IconGenerator");
+                    $"{size}px: src/RadialFlow/Assets/RadialFlow.ico está desatualizado. Rode: dotnet run --project tools/IconGenerator");
             }
         });
     }

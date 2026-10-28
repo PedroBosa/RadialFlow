@@ -24,12 +24,12 @@ public sealed class ResourceParityTests
         new(() => Languages.ToDictionary(language => language, Read));
 
     private static string RepoFile(params string[] parts) =>
-        Path.GetFullPath(Path.Combine([AppContext.BaseDirectory, "..", "..", "..", "..", .. parts]));
+        Path.GetFullPath(Path.Combine([AppContext.BaseDirectory, "..", "..", "..", "..", "..", .. parts]));
 
     private static string ResourceFile(string language) =>
         language == "pt-BR"
-            ? RepoFile("Resources", "Strings.resx")
-            : RepoFile("Resources", $"Strings.{language}.resx");
+            ? RepoFile("src", "RadialFlow", "Resources", "Strings.resx")
+            : RepoFile("src", "RadialFlow", "Resources", $"Strings.{language}.resx");
 
     private static SortedDictionary<string, string> Read(string language)
     {
@@ -52,7 +52,7 @@ public sealed class ResourceParityTests
     private static bool IsOutsideProject(string path)
     {
         string relative = Path.GetRelativePath(RepoFile(), path);
-        return relative.StartsWith("RadialFlow.Tests" + Path.DirectorySeparatorChar, StringComparison.Ordinal)
+        return relative.StartsWith("tests" + Path.DirectorySeparatorChar + "RadialFlow.Tests" + Path.DirectorySeparatorChar, StringComparison.Ordinal)
                || relative.Contains(Path.DirectorySeparatorChar + "bin" + Path.DirectorySeparatorChar, StringComparison.Ordinal)
                || relative.Contains(Path.DirectorySeparatorChar + "obj" + Path.DirectorySeparatorChar, StringComparison.Ordinal);
     }

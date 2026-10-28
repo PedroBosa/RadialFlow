@@ -4,9 +4,6 @@
     <TargetFramework>net10.0-windows</TargetFramework>
     <!-- O app referenciado usa WPF (RadialSlice, Dispatcher): o teste precisa do mesmo framework. -->
     <UseWPF>true</UseWPF>
-    <Nullable>enable</Nullable>
-    <!-- Mesma convenção do app: imports explícitos. -->
-    <ImplicitUsings>disable</ImplicitUsings>
     <IsPackable>false</IsPackable>
     <IsTestProject>true</IsTestProject>
     <RootNamespace>RadialFlow.Tests</RootNamespace>
@@ -19,7 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\RadialFlow.csproj" />
+    <ProjectReference Include="..\..\src\RadialFlow\RadialFlow.csproj" />
   </ItemGroup>
 
 </Project>

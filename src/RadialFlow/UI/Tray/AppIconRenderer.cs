@@ -13,7 +13,7 @@
 // nunca fica abaixo de 1 px (1,6 px abaixo de 28 px).
 //
 // Este arquivo também é compilado pelo gerador (tools/IconGenerator), que grava
-// Assets/RadialFlow.ico. Por isso não depende de nada além de WPF e de RadialModels.cs.
+// src/RadialFlow/Assets/RadialFlow.ico. Por isso não depende de nada além de WPF e de RadialModels.cs.
 // Renderizar exige uma thread STA (RenderTargetBitmap).
 // ============================================================================
 

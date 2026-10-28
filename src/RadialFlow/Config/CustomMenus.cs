@@ -12,6 +12,7 @@ using System.Collections.Generic;
 using System.Linq;
 using RadialFlow.Context;
 using RadialFlow.Infrastructure;
+using RadialFlow.Input;
 
 namespace RadialFlow.Config;
 
@@ -39,7 +40,21 @@ public enum CustomMenuItemKind
     Submenu,
 
     /// <summary>Sequência curta de ações nativas do RadialFlow e pausas.</summary>
-    Routine
+    Routine,
+
+    /// <summary>Lê a seleção do campo em foco, transforma e cola por cima.</summary>
+    TextTransform
+}
+
+/// <summary>Transformações locais aplicadas ao texto selecionado.</summary>
+public enum CustomTextTransform
+{
+    Upper,
+    Lower,
+    TitleCase,
+    SentenceCase,
+    Trim,
+    RemoveLineBreaks
 }
 
 public enum CustomRoutineStepKind
@@ -79,6 +94,9 @@ public sealed class CustomMenuItem
     /// <summary>Texto colado quando <see cref="Kind"/> é <see cref="CustomMenuItemKind.Text"/>.</summary>
     public string Text { get; set; } = "";
 
+    /// <summary>Transformação aplicada quando <see cref="Kind"/> é <see cref="CustomMenuItemKind.TextTransform"/>.</summary>
+    public CustomTextTransform Transform { get; set; } = CustomTextTransform.Upper;
+
     /// <summary>Opções do segundo anel quando <see cref="Kind"/> é <see cref="CustomMenuItemKind.Submenu"/>.</summary>
     public List<CustomMenuItem> Options { get; set; } = new();
 
@@ -104,6 +122,21 @@ public sealed class CustomMenuProfile
     /// <summary>Trecho do título da janela; vazio = qualquer título.</summary>
     public string TitleContains { get; set; } = "";
 
+    /// <summary>
+    /// Extensões de arquivo que ativam o perfil (ex.: ".pdf"). Vazio = qualquer arquivo.
+    /// Com mais de uma, basta um caminho do contexto casar.
+    /// </summary>
+    public List<string> Extensions { get; set; } = new();
+
+    /// <summary>Classe Win32 da janela de origem (ex.: "CabinetWClass"); vazio = qualquer classe.</summary>
+    public string WindowClass { get; set; } = "";
+
+    /// <summary>
+    /// Atalho global que abre este menu direto no cursor, sem depender das condições.
+    /// Vazio = sem atalho próprio. Forma canônica, ex.: "Ctrl+Alt+1".
+    /// </summary>
+    public string Hotkey { get; set; } = "";
+
     /// <summary>Contextos em que o perfil vale; vazio = todos.</summary>
     public List<RadialContextKind> Contexts { get; set; } = new();
 
@@ -124,6 +157,9 @@ internal static class CustomMenuNormalizer
     internal const int MaxNameLength = 60;
     internal const int MinPriority = -100;
     internal const int MaxPriority = 100;
+    internal const int MaxExtensions = 8;
+    internal const int MaxExtensionLength = 16;
+    internal const int MaxWindowClassLength = 128;
 
     internal static void Normalize(List<CustomMenuProfile>? profiles)
     {
@@ -144,6 +180,9 @@ internal static class CustomMenuNormalizer
             if (profile.Name.Length == 0) profile.Name = Loc.Get("Menus.DefaultProfileName");
             profile.ProcessName = NormalizeProcessName(profile.ProcessName);
             profile.TitleContains = Truncate((profile.TitleContains ?? "").Trim(), MaxDescriptionLength);
+            profile.Extensions = NormalizeExtensions(profile.Extensions);
+            profile.WindowClass = NormalizeWindowClass(profile.WindowClass);
+            profile.Hotkey = NormalizeHotkey(profile.Hotkey, profile.Name);
             profile.Priority = Math.Clamp(profile.Priority, MinPriority, MaxPriority);
 
             profile.Contexts ??= new List<RadialContextKind>();
@@ -196,6 +235,77 @@ internal static class CustomMenuNormalizer
         return name.EndsWith(".exe", StringComparison.OrdinalIgnoreCase) ? name[..^4].Trim() : name;
     }
 
+    /// <summary>
+    /// "PDF, *.png, .jpg" → [".pdf", ".png", ".jpg"]. Aceita com ou sem ponto e com curinga;
+    /// entradas com espaço, separador de caminho ou tamanho fora do limite são descartadas.
+    /// </summary>
+    internal static List<string> ParseExtensions(string? text) =>
+        NormalizeExtensions((text ?? "").Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries));
+
+    internal static List<string> NormalizeExtensions(IEnumerable<string>? input)
+    {
+        var result = new List<string>();
+        if (input is null) return result;
+
+        foreach (string? raw in input)
+        {
+            string value = (raw ?? "").Trim();
+            if (value.StartsWith("*.", StringComparison.Ordinal)) value = value[1..];
+            else if (value.StartsWith('*')) value = value[1..];
+            if (value.Length > 0 && !value.StartsWith('.')) value = "." + value;
+            value = value.ToLowerInvariant();
+
+            if (value.Length is < 2 or > MaxExtensionLength || !IsValidExtension(value))
+            {
+                if (value.Length > 0) AppLog.Debug("Menus", $"Extensão inválida ignorada: '{value}'.");
+                continue;
+            }
+
+            if (!result.Contains(value, StringComparer.Ordinal))
+            {
+                if (result.Count == MaxExtensions)
+                {
+                    AppLog.Debug("Menus", $"Extensões acima de {MaxExtensions} foram ignoradas.");
+                    break;
+                }
+
+                result.Add(value);
+            }
+        }
+
+        return result;
+    }
+
+    private static bool IsValidExtension(string value)
+    {
+        for (int i = 1; i < value.Length; i++)
+        {
+            char c = value[i];
+            if (!char.IsLetterOrDigit(c) && c != '-' && c != '_') return false;
+        }
+
+        return true;
+    }
+
+    internal static string NormalizeWindowClass(string? input) =>
+        Truncate((input ?? "").Trim(), MaxWindowClassLength);
+
+    /// <summary>Forma canônica do atalho; texto vazio ou inválido vira "" (o menu fica sem atalho).</summary>
+    internal static string NormalizeHotkey(string? input, string? profileName = null)
+    {
+        string raw = (input ?? "").Trim();
+        if (raw.Length == 0) return "";
+
+        string normalized = HotkeyGesture.Normalize(raw);
+        if (normalized.Length == 0)
+        {
+            AppLog.Debug("Menus",
+                $"Perfil '{profileName}': atalho inválido '{Truncate(raw, HotkeyGesture.MaxTextLength)}' ignorado.");
+        }
+
+        return normalized;
+    }
+
     /// <summary>Devolve false quando o item precisa ser descartado.</summary>
     private static bool NormalizeItem(CustomMenuItem item, bool allowSubmenu = true)
     {
@@ -224,6 +334,19 @@ internal static class CustomMenuNormalizer
         {
             AppLog.Debug("Menus", $"Item '{label}' ignorado: ação inválida ({(int)item.Action}).");
             return false;
+        }
+
+        if (item.Kind == CustomMenuItemKind.TextTransform)
+        {
+            if (!Enum.IsDefined(item.Transform))
+            {
+                AppLog.Debug("Menus", $"Item '{label}' ignorado: transformação inválida ({(int)item.Transform}).");
+                return false;
+            }
+        }
+        else
+        {
+            item.Transform = CustomTextTransform.Upper;
         }
 
         item.Label = label;

@@ -245,6 +245,13 @@
                                                  TextWrapping="Wrap" VerticalScrollBarVisibility="Auto"
                                                  TextChanged="OptionField_Changed"/>
                                     </StackPanel>
+
+                                    <StackPanel x:Name="PnlOptionTextTransform">
+                                        <TextBlock Text="{loc:Loc Menus.TransformLabel}" Style="{StaticResource FieldLabel}"/>
+                                        <ComboBox x:Name="CmbOptionTransform" SelectionChanged="OptionField_Changed"/>
+                                        <TextBlock Text="{loc:Loc Menus.TransformHint}"
+                                                   Style="{StaticResource FieldHint}"/>
+                                    </StackPanel>
                                 </Grid>
                             </Border>
                         </StackPanel>
