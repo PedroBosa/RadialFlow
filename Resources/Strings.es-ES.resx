@@ -160,7 +160,7 @@
   <data name="Menus.ContextAll" xml:space="preserve"><value>Todos</value></data>
   <data name="Menus.ContextsHint" xml:space="preserve"><value>Marca dónde debe aparecer este menú.</value></data>
   <data name="Menus.ItemsTitle" xml:space="preserve"><value>Elementos del menú</value></data>
-  <data name="Menus.ItemsHint" xml:space="preserve"><value>Cada elemento se convierte en una porción de la rueda. Hasta 8 elementos por menú.</value></data>
+  <data name="Menus.ItemsHint" xml:space="preserve"><value>Hasta 8 elementos por menú.</value></data>
   <data name="Menus.ItemsCountFormat" xml:space="preserve"><value>{0} de {1}</value></data>
   <data name="Menus.ItemsCountZero" xml:space="preserve"><value>0 de 8</value></data>
   <data name="Menus.ItemsCountAutomation" xml:space="preserve"><value>Elementos en este menú</value></data>
@@ -170,7 +170,7 @@
   <data name="Menus.MoveItemDownAutomation" xml:space="preserve"><value>Mover elemento hacia abajo</value></data>
   <data name="Menus.SubmenuBadgeFormat" xml:space="preserve"><value>{0} opciones</value></data>
   <data name="Menus.NoItems" xml:space="preserve"><value>Ningún elemento</value></data>
-  <data name="Menus.NoItemsHint" xml:space="preserve"><value>Usa «Añadir» para crear el primero.</value></data>
+  <data name="Menus.NoItemsHint" xml:space="preserve"><value>Usa + abajo para crear el primero.</value></data>
   <data name="Menus.AppearanceSection" xml:space="preserve"><value>APARIENCIA</value></data>
   <data name="Menus.ActionSection" xml:space="preserve"><value>ACCIÓN</value></data>
   <data name="Menus.ItemKind" xml:space="preserve"><value>Tipo de elemento</value></data>
@@ -199,7 +199,7 @@
   <data name="Menus.EditStepsAutomation" xml:space="preserve"><value>Editar pasos de la rutina</value></data>
   <data name="Menus.RoutineHint" xml:space="preserve"><value>Acciones nativas de RadialFlow, en el orden definido. Sin shell, argumentos ni URLs.</value></data>
   <data name="Menus.NoItemSelected" xml:space="preserve"><value>Ningún elemento seleccionado</value></data>
-  <data name="Menus.NoItemSelectedHint" xml:space="preserve"><value>Selecciona un elemento en la lista o pulsa «Añadir».</value></data>
+  <data name="Menus.NoItemSelectedHint" xml:space="preserve"><value>Selecciona un elemento de la lista o usa + abajo.</value></data>
   <data name="Menus.PreviewTitle" xml:space="preserve"><value>Vista previa de la rueda</value></data>
   <data name="Menus.Legend" xml:space="preserve"><value>LEYENDA</value></data>
   <data name="Menus.LegendAutomatic" xml:space="preserve"><value>automática</value></data>

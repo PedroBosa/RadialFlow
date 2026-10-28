@@ -160,7 +160,7 @@
   <data name="Menus.ContextAll" xml:space="preserve"><value>All</value></data>
   <data name="Menus.ContextsHint" xml:space="preserve"><value>Pick where this menu should appear.</value></data>
   <data name="Menus.ItemsTitle" xml:space="preserve"><value>Menu items</value></data>
-  <data name="Menus.ItemsHint" xml:space="preserve"><value>Each item becomes a wheel slice. Up to 8 items per menu.</value></data>
+  <data name="Menus.ItemsHint" xml:space="preserve"><value>Up to 8 items per menu.</value></data>
   <data name="Menus.ItemsCountFormat" xml:space="preserve"><value>{0} of {1}</value></data>
   <data name="Menus.ItemsCountZero" xml:space="preserve"><value>0 of 8</value></data>
   <data name="Menus.ItemsCountAutomation" xml:space="preserve"><value>Items in this menu</value></data>
@@ -170,7 +170,7 @@
   <data name="Menus.MoveItemDownAutomation" xml:space="preserve"><value>Move item down</value></data>
   <data name="Menus.SubmenuBadgeFormat" xml:space="preserve"><value>{0} options</value></data>
   <data name="Menus.NoItems" xml:space="preserve"><value>No items</value></data>
-  <data name="Menus.NoItemsHint" xml:space="preserve"><value>Use “Add” to create the first one.</value></data>
+  <data name="Menus.NoItemsHint" xml:space="preserve"><value>Use + below to create the first one.</value></data>
   <data name="Menus.AppearanceSection" xml:space="preserve"><value>APPEARANCE</value></data>
   <data name="Menus.ActionSection" xml:space="preserve"><value>ACTION</value></data>
   <data name="Menus.ItemKind" xml:space="preserve"><value>Item type</value></data>
@@ -199,7 +199,7 @@
   <data name="Menus.EditStepsAutomation" xml:space="preserve"><value>Edit routine steps</value></data>
   <data name="Menus.RoutineHint" xml:space="preserve"><value>Native RadialFlow actions, in the defined order. No shell, arguments or URLs.</value></data>
   <data name="Menus.NoItemSelected" xml:space="preserve"><value>No item selected</value></data>
-  <data name="Menus.NoItemSelectedHint" xml:space="preserve"><value>Select an item in the list or click “Add”.</value></data>
+  <data name="Menus.NoItemSelectedHint" xml:space="preserve"><value>Select an item in the list or use + below.</value></data>
   <data name="Menus.PreviewTitle" xml:space="preserve"><value>Wheel preview</value></data>
   <data name="Menus.Legend" xml:space="preserve"><value>LEGEND</value></data>
   <data name="Menus.LegendAutomatic" xml:space="preserve"><value>automatic</value></data>
