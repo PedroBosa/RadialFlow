@@ -62,6 +62,18 @@ public static partial class UnelevatedLauncher
     }
 
     /// <summary>
+    /// true se esta sessão consegue abrir um processo sem elevação. Sessão elevada sem o token do
+    /// shell (UAC desligado, como em runners de CI) não tem como: o RadialFlow recusa rodar como administrador.
+    /// </summary>
+    internal static bool CanLaunchUnelevated()
+    {
+        if (!IsElevated()) return true;
+
+        using SafeKernelHandle? token = OpenShellPrimaryToken(TOKEN_ALL_ACCESS);
+        return token is not null && IsTokenElevated(token) == false;
+    }
+
+    /// <summary>
     /// Abre um executável, documento, atalho, pasta ou URL com os privilégios do usuário comum.
     /// </summary>
     /// <param name="target">URL http/https, nome simples de ferramenta do sistema ou caminho absoluto.</param>

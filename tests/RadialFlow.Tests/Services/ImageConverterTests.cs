@@ -18,13 +18,8 @@ namespace RadialFlow.Tests;
 public sealed class ImageConverterTests : IDisposable
 {
     // 16 x 8: metade esquerda vermelha, direita azul (gerados com o ffmpeg: WebP sem perda; AVIF 4:2:0, o layout de
-    // câmeras e celulares; o codec do Windows não decodifica AVIF 4:4:4 sem perda).
-    private const string WebpFixture = "UklGRiYAAABXRUJQVlA4TBkAAAAvD8ABAA8Q87//8x8OxILJ/KU7U4jof+QAAA==";
-    private const string AvifFixture =
-        "AAAAIGZ0eXBhdmlmAAAAAGF2aWZtaWYxbWlhZk1BMUIAAAD5bWV0YQAAAAAAAAAvaGRscgAAAAAAAAAAcGljdAAAAAAAAAAAAAAAAFBpY3R1cmVIYW5kbGVyAAAAAA5waXRt" +
-        "AAAAAAABAAAAHmlsb2MAAAAARAAAAQABAAAAAQAAASEAAAAoAAAAKGlpbmYAAAAAAAEAAAAaaW5mZQIAAAAAAQAAYXYwMUNvbG9yAAAAAGppcHJwAAAAS2lwY28AAAAUaXNw" +
-        "ZQAAAAAAAAAQAAAACAAAABBwaXhpAAAAAAMICAgAAAAMYXYxQ4EADAAAAAATY29scm5jbHgAAgACAAIAAAAAF2lwbWEAAAAAAAAAAQABBAECgwQAAAAwbWRhdAoFGAy/tgEy" +
-        "HxKAAABAAAAAvuQSkZIxbazuyrBUEm+NBnUr6BbUboA=";
+    // câmeras e celulares; o codec do Windows não decodifica AVIF 4:4:4 sem perda). As amostras ficam em
+    // StoreImageFixtures para a sonda do atributo decodificar exatamente o mesmo arquivo.
 
     private readonly TempDirectory _temp = new();
 
@@ -399,10 +394,10 @@ public sealed class ImageConverterTests : IDisposable
     }
 
     [RequiresImageDecoderFact(".webp")]
-    public void Webp_ConverteParaPngComAsCoresCertas() => AssertStoreFixtureConverts(".webp", WebpFixture);
+    public void Webp_ConverteParaPngComAsCoresCertas() => AssertStoreFixtureConverts(".webp", StoreImageFixtures.Webp);
 
     [RequiresImageDecoderFact(".avif")]
-    public void Avif_ConverteParaPngComAsCoresCertas() => AssertStoreFixtureConverts(".avif", AvifFixture);
+    public void Avif_ConverteParaPngComAsCoresCertas() => AssertStoreFixtureConverts(".avif", StoreImageFixtures.Avif);
 
     [RequiresHeicEncoderFact]
     public void Heic_IdaEVolta_QuandoOCodificadorFunciona()

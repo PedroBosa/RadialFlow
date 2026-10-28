@@ -236,7 +236,7 @@ public sealed class UnelevatedLauncherExecuteTests : IDisposable
     // Captura de stdout / stderr e código de saída
     // ------------------------------------------------------------------
 
-    [Fact]
+    [RequiresUnelevatedLaunchFact]
     public async Task ExecuteAsync_CapturaStdoutLinhaALinha()
     {
         var result = await RunAsync(Cmd, ["/c", "echo linha-1& echo linha-2& echo linha-3"]);
@@ -246,7 +246,7 @@ public sealed class UnelevatedLauncherExecuteTests : IDisposable
         Assert.Empty(result.Error);
     }
 
-    [Fact]
+    [RequiresUnelevatedLaunchFact]
     public async Task ExecuteAsync_SeparaStdoutDeStderr()
     {
         var result = await RunAsync(Cmd, ["/c", "echo saida& echo erro>&2"]);
@@ -255,7 +255,7 @@ public sealed class UnelevatedLauncherExecuteTests : IDisposable
         Assert.Equal(new[] { "erro" }, result.Error);
     }
 
-    [Theory]
+    [RequiresUnelevatedLaunchTheory]
     [InlineData(0)]
     [InlineData(1)]
     [InlineData(7)]
@@ -267,7 +267,7 @@ public sealed class UnelevatedLauncherExecuteTests : IDisposable
         Assert.Equal(code, result.ExitCode);
     }
 
-    [Fact]
+    [RequiresUnelevatedLaunchFact]
     public async Task ExecuteAsync_EntregaAsLinhasEmTempoReal_ComOProcessoAindaRodando()
     {
         using var cts = Guard();
@@ -285,7 +285,7 @@ public sealed class UnelevatedLauncherExecuteTests : IDisposable
         Assert.Equal(0, await run);
     }
 
-    [Fact]
+    [RequiresUnelevatedLaunchFact]
     public async Task ExecuteAsync_UsaAPastaDeTrabalhoInformada()
     {
         var result = await RunAsync(Cmd, ["/c", "cd"], workingDirectory: _temp.Root);
@@ -293,7 +293,7 @@ public sealed class UnelevatedLauncherExecuteTests : IDisposable
         Assert.Equal(_temp.Root, Assert.Single(result.Output), ignoreCase: true);
     }
 
-    [Fact]
+    [RequiresUnelevatedLaunchFact]
     public async Task ExecuteAsync_StdinEhNul_ProcessoQueLeTecladoTerminaNaHora()
     {
         // findstr sem arquivo lê stdin. Com NUL recebe EOF na hora (código 1 = nada encontrado);
@@ -306,7 +306,7 @@ public sealed class UnelevatedLauncherExecuteTests : IDisposable
         Assert.Equal(1, exit);
     }
 
-    [Fact]
+    [RequiresUnelevatedLaunchFact]
     public async Task ExecuteAsync_ArgumentosComEspacoEAspas_ChegamIntactos()
     {
         string file = _temp.CreateFile("com espaco.txt");
@@ -325,7 +325,7 @@ public sealed class UnelevatedLauncherExecuteTests : IDisposable
 
     private const string TwentyThousandLines = "for /L %i in (1,1,20000) do @echo line%i";
 
-    [Fact]
+    [RequiresUnelevatedLaunchFact]
     public async Task ExecuteAsync_SaidaMaiorQueOBufferDoPipe_ChegaCompleta()
     {
         var result = await RunAsync(Cmd, ["/c", TwentyThousandLines]);
@@ -336,7 +336,7 @@ public sealed class UnelevatedLauncherExecuteTests : IDisposable
         Assert.Equal("line20000", result.Output[^1]);
     }
 
-    [Fact]
+    [RequiresUnelevatedLaunchFact]
     public async Task ExecuteAsync_SemCallbacks_AindaDrenaOPipeENaoTrava()
     {
         // Sem ler, ~200 KB encheriam o pipe de 64 KB e o cmd ficaria bloqueado para sempre.
@@ -348,7 +348,7 @@ public sealed class UnelevatedLauncherExecuteTests : IDisposable
         Assert.Equal(0, exit);
     }
 
-    [Fact]
+    [RequiresUnelevatedLaunchFact]
     public async Task ExecuteAsync_CallbackQueLanca_NaoInterrompeALeitura()
     {
         using var cts = Guard(seconds: 30);
@@ -368,7 +368,7 @@ public sealed class UnelevatedLauncherExecuteTests : IDisposable
         Assert.Equal(new[] { "a", "b", "c" }, seen);
     }
 
-    [Fact]
+    [RequiresUnelevatedLaunchFact]
     public async Task ExecuteAsync_OnStarted_RecebeOPidDeUmProcessoVivo()
     {
         using var cts = Guard();
@@ -394,7 +394,7 @@ public sealed class UnelevatedLauncherExecuteTests : IDisposable
     // Nenhum processo roda como administrador
     // ------------------------------------------------------------------
 
-    [Fact]
+    [RequiresUnelevatedLaunchFact]
     public async Task ExecuteAsync_ProcessoFilho_NaoRodaComIntegridadeAlta()
     {
         // whoami /groups lista o rótulo de integridade pelo SID (independe do idioma do Windows):
@@ -450,7 +450,7 @@ public sealed class UnelevatedLauncherExecuteTests : IDisposable
         return new CancelRun(task, cts, firstLine.Task, () => pid);
     }
 
-    [Fact]
+    [RequiresUnelevatedLaunchFact]
     public async Task ExecuteAsync_CancelarEncerraOProcessoERetornaRapido()
     {
         var run = StartLongRunning(Ping, ["-n", "30", "127.0.0.1"]);
@@ -470,7 +470,7 @@ public sealed class UnelevatedLauncherExecuteTests : IDisposable
         }
     }
 
-    [Fact]
+    [RequiresUnelevatedLaunchFact]
     public async Task ExecuteAsync_CancelarEncerraTambemOsProcessosFilhos()
     {
         // cmd -> ping: o ping é neto do RadialFlow. Só o Job Object (KILL_ON_JOB_CLOSE) alcança o neto.
@@ -504,7 +504,7 @@ public sealed class UnelevatedLauncherExecuteTests : IDisposable
         Assert.False(started);
     }
 
-    [Fact]
+    [RequiresUnelevatedLaunchFact]
     public async Task ExecuteAsync_DepoisDeCancelar_NenhumCallbackChegaMaisTarde()
     {
         int lines = 0;
@@ -522,7 +522,7 @@ public sealed class UnelevatedLauncherExecuteTests : IDisposable
         }
     }
 
-    [Fact]
+    [RequiresUnelevatedLaunchFact]
     public async Task ExecuteAsync_ProcessoQueTerminaSozinho_NaoDeixaProcessoNemLanca()
     {
         using var cts = Guard();
@@ -539,7 +539,7 @@ public sealed class UnelevatedLauncherExecuteTests : IDisposable
     // Handles: nada vaza, nada é compartilhado entre execuções
     // ------------------------------------------------------------------
 
-    [Fact]
+    [RequiresUnelevatedLaunchFact]
     public async Task ExecuteAsync_ExecucoesSucessivas_NaoVazamHandles()
     {
         using var self = Process.GetCurrentProcess();
@@ -590,7 +590,7 @@ public sealed class UnelevatedLauncherExecuteTests : IDisposable
         return self.HandleCount;
     }
 
-    [Fact]
+    [RequiresUnelevatedLaunchFact]
     public async Task ExecuteAsync_ProcessoLongoEmAndamento_NaoSeguraOPipeDeOutraExecucao()
     {
         // A (longo) começa primeiro; B (curto) é criado DEPOIS. Se B herdasse o pipe de A (ou A o de B), o EOF
@@ -614,7 +614,7 @@ public sealed class UnelevatedLauncherExecuteTests : IDisposable
         }
     }
 
-    [Fact]
+    [RequiresUnelevatedLaunchFact]
     public async Task ExecuteAsync_ExecucoesEmParalelo_NaoMisturamAsSaidas()
     {
         var runs = Enumerable.Range(1, 8)

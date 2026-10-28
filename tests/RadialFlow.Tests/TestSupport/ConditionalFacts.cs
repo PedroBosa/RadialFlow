@@ -15,6 +15,8 @@ public sealed class RequiresImageDecoderFactAttribute : FactAttribute
     {
         if (!WicCodecs.Readable.Contains(extension))
             Skip = $"O Windows deste PC não lê {extension} (falta a extensão de imagem da Microsoft Store).";
+        else if (!StoreImageFixtures.CanDecode(extension))
+            Skip = $"O Windows lista {extension}, mas o decodificador não inicia neste PC (extensão da Store sem funcionar).";
     }
 }
 
@@ -35,6 +37,31 @@ public sealed class RequiresElevationFactAttribute : FactAttribute
     {
         if (!UnelevatedLauncher.IsElevated())
             Skip = "Precisa rodar como administrador.";
+        else if (!UnelevatedLauncher.CanLaunchUnelevated())
+            Skip = "A sessão só tem token de administrador (UAC desligado): não há como abrir o processo filho sem elevação.";
+    }
+}
+
+/// <summary>
+/// Só roda quando a sessão consegue abrir processos sem elevação. Runner só com token de administrador
+/// (UAC desligado) não consegue: o RadialFlow recusa executar ferramentas como administrador.
+/// </summary>
+public sealed class RequiresUnelevatedLaunchFactAttribute : FactAttribute
+{
+    public RequiresUnelevatedLaunchFactAttribute()
+    {
+        if (!UnelevatedLauncher.CanLaunchUnelevated())
+            Skip = "A sessão só tem token de administrador (UAC desligado): o RadialFlow não executa ferramentas como administrador.";
+    }
+}
+
+/// <summary>Idem, para teorias.</summary>
+public sealed class RequiresUnelevatedLaunchTheoryAttribute : TheoryAttribute
+{
+    public RequiresUnelevatedLaunchTheoryAttribute()
+    {
+        if (!UnelevatedLauncher.CanLaunchUnelevated())
+            Skip = "A sessão só tem token de administrador (UAC desligado): o RadialFlow não executa ferramentas como administrador.";
     }
 }
 

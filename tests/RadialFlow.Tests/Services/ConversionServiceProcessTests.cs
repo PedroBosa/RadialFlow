@@ -97,7 +97,7 @@ public sealed class ConversionServiceProcessTests : IDisposable
     // RunFfmpegWithProgressAsync de ponta a ponta (cmd.exe no lugar do ffmpeg)
     // ------------------------------------------------------------------
 
-    [Fact]
+    [RequiresUnelevatedLaunchFact]
     public async Task RunFfmpegWithProgressAsync_ConverteLinhasDoStderrEmProgresso()
     {
         var progress = new CollectingProgress();
@@ -113,7 +113,7 @@ public sealed class ConversionServiceProcessTests : IDisposable
         Assert.Contains("concluída", progress.Reports.Last().StatusText);
     }
 
-    [Fact]
+    [RequiresUnelevatedLaunchFact]
     public async Task RunFfmpegWithProgressAsync_CodigoDiferenteDeZero_FalhaComOFimDoStderr()
     {
         var error = await Assert.ThrowsAsync<InvalidOperationException>(() =>
@@ -127,7 +127,7 @@ public sealed class ConversionServiceProcessTests : IDisposable
     // RunToolAsync
     // ------------------------------------------------------------------
 
-    [Fact]
+    [RequiresUnelevatedLaunchFact]
     public async Task RunToolAsync_DevolveCodigoEOStderr_ESoOStderrEntraNoResumo()
     {
         var lines = new ConcurrentQueue<string>();
@@ -141,7 +141,7 @@ public sealed class ConversionServiceProcessTests : IDisposable
         Assert.Contains(lines, l => l.Contains("falhou feio"));
     }
 
-    [Fact]
+    [RequiresUnelevatedLaunchFact]
     public async Task RunToolAsync_ResumoDoStderrFicaLimitadoAoFim()
     {
         var result = await ConversionService.RunToolAsync(Cmd,
@@ -198,7 +198,7 @@ public sealed class ConversionServiceProcessTests : IDisposable
         Assert.Equal("do usuario", File.ReadAllText(dest));
     }
 
-    [Fact]
+    [RequiresUnelevatedLaunchFact]
     public async Task Cancelar_EncerraAFerramentaEApagaOArquivoParcial()
     {
         // A "ferramenta" grava um arquivo parcial e fica rodando ~30 s. Escrever em caminho relativo
@@ -228,7 +228,7 @@ public sealed class ConversionServiceProcessTests : IDisposable
         Assert.False(File.Exists(partial), "O arquivo parcial ficou para trás.");
     }
 
-    [Fact]
+    [RequiresUnelevatedLaunchFact]
     public async Task FerramentaTravada_EhEncerradaNoLimite_ComMensagemClara()
     {
         // Encerrar a árvore de processos ao cancelar é garantia do launcher (Cancelar_EncerraAFerramentaEApagaOArquivoParcial).
@@ -242,7 +242,7 @@ public sealed class ConversionServiceProcessTests : IDisposable
         Assert.Contains("não terminou em 2 segundos", error.Message);
     }
 
-    [Fact]
+    [RequiresUnelevatedLaunchFact]
     public async Task CanceladoPeloUsuario_ContinuaSendoCancelamento_NaoLimite()
     {
         using var cts = new CancellationTokenSource(TimeSpan.FromMilliseconds(500));
