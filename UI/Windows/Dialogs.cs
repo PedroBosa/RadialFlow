@@ -24,7 +24,7 @@ internal enum DialogIcon { None, Info, Question, Warning, Error }
 
 internal static class Dialogs
 {
-    private const double DialogWidth = 460;
+    private const double DialogWidth = 440;
 
     /// <summary>Só para testes: chamado com a janela logo antes de ShowDialog bloquear (permite inspecionar, interagir e fechar).</summary>
     internal static Action<Window>? BeforeShow { get; set; }
@@ -47,10 +47,10 @@ internal static class Dialogs
         Window window = CreateWindow(owner, title, out ContentControl body);
         int result = cancelIndex;
 
-        var content = new StackPanel { Margin = new Thickness(26, 24, 26, 22) };
-        content.Children.Add(BuildHeader(window, icon, message));
+        var content = new StackPanel { Margin = new Thickness(24, 24, 24, 20) };
+        content.Children.Add(BuildHeader(icon, message));
 
-        var row = new StackPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Right, Margin = new Thickness(0, 22, 0, 0) };
+        var row = new StackPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Right, Margin = new Thickness(0, 20, 0, 0) };
         for (int i = 0; i < buttons.Length; i++)
         {
             int index = i;
@@ -107,12 +107,12 @@ internal static class Dialogs
         Window window = CreateWindow(owner, title, out ContentControl body);
         (string, string)? result = null;
 
-        var content = new StackPanel { Margin = new Thickness(26, 24, 26, 22) };
+        var content = new StackPanel { Margin = new Thickness(24, 24, 24, 20) };
 
         var first = AddField(window, content, firstLabel, firstInitial);
         TextBox? second = secondLabel is null ? null : AddField(window, content, secondLabel, secondInitial ?? "");
 
-        var error = new TextBlock { FontSize = 12.5, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 12, 0, 0), Visibility = Visibility.Collapsed };
+        var error = new TextBlock { FontSize = 12, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 12, 0, 0), Visibility = Visibility.Collapsed };
         error.SetResourceReference(TextBlock.ForegroundProperty, "DangerOnGlassBrush");
         content.Children.Add(error);
 
@@ -162,8 +162,8 @@ internal static class Dialogs
 
     private static TextBox AddField(Window window, Panel parent, string label, string initial)
     {
-        var caption = new TextBlock { Text = label, FontSize = 12.5, FontWeight = FontWeights.SemiBold, Margin = new Thickness(0, parent.Children.Count == 0 ? 0 : 14, 0, 6) };
-        caption.SetResourceReference(TextBlock.ForegroundProperty, "TextBrush");
+        var caption = new TextBlock { Text = label, FontSize = 11.5, FontWeight = FontWeights.SemiBold, Margin = new Thickness(0, parent.Children.Count == 0 ? 0 : 14, 0, 6) };
+        caption.SetResourceReference(TextBlock.ForegroundProperty, "TextDimBrush");
         parent.Children.Add(caption);
 
         var box = new TextBox { Text = initial };
@@ -171,26 +171,30 @@ internal static class Dialogs
         return box;
     }
 
-    private static UIElement BuildHeader(Window window, DialogIcon icon, string message)
+    private static UIElement BuildHeader(DialogIcon icon, string message)
     {
-        var text = new TextBlock { Text = message, FontSize = 13.5, TextWrapping = TextWrapping.Wrap, VerticalAlignment = VerticalAlignment.Center };
+        var text = new TextBlock
+        {
+            Text = message, FontSize = 13, LineHeight = 20, TextWrapping = TextWrapping.Wrap,
+            VerticalAlignment = VerticalAlignment.Center
+        };
         text.SetResourceReference(TextBlock.ForegroundProperty, "TextBrush");
 
         if (icon == DialogIcon.None) return text;
 
-        (string glyph, string background, string foreground) = icon switch
+        (string glyph, string foreground) = icon switch
         {
-            DialogIcon.Warning  => ("\uE7BA", "WarningBrush", "WarningInkBrush"),
-            DialogIcon.Error    => ("\uEA39", "DangerBrush", "SurfaceBrush"),
-            DialogIcon.Question => ("\uE897", "AccentBrush", "AccentInkBrush"),
-            _                   => ("\uE946", "AccentBrush", "AccentInkBrush")
+            DialogIcon.Warning  => ("\uE7BA", "WarningBrush"),
+            DialogIcon.Error    => ("\uEA39", "DangerBrush"),
+            DialogIcon.Question => ("\uE897", "AccentTextBrush"),
+            _                   => ("\uE946", "AccentTextBrush")
         };
 
-        var disc = new Ellipse { Width = 40, Height = 40 };
-        disc.SetResourceReference(Shape.FillProperty, background);
+        var disc = new Ellipse { Width = 34, Height = 34 };
+        disc.SetResourceReference(Shape.FillProperty, "ControlBrush");
         var mark = new TextBlock
         {
-            Text = glyph, FontFamily = new FontFamily("Segoe Fluent Icons, Segoe MDL2 Assets"), FontSize = 19,
+            Text = glyph, FontFamily = new FontFamily("Segoe Fluent Icons, Segoe MDL2 Assets"), FontSize = 16,
             HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center
         };
         mark.SetResourceReference(TextBlock.ForegroundProperty, foreground);
@@ -199,7 +203,7 @@ internal static class Dialogs
         grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
         grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
 
-        var badge = new Grid { Width = 40, Height = 40, Margin = new Thickness(0, 0, 16, 0), VerticalAlignment = VerticalAlignment.Top };
+        var badge = new Grid { Width = 34, Height = 34, Margin = new Thickness(0, 0, 14, 0), VerticalAlignment = VerticalAlignment.Top };
         badge.Children.Add(disc);
         badge.Children.Add(mark);
 

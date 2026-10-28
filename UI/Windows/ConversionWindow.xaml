@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:loc="clr-namespace:RadialFlow.UI.Markup"
         Title="{loc:Loc Conversion.WindowTitle}"
-        Width="520" SizeToContent="Height"
+        Width="500" SizeToContent="Height"
         WindowStartupLocation="CenterScreen"
         ResizeMode="NoResize"
         Background="{DynamicResource SurfaceBrush}"
@@ -21,16 +21,16 @@
         <StackPanel>
             <!-- Cabeçalho -->
             <Border Background="Transparent" BorderBrush="{DynamicResource CardBorderBrush}"
-                    BorderThickness="0,0,0,1" Padding="24,18">
+                    BorderThickness="0,0,0,1" Padding="24,20">
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
-                    <Grid Width="40" Height="40" Margin="0,0,14,0" VerticalAlignment="Center">
-                        <Ellipse Fill="{DynamicResource AccentBrush}"/>
-                        <TextBlock Text="&#xE8AB;" FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets" FontSize="19"
-                                   Foreground="{DynamicResource AccentInkBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    <Grid Width="34" Height="34" Margin="0,0,14,0" VerticalAlignment="Center">
+                        <Ellipse Fill="{DynamicResource ControlBrush}"/>
+                        <TextBlock Text="&#xE8AB;" FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets" FontSize="16"
+                                   Foreground="{DynamicResource AccentTextBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </Grid>
                     <StackPanel Grid.Column="1" VerticalAlignment="Center">
                         <TextBlock x:Name="TxtFileName" Text="{loc:Loc Conversion.SampleFile}" FontSize="16" FontWeight="SemiBold"
@@ -44,12 +44,14 @@
             <!-- Opções -->
             <Border Style="{StaticResource Card}" Margin="24,20,24,0">
                 <StackPanel>
-                    <TextBlock Text="{loc:Loc Conversion.TargetFormat}" Style="{StaticResource CardTitle}" Margin="0,0,0,8"/>
+                    <TextBlock Text="{loc:Loc Conversion.TargetFormat}" Style="{StaticResource CardTitle}"
+                               FontSize="11.5" Foreground="{DynamicResource TextDimBrush}" Margin="0,0,0,7"/>
                     <ComboBox x:Name="CmbTargetFormat" DisplayMemberPath="DisplayName" SelectedValuePath="TargetFormat" Margin="0,0,0,10"/>
                     <TextBlock x:Name="TxtBatchNote" Visibility="Collapsed" TextWrapping="Wrap" FontSize="12"
                                Foreground="{DynamicResource TextDimBrush}" Margin="0,0,0,10"/>
 
-                    <TextBlock Text="{loc:Loc Conversion.SaveToFolder}" Style="{StaticResource CardTitle}" Margin="0,0,0,8"/>
+                    <TextBlock Text="{loc:Loc Conversion.SaveToFolder}" Style="{StaticResource CardTitle}"
+                               FontSize="11.5" Foreground="{DynamicResource TextDimBrush}" Margin="0,0,0,7"/>
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
@@ -62,7 +64,7 @@
             </Border>
 
             <!-- Ações -->
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="24,18,24,22">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="24,16,24,20">
                 <Button x:Name="BtnConvert" Content="{loc:Loc Conversion.Button}" Style="{StaticResource PrimaryButton}" MinWidth="110" IsDefault="True"
                         Click="BtnConvert_Click" Margin="0,0,8,0"/>
                 <Button Content="{loc:Loc Common.Cancel}" MinWidth="96" IsCancel="True" Click="BtnCancel_Click"/>

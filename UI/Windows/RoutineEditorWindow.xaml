@@ -15,9 +15,9 @@
     <!-- Estilos e cores: Theme/Controls.xaml + UiTheme (instalados no construtor). -->
     <Window.Resources>
         <Style x:Key="FieldLabel" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="12.5"/>
+            <Setter Property="FontSize" Value="11.5"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="Foreground" Value="{DynamicResource TextBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextDimBrush}"/>
             <Setter Property="Margin" Value="0,10,0,5"/>
         </Style>
         <Style x:Key="FieldHint" TargetType="TextBlock" BasedOn="{StaticResource CardHint}">
@@ -34,8 +34,8 @@
         </Grid.RowDefinitions>
 
         <!-- ================= Cabeçalho ================= -->
-        <Border Grid.Row="0" Background="{DynamicResource SurfaceAltBrush}" BorderBrush="{DynamicResource CardBorderBrush}"
-                BorderThickness="0,0,0,1" Padding="22,16">
+        <Border Grid.Row="0" Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource CardBorderBrush}"
+                BorderThickness="0,0,0,1" Padding="24,20">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>
@@ -53,7 +53,7 @@
         </Border>
 
         <!-- ================= Corpo ================= -->
-        <Grid Grid.Row="1" Margin="22,18,22,18">
+        <Grid Grid.Row="1" Margin="24,18,24,18">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="264"/>
                 <ColumnDefinition Width="14"/>
@@ -197,8 +197,8 @@
         </Grid>
 
         <!-- ================= Rodapé ================= -->
-        <Border Grid.Row="2" Background="{DynamicResource SurfaceAltBrush}" BorderBrush="{DynamicResource CardBorderBrush}"
-                BorderThickness="0,1,0,0" Padding="22,13">
+        <Border Grid.Row="2" Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource CardBorderBrush}"
+                BorderThickness="0,1,0,0" Padding="24,12">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>

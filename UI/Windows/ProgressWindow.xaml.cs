@@ -113,8 +113,7 @@ public partial class ProgressWindow : Window, IProgress<ProgressReport>
             PrgBar.SetResourceReference(System.Windows.Controls.Control.ForegroundProperty, "DangerBrush");
             TxtPercent.SetResourceReference(System.Windows.Controls.TextBlock.ForegroundProperty, "DangerOnGlassBrush");
             IconGlyph.Text = "\uE783";   // ícone de erro
-            IconDisc.SetResourceReference(System.Windows.Shapes.Shape.FillProperty, "DangerBrush");
-            IconGlyph.SetResourceReference(System.Windows.Controls.TextBlock.ForegroundProperty, "SurfaceBrush");
+            IconGlyph.SetResourceReference(System.Windows.Controls.TextBlock.ForegroundProperty, "DangerBrush");
             TxtStatus.Text = errorMessage;
             TxtPercent.Text = Loc.Get("Progress.Error");
             BtnCancel.Content = Loc.Get("Common.Close");
@@ -140,10 +139,8 @@ public partial class ProgressWindow : Window, IProgress<ProgressReport>
             TxtPercent.SetResourceReference(System.Windows.Controls.TextBlock.ForegroundProperty,
                 warning ? "WarningOnGlassBrush" : "AccentOnGlassBrush");
             IconGlyph.Text = warning ? "\uE7BA" : "\uE73E";
-            IconDisc.SetResourceReference(System.Windows.Shapes.Shape.FillProperty,
-                warning ? "WarningBrush" : "AccentBrush");
             IconGlyph.SetResourceReference(System.Windows.Controls.TextBlock.ForegroundProperty,
-                warning ? "WarningInkBrush" : "AccentInkBrush");
+                warning ? "WarningBrush" : "AccentTextBrush");
             BtnCancel.Content = Loc.Get("Common.Close");
             BtnCancel.IsEnabled = true;
 

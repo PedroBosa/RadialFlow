@@ -58,8 +58,8 @@
         </GeometryGroup>
 
         <Style x:Key="PageTitle" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="24"/>
-            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="FontSize" Value="22"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
             <Setter Property="Foreground" Value="{DynamicResource TextBrush}"/>
         </Style>
         <Style x:Key="PageSubtitle" TargetType="TextBlock">
@@ -71,9 +71,9 @@
             <Setter Property="HorizontalAlignment" Value="Left"/>
         </Style>
         <Style x:Key="FieldLabel" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="12.5"/>
+            <Setter Property="FontSize" Value="11.5"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="Foreground" Value="{DynamicResource TextBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextDimBrush}"/>
             <Setter Property="Margin" Value="0,10,0,5"/>
         </Style>
         <Style x:Key="FieldHint" TargetType="TextBlock" BasedOn="{StaticResource CardHint}">
@@ -99,29 +99,27 @@
             <Setter Property="Foreground" Value="{DynamicResource TextDimBrush}"/>
         </Style>
 
-        <!-- Navegação lateral: o cabeçalho de cada página fica no conteúdo da aba. -->
+        <!-- Navegação lateral: item neutro; o acento marca só o selecionado. -->
         <Style x:Key="SettingsTabItem" TargetType="TabItem" BasedOn="{StaticResource {x:Type TabItem}}">
             <Setter Property="Foreground" Value="{DynamicResource TextDimBrush}"/>
+            <Setter Property="FontSize" Value="13"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="TabItem">
-                        <Grid Height="42" Margin="0,1">
-                            <Border x:Name="bd" Background="Transparent" BorderBrush="Transparent"
-                                    BorderThickness="1" CornerRadius="10"/>
-                            <Border x:Name="gloss" Height="1" Margin="10,1,10,0" VerticalAlignment="Top"
-                                    Background="{DynamicResource GlossBrush}" Opacity="0" IsHitTestVisible="False"/>
-                            <Border x:Name="marker" Width="3" Height="18" CornerRadius="1.5" HorizontalAlignment="Left"
+                        <Grid Height="38" Margin="0,1">
+                            <Border x:Name="bd" Background="Transparent" CornerRadius="8"/>
+                            <Border x:Name="marker" Width="2" Height="16" CornerRadius="1" HorizontalAlignment="Left"
                                     Background="{DynamicResource AccentBrush}" Opacity="0"/>
-                            <StackPanel Orientation="Horizontal" Margin="13,0,10,0" VerticalAlignment="Center">
-                                <Path Data="{TemplateBinding Tag}" Width="18" Height="18" Margin="0,0,9,0"
+                            <StackPanel Orientation="Horizontal" Margin="12,0,10,0" VerticalAlignment="Center">
+                                <Path Data="{TemplateBinding Tag}" Width="17" Height="17" Margin="0,0,9,0"
                                       Stroke="{TemplateBinding Foreground}" StrokeThickness="1.6"
                                       StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"
                                       Fill="Transparent" Stretch="Uniform" VerticalAlignment="Center"/>
                                 <ContentPresenter ContentSource="Header" VerticalAlignment="Center"
-                                                  TextElement.Foreground="{TemplateBinding Foreground}"/>
+                                                  TextElement.FontSize="13" TextElement.Foreground="{TemplateBinding Foreground}"/>
                             </StackPanel>
                         </Grid>
                         <ControlTemplate.Triggers>
@@ -130,11 +128,9 @@
                                 <Setter Property="Foreground" Value="{DynamicResource TextBrush}"/>
                             </Trigger>
                             <Trigger Property="IsSelected" Value="True">
-                                <Setter TargetName="bd" Property="Background" Value="{DynamicResource AccentSoftBrush}"/>
-                                <Setter TargetName="bd" Property="BorderBrush" Value="{DynamicResource AccentLineBrush}"/>
-                                <Setter TargetName="gloss" Property="Opacity" Value="0.8"/>
+                                <Setter TargetName="bd" Property="Background" Value="{DynamicResource ControlBrush}"/>
                                 <Setter TargetName="marker" Property="Opacity" Value="1"/>
-                                <Setter Property="Foreground" Value="{DynamicResource AccentOnSoftBrush}"/>
+                                <Setter Property="Foreground" Value="{DynamicResource TextBrush}"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -148,25 +144,22 @@
                     <ControlTemplate TargetType="TabControl">
                         <Grid>
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="216"/>
+                                <ColumnDefinition Width="208"/>
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
 
-                            <Border Grid.Column="0" Background="{DynamicResource SurfaceAltBrush}"
+                            <Border Grid.Column="0" Background="{DynamicResource SurfaceBrush}"
                                     BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="0,0,1,0">
                                 <DockPanel>
-                                    <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="22,22,22,18">
-                                        <Grid Width="34" Height="34" Margin="0,0,12,0" VerticalAlignment="Center">
-                                            <Ellipse Fill="{DynamicResource AccentSoftBrush}"
-                                                     Stroke="{DynamicResource AccentLineBrush}" StrokeThickness="1"/>
-                                            <Ellipse Width="15" Height="15" Stroke="{DynamicResource AccentTextBrush}"
-                                                     StrokeThickness="2.5"/>
-                                            <Ellipse Width="3.5" Height="3.5" Fill="{DynamicResource AccentTextBrush}"/>
+                                    <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="20,20,20,16">
+                                        <Grid Width="26" Height="26" Margin="0,0,11,0" VerticalAlignment="Center">
+                                            <Ellipse Stroke="{DynamicResource AccentTextBrush}" StrokeThickness="2.2"/>
+                                            <Ellipse Width="7" Height="7" Fill="{DynamicResource AccentTextBrush}"/>
                                         </Grid>
                                         <StackPanel VerticalAlignment="Center">
-                                            <TextBlock Text="RadialFlow" FontSize="16" FontWeight="Bold"
+                                            <TextBlock Text="RadialFlow" FontSize="14" FontWeight="SemiBold"
                                                        Foreground="{DynamicResource TextBrush}"/>
-                                            <TextBlock Text="{loc:Loc Settings.SidebarTitle}" FontSize="11.5"
+                                            <TextBlock Text="{loc:Loc Settings.SidebarTitle}" FontSize="11"
                                                        Foreground="{DynamicResource TextDimBrush}" Margin="0,1,0,0"/>
                                         </StackPanel>
                                     </StackPanel>
@@ -175,12 +168,12 @@
                                             Margin="16,0,16,6"/>
 
                                     <TextBlock DockPanel.Dock="Bottom" Text="{loc:Loc Settings.SidebarFooter}" FontSize="10.5"
-                                               Foreground="{DynamicResource TextDimBrush}" Margin="22,12,22,16"
+                                               Foreground="{DynamicResource TextDimBrush}" Margin="20,12,20,16"
                                                TextWrapping="Wrap"/>
 
                                     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"
                                                   Focusable="False">
-                                        <StackPanel IsItemsHost="True" Margin="10,2,10,4"/>
+                                        <StackPanel IsItemsHost="True" Margin="8,2,8,4"/>
                                     </ScrollViewer>
                                 </DockPanel>
                             </Border>
@@ -664,12 +657,10 @@
                                                         </Grid.ColumnDefinitions>
                                                         <TextBlock x:Name="profileName" Text="{Binding Name}" FontWeight="SemiBold"
                                                                    ToolTip="{Binding Name}" TextTrimming="CharacterEllipsis"/>
-                                                        <Border x:Name="profileOff" Grid.Column="1" Background="{DynamicResource TrackBrush}"
-                                                                CornerRadius="6" Padding="6,1" Margin="6,0,0,0" Visibility="Collapsed"
-                                                                VerticalAlignment="Center">
-                                                            <TextBlock Text="{loc:Loc Menus.DisabledBadge}" FontSize="9" FontWeight="SemiBold"
-                                                                       Foreground="{DynamicResource TextDimBrush}"/>
-                                                        </Border>
+                                                        <Ellipse x:Name="profileOff" Grid.Column="1" Width="5" Height="5" Margin="6,0,1,0"
+                                                                 Visibility="Collapsed" VerticalAlignment="Center"
+                                                                 Fill="{DynamicResource TextDimBrush}"
+                                                                 ToolTip="{loc:Loc Menus.DisabledBadge}"/>
                                                     </Grid>
                                                     <TextBlock x:Name="profileScope" Text="{Binding ProcessName, Converter={StaticResource LocFormat}, ConverterParameter=Menus.ProcessFormat}"
                                                                Style="{StaticResource CardHint}" FontSize="10.5" Margin="0,1,0,0"
@@ -1212,15 +1203,14 @@
                                         <ColumnDefinition Width="Auto"/>
                                         <ColumnDefinition Width="*"/>
                                     </Grid.ColumnDefinitions>
-                                    <Grid Width="46" Height="46" Margin="0,0,16,0" VerticalAlignment="Center">
-                                        <Ellipse Fill="{DynamicResource AccentSoftBrush}"
-                                                 Stroke="{DynamicResource AccentLineBrush}" StrokeThickness="1"/>
-                                        <Ellipse Width="20" Height="20" Stroke="{DynamicResource AccentTextBrush}" StrokeThickness="3"/>
-                                        <Ellipse Width="4.5" Height="4.5" Fill="{DynamicResource AccentTextBrush}"/>
+                                    <Grid Width="42" Height="42" Margin="0,0,16,0" VerticalAlignment="Center">
+                                        <Ellipse Fill="{DynamicResource ControlBrush}"/>
+                                        <Ellipse Width="18" Height="18" Stroke="{DynamicResource AccentTextBrush}" StrokeThickness="2.6"/>
+                                        <Ellipse Width="4" Height="4" Fill="{DynamicResource AccentTextBrush}"/>
                                     </Grid>
                                     <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                        <TextBlock x:Name="AboutTitle" Text="RadialFlow" FontSize="21" FontWeight="Bold"
-                                                   Foreground="{DynamicResource AccentTextBrush}"/>
+                                        <TextBlock x:Name="AboutTitle" Text="RadialFlow" FontSize="18" FontWeight="SemiBold"
+                                                   Foreground="{DynamicResource TextBrush}"/>
                                         <TextBlock x:Name="AboutVersion" Style="{StaticResource CardHint}"/>
                                     </StackPanel>
                                 </Grid>
@@ -1272,8 +1262,8 @@
         </TabControl>
 
         <!-- ================= RODAPÉ ================= -->
-        <Border Grid.Row="1" Background="{DynamicResource SurfaceAltBrush}" BorderBrush="{DynamicResource CardBorderBrush}"
-                BorderThickness="0,1,0,0" Padding="24,12">
+        <Border Grid.Row="1" Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource CardBorderBrush}"
+                BorderThickness="0,1,0,0" Padding="20,12">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
@@ -1285,17 +1275,17 @@
                         <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
-                    <Ellipse x:Name="StatusDot" Width="7" Height="7" Fill="{DynamicResource WarningBrush}"
+                    <Ellipse x:Name="StatusDot" Width="6" Height="6" Fill="{DynamicResource WarningBrush}"
                              Margin="0,0,8,0" VerticalAlignment="Center" Visibility="Collapsed"/>
-                    <TextBlock x:Name="SaveStatus" Grid.Column="1" VerticalAlignment="Center" FontSize="12"
+                    <TextBlock x:Name="SaveStatus" Grid.Column="1" VerticalAlignment="Center" FontSize="11.5"
                                Foreground="{DynamicResource TextDimBrush}" TextTrimming="CharacterEllipsis"
                                Text="{loc:Loc Settings.AllSaved}"/>
                 </Grid>
 
                 <StackPanel Grid.Column="1" Orientation="Horizontal">
-                    <Button x:Name="BtnSave" Content="{loc:Loc Common.Save}" Style="{StaticResource PrimaryButton}" MinWidth="104"
+                    <Button x:Name="BtnSave" Content="{loc:Loc Common.Save}" Style="{StaticResource PrimaryButton}" MinWidth="96"
                             Click="BtnSave_Click" Margin="0,0,8,0" IsDefault="True"/>
-                    <Button x:Name="BtnCancel" Content="{loc:Loc Common.Close}" MinWidth="92" Click="BtnCancel_Click" IsCancel="True"/>
+                    <Button x:Name="BtnCancel" Content="{loc:Loc Common.Close}" MinWidth="88" Click="BtnCancel_Click" IsCancel="True"/>
                 </StackPanel>
             </Grid>
         </Border>

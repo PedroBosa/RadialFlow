@@ -12,20 +12,18 @@
         UseLayoutRounding="True">
 
     <!-- Estilos e cores: Theme/Controls.xaml + UiTheme (instalados no construtor). A margem de 20 abriga a sombra. -->
-    <Grid x:Name="Root" Margin="20" Background="Transparent" MouseLeftButtonDown="Card_MouseLeftButtonDown">
-        <Border x:Name="Frame" CornerRadius="16">
+    <Grid x:Name="Root" Margin="18" Background="Transparent" MouseLeftButtonDown="Card_MouseLeftButtonDown">
+        <Border x:Name="Frame" CornerRadius="14" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1">
             <Border.Effect>
-                <DropShadowEffect BlurRadius="26" ShadowDepth="5" Opacity="0.45" Color="Black"/>
+                <DropShadowEffect BlurRadius="22" ShadowDepth="4" Opacity="0.28" Color="Black"/>
             </Border.Effect>
 
             <Grid>
                 <!-- Fundo desfocado + véu do tema; sem captura, o véu usa a superfície opaca. -->
-                <Border x:Name="GlassImageHost" CornerRadius="16" IsHitTestVisible="False"
+                <Border x:Name="GlassImageHost" CornerRadius="14" IsHitTestVisible="False"
                         RenderOptions.BitmapScalingMode="HighQuality"/>
-                <Border x:Name="GlassTint" CornerRadius="16" Background="{DynamicResource SurfaceBrush}"
+                <Border x:Name="GlassTint" CornerRadius="14" Background="{DynamicResource SurfaceBrush}"
                         BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" IsHitTestVisible="False"/>
-                <Border Height="1" Margin="18,1,18,0" VerticalAlignment="Top" CornerRadius="0.5"
-                        Background="{DynamicResource GlossBrush}" IsHitTestVisible="False"/>
 
                 <Grid Margin="24,22,24,20">
                     <Grid.RowDefinitions>
@@ -42,9 +40,9 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         <Grid Width="34" Height="34" Margin="0,0,14,0" VerticalAlignment="Center">
-                            <Ellipse x:Name="IconDisc" Fill="{DynamicResource AccentBrush}"/>
-                            <TextBlock x:Name="IconGlyph" Text="&#xE9F5;" FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets" FontSize="17"
-                                       Foreground="{DynamicResource AccentInkBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            <Ellipse x:Name="IconDisc" Fill="{DynamicResource ControlBrush}"/>
+                            <TextBlock x:Name="IconGlyph" Text="&#xE9F5;" FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets" FontSize="16"
+                                       Foreground="{DynamicResource AccentTextBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Grid>
                         <TextBlock Grid.Column="1" x:Name="TxtTitle" Text="{loc:Loc Progress.Processing}" FontSize="16" FontWeight="SemiBold"
                                    Foreground="{DynamicResource TextBrush}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>

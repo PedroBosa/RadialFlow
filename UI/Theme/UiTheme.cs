@@ -57,8 +57,6 @@ internal sealed record UiPalette(
     {
         bool light = theme.IsLight;
 
-        static Color Alpha(Color color, byte alpha) => Color.FromArgb(alpha, color.R, color.G, color.B);
-
         static Color Over(Color veil, Color background)
         {
             double alpha = veil.A / 255.0;
@@ -68,25 +66,26 @@ internal sealed record UiPalette(
                 (byte)Math.Round(veil.B * alpha + background.B * (1 - alpha)));
         }
 
-        Color surface = light ? Color.FromRgb(0xF2, 0xF4, 0xF8) : Color.FromRgb(0x12, 0x15, 0x1D);
-        Color card = light ? Colors.White : Color.FromRgb(0x1A, 0x1F, 0x2B);
-        Color cardTop = light ? Colors.White : Color.FromRgb(0x20, 0x27, 0x37);
+        Color surface = light ? Color.FromRgb(0xF6, 0xF7, 0xF9) : Color.FromRgb(0x0F, 0x11, 0x15);
+        Color card = light ? Colors.White : Color.FromRgb(0x15, 0x18, 0x1D);
+        Color cardTop = card;
+        Color cardBorder = light ? Color.FromRgb(0xE4, 0xE6, 0xEA) : Color.FromRgb(0x25, 0x28, 0x2F);
+        Color text = light ? Color.FromRgb(0x18, 0x1A, 0x1E) : Color.FromRgb(0xEC, 0xEE, 0xF1);
+        Color textDim = light ? Color.FromRgb(0x5F, 0x64, 0x6D) : Color.FromRgb(0x9B, 0xA1, 0xAA);
 
-        // O destaque como TEXTO (valores dos sliders, links): ajustado até ter contraste AA sobre o cartão.
+        // O destaque como TEXTO (links, seleção): ajustado até ter contraste AA sobre o cartão.
         Color accentText = ColorMath.EnsureContrast(theme.Glow, card, RadialTheme.MinTextContrast);
 
         // Tons do botão de destaque: o gradiente do hover da roda (já garantido para o texto sobre ele).
         Color accent = ColorMath.FromHsl(ColorMath.ToHsl(theme.HoverTop).H, ColorMath.ToHsl(theme.HoverTop).S,
             (ColorMath.ToHsl(theme.HoverTop).L + ColorMath.ToHsl(theme.HoverBottom).L) / 2);
 
-        Color accentSoft = Color.FromArgb(light ? (byte)0x26 : (byte)0x3A, theme.Glow.R, theme.Glow.G, theme.Glow.B);
+        // Seleção neutra: o acento fica reservado ao estado ativo, sem pintar a superfície inteira.
+        Color selection = light ? Color.FromRgb(0xEC, 0xEE, 0xF2) : Color.FromRgb(0x1F, 0x22, 0x28);
+        Color accentOnSelection = ColorMath.EnsureContrast(theme.Glow, selection, RadialTheme.MinTextContrast);
 
-        // O véu fica mais claro no topo do cartão: é o pior caso para texto sobre ele.
-        Color accentOnSoft = ColorMath.EnsureContrast(theme.Glow, Over(accentSoft, cardTop), RadialTheme.MinTextContrast);
-
-        // Vidro: o fundo desfocado pode ser qualquer imagem; o pior caso é preto (claro) ou branco (escuro).
-        // O véu claro é 0xEE para o texto secundário ainda passar AA sobre o pior caso.
-        Color glassSurface = Color.FromArgb(light ? (byte)0xEE : (byte)0xE0, surface.R, surface.G, surface.B);
+        // Vidro: quase opaco, só para não brigar com o conteúdo; o pior caso segue preto (claro) ou branco (escuro).
+        Color glassSurface = Color.FromArgb(light ? (byte)0xF5 : (byte)0xEF, surface.R, surface.G, surface.B);
         Color glassWorst = Over(glassSurface, light ? Colors.Black : Colors.White);
         Color accentOnGlass = ColorMath.EnsureContrast(theme.Glow, glassWorst, RadialTheme.MinTextContrast);
         Color danger = light ? Color.FromRgb(0xC4, 0x2B, 0x38) : Color.FromRgb(0xFF, 0x7B, 0x86);
@@ -97,30 +96,30 @@ internal sealed record UiPalette(
         return new UiPalette(
             IsLight: light,
             Surface: surface,
-            SurfaceAlt: light ? Color.FromRgb(0xE8, 0xEC, 0xF3) : Color.FromRgb(0x16, 0x1A, 0x24),
+            SurfaceAlt: light ? Color.FromRgb(0xF1, 0xF2, 0xF5) : Color.FromRgb(0x12, 0x14, 0x19),
             GlassSurface: glassSurface,
             Card: card,
-            CardBorder: light ? Color.FromRgb(0xDD, 0xE2, 0xEC) : Color.FromRgb(0x2A, 0x31, 0x42),
+            CardBorder: cardBorder,
             CardTop: cardTop,
-            CardEdge: Color.FromArgb(light ? (byte)0xF2 : (byte)0x2E, 0xFF, 0xFF, 0xFF),
-            Text: light ? Color.FromRgb(0x1B, 0x22, 0x30) : Color.FromRgb(0xF3, 0xF6, 0xFB),
-            TextDim: light ? Color.FromRgb(0x5B, 0x65, 0x78) : Color.FromRgb(0xA9, 0xB3, 0xC6),
-            Control: light ? Color.FromRgb(0xEE, 0xF1, 0xF7) : Color.FromRgb(0x23, 0x29, 0x39),
-            ControlHover: light ? Color.FromRgb(0xE2, 0xE7, 0xF0) : Color.FromRgb(0x2D, 0x35, 0x4A),
-            ControlBorder: light ? Color.FromRgb(0xCF, 0xD6, 0xE3) : Color.FromRgb(0x3A, 0x43, 0x59),
-            Track: light ? Color.FromRgb(0xCD, 0xD4, 0xE2) : Color.FromRgb(0x3A, 0x43, 0x59),
+            CardEdge: Colors.Transparent,
+            Text: text,
+            TextDim: textDim,
+            Control: light ? Color.FromRgb(0xEF, 0xF1, 0xF4) : Color.FromRgb(0x1B, 0x1E, 0x24),
+            ControlHover: light ? Color.FromRgb(0xE6, 0xE8, 0xEC) : Color.FromRgb(0x23, 0x26, 0x2D),
+            ControlBorder: light ? Color.FromRgb(0xDC, 0xE0, 0xE5) : Color.FromRgb(0x2C, 0x30, 0x38),
+            Track: light ? Color.FromRgb(0xDC, 0xE0, 0xE5) : Color.FromRgb(0x2C, 0x30, 0x38),
             Accent: accent,
             AccentHover: theme.HoverTop,
             AccentPressed: theme.HoverBottom,
             AccentInk: theme.HoverInk,
             AccentText: accentText,
-            AccentSoft: accentSoft,
-            AccentOnSoft: accentOnSoft,
+            AccentSoft: selection,
+            AccentOnSoft: accentOnSelection,
             AccentOnGlass: accentOnGlass,
-            AccentLine: Alpha(theme.Glow, light ? (byte)0x4D : (byte)0x61),
-            AccentHalo: Alpha(theme.Glow, light ? (byte)0x1A : (byte)0x26),
-            AccentGlow: Alpha(theme.Glow, light ? (byte)0x4D : (byte)0x8C),
-            Gloss: Color.FromArgb(0x3D, 0xFF, 0xFF, 0xFF),
+            AccentLine: cardBorder,
+            AccentHalo: Colors.Transparent,
+            AccentGlow: Colors.Transparent,
+            Gloss: Colors.Transparent,
             Danger: danger,
             DangerOnGlass: dangerOnGlass,
             Warning: warning,
