@@ -38,9 +38,4 @@
     <InternalsVisibleTo Include="RadialFlow.Tests" />
   </ItemGroup>
 
-  <ItemGroup>
-    <!-- A licença MIT vai junto do programa (instalador e versão portátil). -->
-    <None Include="..\..\LICENSE" Link="LICENSE.txt" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
-  </ItemGroup>
-
 </Project>
