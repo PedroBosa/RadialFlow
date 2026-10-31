@@ -15,11 +15,14 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Windows;
 using System.Windows.Automation;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
+using System.Windows.Data;
+using System.Windows.Input;
 using System.Windows.Threading;
 using Microsoft.Win32;
 using RadialFlow.Config;
@@ -72,11 +75,24 @@ public partial class SettingsWindow
     private bool _menusDirty;
     private DispatcherTimer? _previewTimer;
 
+    private ICollectionView? _profileView;
+    private ICollectionView? _itemView;
+    private string _profileSearch = "";
+    private string _itemSearch = "";
+    private string _profileIssueSignature = "";
+
+    private Point _dragStart;
+    private CustomMenuItem? _dragItem;
+
     private const int PreviewDebounceMilliseconds = 120;
 
     /// <summary>Só para testes: substitui os diálogos de arquivo (null devolve "cancelado").</summary>
     internal static Func<string?>? ChooseImportPathForTests { get; set; }
     internal static Func<string?>? ChooseExportPathForTests { get; set; }
+    internal static Func<string?>? ChooseExportProfilePathForTests { get; set; }
+
+    /// <summary>Só para testes: o teclado real não está disponível para simular o Alt.</summary>
+    internal static Func<ModifierKeys>? KeyboardModifiersForTests { get; set; }
 
     // Dependências fixas (nada lê configurações nem disco): as fatias automáticas de cada contexto não mudam.
     private static readonly Dictionary<(RadialContextKind Kind, string Language), IReadOnlyList<RadialSlice>> AutomaticPreviewCache = new();
@@ -110,6 +126,11 @@ public partial class SettingsWindow
             ListMenuProfiles.ItemsSource = _menuProfiles;
             ListItems.ItemsSource = _menuItems;
 
+            _profileView = CollectionViewSource.GetDefaultView(_menuProfiles);
+            _profileView.Filter = ProfileMatchesSearch;
+            _itemView = CollectionViewSource.GetDefaultView(_menuItems);
+            _itemView.Filter = ItemMatchesSearch;
+
             if (_menuProfiles.Count > 0)
             {
                 ListMenuProfiles.SelectedIndex = 0;
@@ -126,7 +147,6 @@ public partial class SettingsWindow
         }
 
         _menusDirty = false;
-        ApplyMenuSection();
         UpdateMenuButtons();
         RefreshPreview();
     }
@@ -204,6 +224,146 @@ public partial class SettingsWindow
     }
 
     // ------------------------------------------------------------------
+    // Busca nas listas
+    // ------------------------------------------------------------------
+
+    private void ProfileSearch_Changed(object sender, TextChangedEventArgs e)
+    {
+        if (_loadingMenus) return;
+
+        _profileSearch = (TxtSearchProfiles.Text ?? "").Trim();
+
+        // O filtro tira o perfil selecionado da visão e o ListBox limpa a seleção: o editor
+        // continuaria no mesmo rascunho, então a troca de seleção não pode recarregá-lo.
+        bool loading = _loadingMenus;
+        _loadingMenus = true;
+        try
+        {
+            _profileView?.Refresh();
+            RestoreProfileSelection();
+        }
+        finally
+        {
+            _loadingMenus = loading;
+        }
+
+        UpdateProfileSearchState();
+    }
+
+    private void RestoreProfileSelection()
+    {
+        if (_selectedProfile is null || _profileView?.Contains(_selectedProfile) != true) return;
+        if (!ReferenceEquals(ListMenuProfiles.SelectedItem, _selectedProfile))
+            ListMenuProfiles.SelectedItem = _selectedProfile;
+    }
+
+    private void ItemSearch_Changed(object sender, TextChangedEventArgs e)
+    {
+        if (_loadingMenus) return;
+
+        _itemSearch = (TxtSearchItems.Text ?? "").Trim();
+        ApplyItemSearch();
+    }
+
+    private void ApplyItemSearch()
+    {
+        _itemView?.Refresh();
+
+        // O item filtrado sai da visão e a seleção cai junto: escolhe o primeiro visível
+        // para o editor continuar mostrando algo enquanto a busca estiver ativa.
+        if (ListItems.SelectedItem is null && ListItems.Items.Count > 0)
+            ListItems.SelectedIndex = 0;
+
+        UpdateItemSearchState();
+    }
+
+    /// <summary>Ao trocar de menu a busca de itens sai: o texto antigo esconderia a lista nova.</summary>
+    private void ResetItemSearch()
+    {
+        if (TxtSearchItems is null) return;
+
+        _itemSearch = "";
+        if ((TxtSearchItems.Text ?? "").Length > 0)
+        {
+            bool loading = _loadingMenus;
+            _loadingMenus = true;
+            try { TxtSearchItems.Text = ""; }
+            finally { _loadingMenus = loading; }
+        }
+
+        _itemView?.Refresh();
+        UpdateItemSearchState();
+    }
+
+    private bool ProfileMatchesSearch(object candidate)
+    {
+        if (_profileSearch.Length == 0) return true;
+        if (candidate is not CustomMenuProfile profile) return false;
+
+        return Contains(profile.Name)
+            || Contains(profile.ProcessName)
+            || Contains(profile.TitleContains)
+            || (profile.Extensions?.Any(Contains) ?? false);
+
+        bool Contains(string? text) =>
+            (text ?? "").Contains(_profileSearch, StringComparison.CurrentCultureIgnoreCase);
+    }
+
+    private bool ItemMatchesSearch(object candidate)
+    {
+        if (_itemSearch.Length == 0) return true;
+        if (candidate is not CustomMenuItem item) return false;
+
+        return Contains(item.Label)
+            || Contains(item.Description)
+            || Contains(CustomMenuChoices.KindLabel(item.Kind));
+
+        bool Contains(string? text) =>
+            (text ?? "").Contains(_itemSearch, StringComparison.CurrentCultureIgnoreCase);
+    }
+
+    private void UpdateProfileSearchState()
+    {
+        if (PnlNoProfileMatches is null) return;
+
+        bool anyVisible = _profileView is not null && _profileView.Cast<object>().Any();
+        PnlNoProfileMatches.Visibility = _profileSearch.Length > 0 && _menuProfiles.Count > 0 && !anyVisible
+            ? Visibility.Visible
+            : Visibility.Collapsed;
+    }
+
+    private void UpdateItemSearchState()
+    {
+        if (PnlNoItemMatches is null) return;
+
+        PnlNoItemMatches.Visibility = _itemSearch.Length > 0 && _menuItems.Count > 0 && ListItems.Items.Count == 0
+            ? Visibility.Visible
+            : Visibility.Collapsed;
+    }
+
+    /// <summary>Rebinda o rail só quando algum perfil ganhou ou perdeu itens com aviso.</summary>
+    private void RefreshProfileIssueBadges()
+    {
+        if (_profileView is null) return;
+
+        string signature = string.Join(",", _menuProfiles.Select(p => CustomMenuIssues.CountEnabled(p)));
+        if (signature == _profileIssueSignature) return;
+        _profileIssueSignature = signature;
+
+        bool loading = _loadingMenus;
+        _loadingMenus = true;
+        try
+        {
+            _profileView.Refresh();
+            if (_selectedProfile is not null) ListMenuProfiles.SelectedItem = _selectedProfile;
+        }
+        finally
+        {
+            _loadingMenus = loading;
+        }
+    }
+
+    // ------------------------------------------------------------------
     // Perfis
     // ------------------------------------------------------------------
 
@@ -227,6 +387,7 @@ public partial class SettingsWindow
 
     private void LoadProfileEditor(CustomMenuProfile? profile)
     {
+        ResetItemSearch();
         _selectedProfile = profile;
         bool hasProfile = profile is not null;
         PnlProfileEditor.IsEnabled = hasProfile;
@@ -290,7 +451,6 @@ public partial class SettingsWindow
 
         _menuProfiles.Add(profile);
         ListMenuProfiles.SelectedItem = profile;
-        ShowItemsSection();
         MarkMenusDirty();
         FocusAfterProfileChange();
     }
@@ -351,33 +511,115 @@ public partial class SettingsWindow
     }
 
     // ------------------------------------------------------------------
-    // Seções do editor
+    // Condições e prévia (camadas sobre a aba)
     // ------------------------------------------------------------------
 
-    private void MenuSection_Checked(object sender, RoutedEventArgs e)
+    private sealed record ConditionSnapshot(
+        string ProcessName,
+        string TitleContains,
+        string Extensions,
+        string WindowClass,
+        string Hotkey,
+        double Priority,
+        IReadOnlyList<RadialContextKind> Contexts);
+
+    private ConditionSnapshot? _conditionsSnapshot;
+    private bool _conditionsDirtyBeforeOpen;
+
+    private void BtnEditConditions_Click(object sender, RoutedEventArgs e)
     {
-        if (PnlSectionItems is null) return;   // durante o InitializeComponent as seções ainda não existem
-        ApplyMenuSection();
+        if (_selectedProfile is null) return;
+
+        _conditionsDirtyBeforeOpen = _menusDirty;
+        _conditionsSnapshot = CaptureConditions();
+        ShowMenuOverlay(ConditionsOverlay);
+        TxtProfileProcess.Focus();
     }
 
-    private void ApplyMenuSection()
-    {
-        bool items = SegItems.IsChecked == true;
-        bool application = SegApplication.IsChecked == true;
-        bool preview = SegPreview.IsChecked == true;
+    private ConditionSnapshot CaptureConditions() => new(
+        TxtProfileProcess.Text ?? "",
+        TxtProfileTitle.Text ?? "",
+        TxtProfileExtensions.Text ?? "",
+        TxtProfileWindowClass.Text ?? "",
+        TxtProfileHotkey.Text ?? "",
+        SliderProfilePriority.Value,
+        (_selectedProfile?.Contexts ?? new List<RadialContextKind>()).ToList());
 
-        PnlSectionItems.Visibility = items ? Visibility.Visible : Visibility.Collapsed;
-        PnlSectionApplication.Visibility = application ? Visibility.Visible : Visibility.Collapsed;
-        PnlSectionPreview.Visibility = preview ? Visibility.Visible : Visibility.Collapsed;
-        MenusScroll?.ScrollToTop();
+    /// <summary>Cancelar devolve campos e perfil ao estado da abertura, sem deixar o rascunho sujo.</summary>
+    private void RestoreConditions(ConditionSnapshot snapshot)
+    {
+        if (_selectedProfile is null) return;
+
+        _loadingMenus = true;
+        try
+        {
+            TxtProfileProcess.Text = snapshot.ProcessName;
+            TxtProfileTitle.Text = snapshot.TitleContains;
+            TxtProfileExtensions.Text = snapshot.Extensions;
+            TxtProfileWindowClass.Text = snapshot.WindowClass;
+            TxtProfileHotkey.Text = snapshot.Hotkey;
+            SliderProfilePriority.Value = snapshot.Priority;
+            ApplyContexts(snapshot.Contexts);
+        }
+        finally
+        {
+            _loadingMenus = false;
+        }
+
+        ApplyProfileFields();
+        _menusDirty = _conditionsDirtyBeforeOpen;
+        RefreshPreview();
+        UpdateMenuButtons();
+        UpdateDirtyIndicator();
     }
 
-    /// <summary>Um menu novo começa pelos itens: é o primeiro passo de quem está criando.</summary>
-    private void ShowItemsSection()
+    private void BtnCancelConditions_Click(object sender, RoutedEventArgs e) => HideMenuOverlays();
+
+    private void BtnDoneConditions_Click(object sender, RoutedEventArgs e) => HideMenuOverlays(restoreConditions: false);
+
+    private void BtnShowWheelPreview_Click(object sender, RoutedEventArgs e)
     {
-        if (SegItems is null) return;
-        SegItems.IsChecked = true;
-        MenusScroll?.ScrollToTop();
+        if (_selectedProfile is null) return;
+
+        RefreshPreview();
+        ShowMenuOverlay(MenuPreviewOverlay);
+        BtnCloseMenuPreview.Focus();
+    }
+
+    private void BtnCloseMenuPreview_Click(object sender, RoutedEventArgs e) => HideMenuOverlays();
+
+    private void MenuPreviewScrim_MouseDown(object sender, MouseButtonEventArgs e)
+    {
+        if (MenuPreviewCard.IsMouseOver) return;
+        HideMenuOverlays();
+    }
+
+    private void ShowMenuOverlay(FrameworkElement overlay)
+    {
+        ConditionsOverlay.Visibility = Visibility.Collapsed;
+        MenuPreviewOverlay.Visibility = Visibility.Collapsed;
+        MenusWorkspace.IsEnabled = false;
+        overlay.Visibility = Visibility.Visible;
+    }
+
+    /// <summary>Fecha o que estiver aberto; devolve true quando havia algo para fechar (Esc).</summary>
+    private bool HideMenuOverlays(bool restoreConditions = true)
+    {
+        bool conditions = ConditionsOverlay.Visibility == Visibility.Visible;
+        bool preview = MenuPreviewOverlay.Visibility == Visibility.Visible;
+        if (!conditions && !preview) return false;
+
+        if (conditions && restoreConditions && _conditionsSnapshot is { } snapshot)
+            RestoreConditions(snapshot);
+
+        _conditionsSnapshot = null;
+        ConditionsOverlay.Visibility = Visibility.Collapsed;
+        MenuPreviewOverlay.Visibility = Visibility.Collapsed;
+        MenusWorkspace.IsEnabled = true;
+
+        FrameworkElement target = conditions ? BtnEditConditions : BtnShowWheelPreview;
+        if (target.IsVisible) target.Focus();
+        return true;
     }
 
     // ------------------------------------------------------------------
@@ -442,7 +684,9 @@ public partial class SettingsWindow
             return;
         }
 
-        string? path = ChooseExportPathForTests is { } choose ? choose() : ShowExportDialog();
+        string? path = ChooseExportPathForTests is { } choose
+            ? choose()
+            : ShowExportDialog("radialflow-menus.json");
         if (string.IsNullOrWhiteSpace(path)) return;
 
         List<CustomMenuProfile> snapshot = _menuProfiles.ToList();
@@ -464,6 +708,51 @@ public partial class SettingsWindow
             DialogIcon.Info);
     }
 
+    private void BtnExportMenuProfile_Click(object sender, RoutedEventArgs e)
+    {
+        if (_selectedProfile is null) return;
+
+        // Só este menu: o restante do rascunho pode estar incompleto sem impedir a exportação.
+        SyncProfileItems();
+        string? invalid = ValidateProfiles(new[] { _selectedProfile });
+        if (invalid is not null)
+        {
+            Dialogs.Message(this, Loc.Get("Menus.PageTitle"), invalid, DialogIcon.Warning);
+            return;
+        }
+
+        string? path = ChooseExportProfilePathForTests is { } choose
+            ? choose()
+            : ShowExportDialog(SafeFileName(_selectedProfile.Name) + ".json");
+        if (string.IsNullOrWhiteSpace(path)) return;
+
+        CustomMenuProfile snapshot = CloneProfile(_selectedProfile);
+        if (!CustomMenuTransfer.TryExportToFile(path, new[] { snapshot }, out string? reason))
+        {
+            AppLog.Warning("Menus", $"Exportação do menu falhou: {reason}");
+            Dialogs.Message(this, Loc.Get("Menus.ExportTitle"),
+                reason ?? Loc.Get("Menus.ExportFailed"), DialogIcon.Error);
+            return;
+        }
+
+        AppLog.Info("Menus", $"Menu '{snapshot.Name}' exportado para '{path}'.");
+        Dialogs.Message(this, Loc.Get("Menus.ExportedTitle"),
+            Loc.Format("Menus.ExportedMessage",
+                DescribeCount(1, "Common.MenusCountOne", "Common.MenusCountMany"),
+                DescribeCount(snapshot.Items.Count, "Common.ItemsCountOne", "Common.ItemsCountMany"),
+                path),
+            DialogIcon.Info);
+    }
+
+    private static string SafeFileName(string? name)
+    {
+        string value = (name ?? "").Trim();
+        foreach (char invalid in Path.GetInvalidFileNameChars())
+            value = value.Replace(invalid, '-');
+
+        return value.Length == 0 ? "radialflow-menu" : value;
+    }
+
     private string? ShowImportDialog()
     {
         var dialog = new OpenFileDialog
@@ -477,7 +766,7 @@ public partial class SettingsWindow
         return dialog.ShowDialog(this) == true ? dialog.FileName : null;
     }
 
-    private string? ShowExportDialog()
+    private string? ShowExportDialog(string fileName)
     {
         var dialog = new SaveFileDialog
         {
@@ -485,7 +774,7 @@ public partial class SettingsWindow
             Filter = Loc.Get("Menus.ExportFilter"),
             DefaultExt = ".json",
             AddExtension = true,
-            FileName = "radialflow-menus.json",
+            FileName = fileName,
             OverwritePrompt = true,
             CheckPathExists = true,
         };
@@ -496,6 +785,15 @@ public partial class SettingsWindow
     private void ProfileField_Changed(object sender, RoutedEventArgs e)
     {
         if (_loadingMenus || _selectedProfile is null) return;
+
+        ApplyProfileFields();
+        MarkMenusDirty(debouncePreview: sender is TextBox);
+    }
+
+    /// <summary>Leva os campos da aba para o perfil selecionado, sem mexer no estado de rascunho.</summary>
+    private void ApplyProfileFields()
+    {
+        if (_selectedProfile is null) return;
 
         _selectedProfile.Name = TxtProfileName.Text;
         _selectedProfile.Enabled = ChkProfileEnabled.IsChecked == true;
@@ -510,8 +808,6 @@ public partial class SettingsWindow
             .Where(c => c.IsChecked == true && c.Tag is RadialContextKind)
             .Select(c => (RadialContextKind)c.Tag!)
             .ToList();
-
-        MarkMenusDirty(debouncePreview: sender is TextBox);
     }
 
     private void TxtProfileName_LostFocus(object sender, RoutedEventArgs e)
@@ -650,6 +946,54 @@ public partial class SettingsWindow
         MarkMenusDirty();
     }
 
+    private void BtnDuplicateMenuItem_Click(object sender, RoutedEventArgs e)
+    {
+        if (_selectedProfile is null || _selectedItem is null) return;
+
+        if (_menuItems.Count >= CustomMenuNormalizer.MaxItems)
+        {
+            Dialogs.Message(this, Loc.Get("Menus.ItemsTitle"),
+                Loc.Format("Menus.MaxItems", CustomMenuNormalizer.MaxItems), DialogIcon.Warning);
+            return;
+        }
+
+        CustomMenuItem copy = CloneItem(_selectedItem);
+        RegenerateIds(copy);
+        copy.Label = UniqueName(_menuItems.Select(i => i.Label), CopyLabel(_selectedItem.Label));
+
+        int index = _menuItems.IndexOf(_selectedItem);
+        _menuItems.Insert(index + 1, copy);
+        SyncProfileItems();
+        ListItems.SelectedItem = copy;
+
+        MarkMenusDirty();
+    }
+
+    private static void RegenerateIds(CustomMenuItem item)
+    {
+        item.Id = Guid.NewGuid().ToString("N");
+        foreach (CustomMenuItem option in item.Options ?? new List<CustomMenuItem>())
+            RegenerateIds(option);
+    }
+
+    /// <summary>Rótulo da cópia já truncado: Salvar recusaria um rótulo acima do limite.</summary>
+    private static string CopyLabel(string? label)
+    {
+        string suffix = Loc.Format("Menus.CopySuffix", "");
+        string baseLabel = (label ?? "").Trim();
+
+        // Duplicar uma cópia não empilha "(cópia) (cópia)"; o UniqueName numera se o nome já existir.
+        if (baseLabel.EndsWith(suffix, StringComparison.Ordinal))
+            return baseLabel.Length > CustomMenuNormalizer.MaxLabelLength
+                ? baseLabel[..CustomMenuNormalizer.MaxLabelLength]
+                : baseLabel;
+
+        int maxBase = Math.Max(1, CustomMenuNormalizer.MaxLabelLength - suffix.Length);
+        if (baseLabel.Length > maxBase) baseLabel = baseLabel[..maxBase];
+
+        return baseLabel + suffix;
+    }
+
     private void BtnMoveItemUp_Click(object sender, RoutedEventArgs e) => MoveSelectedItem(-1);
 
     private void BtnMoveItemDown_Click(object sender, RoutedEventArgs e) => MoveSelectedItem(+1);
@@ -657,15 +1001,85 @@ public partial class SettingsWindow
     private void MoveSelectedItem(int delta)
     {
         int index = ListItems.SelectedIndex;
-        int target = index + delta;
-        if (_selectedProfile is null || index < 0 || target < 0 || target >= _menuItems.Count) return;
+        if (index < 0 || index >= _menuItems.Count) return;
 
-        CustomMenuItem item = _menuItems[index];
-        _menuItems.Move(index, target);
+        MoveItemToIndex(_menuItems[index], index + delta);
+    }
+
+    /// <summary>Move o item para a posição pedida (usado pelos botões, pelo arrasto e pelo teclado).</summary>
+    internal void MoveItemToIndex(CustomMenuItem item, int targetIndex)
+    {
+        int index = _menuItems.IndexOf(item);
+        if (index < 0) return;
+
+        targetIndex = Math.Clamp(targetIndex, 0, _menuItems.Count - 1);
+        if (targetIndex == index) return;
+
+        _menuItems.Move(index, targetIndex);
         SyncProfileItems();
         ListItems.SelectedItem = item;
 
         MarkMenusDirty();
+    }
+
+    private void ListItems_PreviewKeyDown(object sender, KeyEventArgs e)
+    {
+        if (HandleReorderKey(e.Key)) e.Handled = true;
+    }
+
+    /// <summary>Alt+↑/↓ reordena; sem Alt as setas continuam sendo navegação da lista.</summary>
+    internal bool HandleReorderKey(Key key)
+    {
+        ModifierKeys modifiers = KeyboardModifiersForTests?.Invoke() ?? Keyboard.Modifiers;
+        if ((modifiers & ModifierKeys.Alt) == 0 || key is not (Key.Up or Key.Down)) return false;
+
+        MoveSelectedItem(key == Key.Up ? -1 : +1);
+        return true;
+    }
+
+    private void ListItems_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        _dragStart = e.GetPosition(ListItems);
+        _dragItem = ItemAt(e.OriginalSource as DependencyObject);
+    }
+
+    private void ListItems_PreviewMouseMove(object sender, MouseEventArgs e)
+    {
+        if (e.LeftButton != MouseButtonState.Pressed || _dragItem is null) return;
+
+        Point position = e.GetPosition(ListItems);
+        if (Math.Abs(position.X - _dragStart.X) < SystemParameters.MinimumHorizontalDragDistance &&
+            Math.Abs(position.Y - _dragStart.Y) < SystemParameters.MinimumVerticalDragDistance)
+            return;
+
+        CustomMenuItem item = _dragItem;
+        _dragItem = null;
+        DragDrop.DoDragDrop(ListItems, new DataObject(typeof(CustomMenuItem), item), DragDropEffects.Move);
+    }
+
+    private void ListItems_DragOver(object sender, DragEventArgs e)
+    {
+        e.Effects = e.Data.GetDataPresent(typeof(CustomMenuItem))
+            ? DragDropEffects.Move
+            : DragDropEffects.None;
+        e.Handled = true;
+    }
+
+    private void ListItems_Drop(object sender, DragEventArgs e)
+    {
+        if (e.Data.GetData(typeof(CustomMenuItem)) is not CustomMenuItem item) return;
+
+        CustomMenuItem? target = ItemAt(e.OriginalSource as DependencyObject);
+        MoveItemToIndex(item, target is null ? _menuItems.Count - 1 : _menuItems.IndexOf(target));
+        e.Handled = true;
+    }
+
+    private CustomMenuItem? ItemAt(DependencyObject? source)
+    {
+        if (source is null) return null;
+
+        var container = ItemsControl.ContainerFromElement(ListItems, source) as ListBoxItem;
+        return container?.DataContext as CustomMenuItem;
     }
 
     private void CmbItemKind_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -706,6 +1120,7 @@ public partial class SettingsWindow
     {
         if (_loadingMenus || _selectedItem is null) return;
 
+        string? issueBefore = CustomMenuIssues.Describe(_selectedItem);
         CustomMenuItemKind kind = SelectedKind();
         _selectedItem.Kind = kind;
         _selectedItem.Label = TxtItemLabel.Text;
@@ -726,6 +1141,11 @@ public partial class SettingsWindow
             _ => "",
         };
         _selectedItem.Text = kind == CustomMenuItemKind.Text ? TxtItemText.Text : "";
+
+        // O aviso da linha só precisa de rebind quando ele aparece/desaparece; o texto do rótulo
+        // continua sendo atualizado ao sair do campo.
+        if (!string.Equals(issueBefore, CustomMenuIssues.Describe(_selectedItem), StringComparison.Ordinal))
+            RefreshItemListRow();
 
         MarkMenusDirty(debouncePreview: sender is TextBox);
     }
@@ -959,7 +1379,12 @@ public partial class SettingsWindow
             : Loc.Format("Menus.PreviewExtrasMany", extras);
         PreviewSummary.Text = Loc.Format("Menus.PreviewSummary", automatic.Count, replacementsText, extrasText);
 
-        if (plan.Dropped.Count == 0 && plan.Invalid.Count == 0)
+        // Itens que o Salvar recusaria (alvo vazio, URL sem http/https…): o submenu e a
+        // rotina inválidos já foram contados acima.
+        int fieldIssues = items.Count(i =>
+            !plan.Invalid.Contains(i) && CustomMenuIssues.Describe(i) is not null);
+
+        if (plan.Dropped.Count == 0 && plan.Invalid.Count == 0 && fieldIssues == 0)
         {
             PreviewWarning.Text = "";
             PreviewWarning.Visibility = Visibility.Collapsed;
@@ -979,6 +1404,11 @@ public partial class SettingsWindow
                 parts.Add(Loc.Get("Menus.WarnRoutineOne"));
             else if (invalidRoutines > 1)
                 parts.Add(Loc.Format("Menus.WarnRoutines", invalidRoutines));
+
+            if (fieldIssues == 1)
+                parts.Add(Loc.Get("Menus.WarnIssuesOne"));
+            else if (fieldIssues > 1)
+                parts.Add(Loc.Format("Menus.WarnIssuesMany", fieldIssues));
 
             if (plan.Dropped.Count == 1)
                 parts.Add(Loc.Get("Menus.WarnDroppedOne"));
@@ -1048,12 +1478,14 @@ public partial class SettingsWindow
         PnlProfileActions.Visibility = hasProfile ? Visibility.Visible : Visibility.Collapsed;
 
         BtnDuplicateMenuProfile.IsEnabled = hasProfile;
+        BtnExportMenuProfile.IsEnabled = hasProfile;
         BtnRemoveMenuProfile.IsEnabled = hasProfile;
         BtnAddMenuItem.IsEnabled = hasProfile;
         BtnExportMenus.IsEnabled = hasProfiles;
 
         bool hasItem = _selectedItem is not null;
         int index = ListItems.SelectedIndex;
+        BtnDuplicateMenuItem.IsEnabled = hasItem;
         BtnRemoveMenuItem.IsEnabled = hasItem;
         BtnMoveItemUp.IsEnabled = hasItem && index > 0;
         BtnMoveItemDown.IsEnabled = hasItem && index >= 0 && index < _menuItems.Count - 1;
@@ -1065,6 +1497,7 @@ public partial class SettingsWindow
         MenuProfileCount.Text = _menuProfiles.Count.ToString(CultureInfo.InvariantCulture);
         MenuItemCount.Text = Loc.Format("Menus.ItemsCountFormat", _menuItems.Count, CustomMenuNormalizer.MaxItems);
         UpdateProfileSummary();
+        RefreshProfileIssueBadges();
     }
 
     /// <summary>Resumo do cabeçalho: as condições que valem agora, sem abrir a seção Aplicação.</summary>
@@ -1296,6 +1729,8 @@ public partial class SettingsWindow
 
     protected override void OnClosing(CancelEventArgs e)
     {
+        HideMenuOverlays();   // fechar com diálogo aberto equivale a cancelar as condições
+
         // A gravação do atalho prende a combinação: precisa terminar mesmo se o fechamento for cancelado.
         if (_recordingHotkey) StopRecordingHotkey();
 

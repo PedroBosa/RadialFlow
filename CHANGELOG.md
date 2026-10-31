@@ -2,6 +2,25 @@
 
 Cada versão, da mais nova para a mais antiga. O número da versão está em `RadialFlow.csproj`.
 
+## 1.5.0 — 29/10/2026
+
+### Novo
+
+- **Busca e avisos na aba Menus.** As listas de menus e de itens ganham busca, e um selo marca o menu ou o item que o
+  **Salvar** recusaria — com o motivo no próprio selo e a contagem no cabeçalho —, sem mudar o formato das configurações.
+- **Reordenar e duplicar itens.** As setas, **Alt+↑/↓** ou arrastar na lista mudam a ordem; **Duplicar** insere uma
+  cópia logo abaixo, com identificador novo e “(cópia)” no rótulo.
+- **Exportar um menu só.** O botão no cabeçalho do menu grava apenas ele num `.json`, sem exigir que o restante do
+  rascunho esteja válido.
+
+### Melhorias
+
+- **Aba Menus em três colunas.** Menus, itens e o editor do item ficam lado a lado, cada lista rola sozinha e o
+  cabeçalho do menu concentra nome, chave **Ativo**, condições, prévia, duplicar, exportar e remover.
+- **Condições em diálogo e prévia ao vivo.** As condições saem do fluxo principal para um diálogo, resumidas no
+  cabeçalho, e **Prévia** abre um painel com as fatias do menu marcadas como **substitui** ou **extra** e os avisos de
+  limite.
+
 ## 1.4.1 — 28/10/2026
 
 ### Novo

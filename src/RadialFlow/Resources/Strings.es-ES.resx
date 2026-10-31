@@ -131,6 +131,17 @@
   <data name="Menus.PageSubtitle" xml:space="preserve"><value>Menús que aparecen solo en las aplicaciones y contextos que elijas.</value></data>
   <data name="Menus.ProfilesTitle" xml:space="preserve"><value>Tus menús</value></data>
   <data name="Menus.ProfilesCountAutomation" xml:space="preserve"><value>Total de menús</value></data>
+  <data name="Menus.SearchProfilesHint" xml:space="preserve"><value>Buscar menú…</value></data>
+  <data name="Menus.SearchProfilesAutomation" xml:space="preserve"><value>Buscar menús</value></data>
+  <data name="Menus.SearchItemsHint" xml:space="preserve"><value>Buscar elemento…</value></data>
+  <data name="Menus.SearchItemsAutomation" xml:space="preserve"><value>Buscar elementos del menú</value></data>
+  <data name="Menus.NoProfileMatches" xml:space="preserve"><value>Ningún menú coincide con la búsqueda.</value></data>
+  <data name="Menus.NoItemMatches" xml:space="preserve"><value>Ningún elemento coincide con la búsqueda.</value></data>
+  <data name="Menus.IssueLabel" xml:space="preserve"><value>El elemento necesita un rótulo.</value></data>
+  <data name="Menus.RailIssuesOne" xml:space="preserve"><value>{0} elemento con aviso</value></data>
+  <data name="Menus.RailIssuesMany" xml:space="preserve"><value>{0} elementos con aviso</value></data>
+  <data name="Menus.WarnIssuesOne" xml:space="preserve"><value>1 elemento necesita atención.</value></data>
+  <data name="Menus.WarnIssuesMany" xml:space="preserve"><value>{0} elementos necesitan atención.</value></data>
   <data name="Menus.NewMenu" xml:space="preserve"><value>Menú nuevo</value></data>
   <data name="Menus.NewMenuAutomation" xml:space="preserve"><value>Añadir menú personalizado</value></data>
   <data name="Menus.Import" xml:space="preserve"><value>Importar…</value></data>
@@ -141,12 +152,19 @@
   <data name="Menus.ExportAutomation" xml:space="preserve"><value>Exportar todos los menús a un archivo</value></data>
   <data name="Menus.Duplicate" xml:space="preserve"><value>Duplicar</value></data>
   <data name="Menus.DuplicateAutomation" xml:space="preserve"><value>Duplicar menú seleccionado</value></data>
+  <data name="Menus.DuplicateItem" xml:space="preserve"><value>Duplicar elemento</value></data>
+  <data name="Menus.DuplicateItemAutomation" xml:space="preserve"><value>Duplicar elemento seleccionado</value></data>
+  <data name="Menus.ExportProfileToolTip" xml:space="preserve"><value>Guarda solo este menú en un archivo .json.</value></data>
+  <data name="Menus.ExportProfileAutomation" xml:space="preserve"><value>Exportar menú seleccionado</value></data>
   <data name="Menus.RemoveAutomation" xml:space="preserve"><value>Quitar menú seleccionado</value></data>
   <data name="Menus.DisabledBadge" xml:space="preserve"><value>DESACTIVADO</value></data>
   <data name="Menus.ProcessFormat" xml:space="preserve"><value>Proceso: {0}</value></data>
   <data name="Menus.AnyApp" xml:space="preserve"><value>Cualquier aplicación</value></data>
   <data name="Menus.ConditionsTitle" xml:space="preserve"><value>Dónde aparece este menú</value></data>
   <data name="Menus.ConditionsHint" xml:space="preserve"><value>Todos los campos son opcionales. Si se rellenan, deben coincidir para que el menú aparezca.</value></data>
+  <data name="Menus.ConditionsButton" xml:space="preserve"><value>Condiciones</value></data>
+  <data name="Menus.ConditionsButtonToolTip" xml:space="preserve"><value>Proceso, título, extensiones, clase de ventana, contextos y prioridad.</value></data>
+  <data name="Menus.ConditionsButtonAutomation" xml:space="preserve"><value>Editar las condiciones del menú</value></data>
   <data name="Menus.NameLabel" xml:space="preserve"><value>Nombre del menú</value></data>
   <data name="Menus.Active" xml:space="preserve"><value>Activo</value></data>
   <data name="Menus.ProcessLabel" xml:space="preserve"><value>Proceso (sin .exe)</value></data>
@@ -219,6 +237,10 @@
   <data name="Menus.NoItemSelected" xml:space="preserve"><value>Ningún elemento seleccionado</value></data>
   <data name="Menus.NoItemSelectedHint" xml:space="preserve"><value>Selecciona un elemento de la lista para editarlo.</value></data>
   <data name="Menus.PreviewTitle" xml:space="preserve"><value>Vista previa de la rueda</value></data>
+  <data name="Menus.PreviewButton" xml:space="preserve"><value>Vista previa</value></data>
+  <data name="Menus.PreviewButtonToolTip" xml:space="preserve"><value>Abre la vista previa de la rueda con este menú.</value></data>
+  <data name="Menus.PreviewButtonAutomation" xml:space="preserve"><value>Vista previa de la rueda para este menú</value></data>
+  <data name="Menus.ClosePreviewAutomation" xml:space="preserve"><value>Cerrar la vista previa</value></data>
   <data name="Menus.Legend" xml:space="preserve"><value>LEYENDA</value></data>
   <data name="Menus.LegendAutomatic" xml:space="preserve"><value>automática</value></data>
   <data name="Menus.LegendReplaces" xml:space="preserve"><value>sustituye</value></data>

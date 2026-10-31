@@ -237,6 +237,7 @@ internal static class UiTheme
         });
         dictionary["AccentGradientBrush"] = Freeze(new LinearGradientBrush(palette.AccentHover, palette.AccentPressed, 90));
         dictionary["AccentFillBrush"] = Freeze(new LinearGradientBrush(palette.AccentPressed, palette.AccentHover, 0));
+        dictionary["ScrimBrush"] = Freeze(new SolidColorBrush(Color.FromArgb(0x73, 0, 0, 0)));
     }
 
     private static T Freeze<T>(T value) where T : Freezable

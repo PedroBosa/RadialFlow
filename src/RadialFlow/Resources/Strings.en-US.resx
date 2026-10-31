@@ -131,6 +131,17 @@
   <data name="Menus.PageSubtitle" xml:space="preserve"><value>Menus that appear only in the apps and contexts you choose.</value></data>
   <data name="Menus.ProfilesTitle" xml:space="preserve"><value>Your menus</value></data>
   <data name="Menus.ProfilesCountAutomation" xml:space="preserve"><value>Total menus</value></data>
+  <data name="Menus.SearchProfilesHint" xml:space="preserve"><value>Search menus…</value></data>
+  <data name="Menus.SearchProfilesAutomation" xml:space="preserve"><value>Search menus</value></data>
+  <data name="Menus.SearchItemsHint" xml:space="preserve"><value>Search items…</value></data>
+  <data name="Menus.SearchItemsAutomation" xml:space="preserve"><value>Search menu items</value></data>
+  <data name="Menus.NoProfileMatches" xml:space="preserve"><value>No menus match your search.</value></data>
+  <data name="Menus.NoItemMatches" xml:space="preserve"><value>No items match your search.</value></data>
+  <data name="Menus.IssueLabel" xml:space="preserve"><value>This item needs a label.</value></data>
+  <data name="Menus.RailIssuesOne" xml:space="preserve"><value>{0} item needs attention</value></data>
+  <data name="Menus.RailIssuesMany" xml:space="preserve"><value>{0} items need attention</value></data>
+  <data name="Menus.WarnIssuesOne" xml:space="preserve"><value>1 item needs attention.</value></data>
+  <data name="Menus.WarnIssuesMany" xml:space="preserve"><value>{0} items need attention.</value></data>
   <data name="Menus.NewMenu" xml:space="preserve"><value>New menu</value></data>
   <data name="Menus.NewMenuAutomation" xml:space="preserve"><value>Add custom menu</value></data>
   <data name="Menus.Import" xml:space="preserve"><value>Import…</value></data>
@@ -141,12 +152,19 @@
   <data name="Menus.ExportAutomation" xml:space="preserve"><value>Export all menus to a file</value></data>
   <data name="Menus.Duplicate" xml:space="preserve"><value>Duplicate</value></data>
   <data name="Menus.DuplicateAutomation" xml:space="preserve"><value>Duplicate selected menu</value></data>
+  <data name="Menus.DuplicateItem" xml:space="preserve"><value>Duplicate item</value></data>
+  <data name="Menus.DuplicateItemAutomation" xml:space="preserve"><value>Duplicate selected item</value></data>
+  <data name="Menus.ExportProfileToolTip" xml:space="preserve"><value>Saves only this menu to a .json file.</value></data>
+  <data name="Menus.ExportProfileAutomation" xml:space="preserve"><value>Export selected menu</value></data>
   <data name="Menus.RemoveAutomation" xml:space="preserve"><value>Remove selected menu</value></data>
   <data name="Menus.DisabledBadge" xml:space="preserve"><value>DISABLED</value></data>
   <data name="Menus.ProcessFormat" xml:space="preserve"><value>Process: {0}</value></data>
   <data name="Menus.AnyApp" xml:space="preserve"><value>Any app</value></data>
   <data name="Menus.ConditionsTitle" xml:space="preserve"><value>Where this menu appears</value></data>
   <data name="Menus.ConditionsHint" xml:space="preserve"><value>All fields are optional. When filled in, they must match for the menu to appear.</value></data>
+  <data name="Menus.ConditionsButton" xml:space="preserve"><value>Conditions</value></data>
+  <data name="Menus.ConditionsButtonToolTip" xml:space="preserve"><value>Process, title, extensions, window class, contexts and priority.</value></data>
+  <data name="Menus.ConditionsButtonAutomation" xml:space="preserve"><value>Edit menu conditions</value></data>
   <data name="Menus.NameLabel" xml:space="preserve"><value>Menu name</value></data>
   <data name="Menus.Active" xml:space="preserve"><value>Active</value></data>
   <data name="Menus.ProcessLabel" xml:space="preserve"><value>Process (without .exe)</value></data>
@@ -219,6 +237,10 @@
   <data name="Menus.NoItemSelected" xml:space="preserve"><value>No item selected</value></data>
   <data name="Menus.NoItemSelectedHint" xml:space="preserve"><value>Select an item in the list to edit it.</value></data>
   <data name="Menus.PreviewTitle" xml:space="preserve"><value>Wheel preview</value></data>
+  <data name="Menus.PreviewButton" xml:space="preserve"><value>Preview</value></data>
+  <data name="Menus.PreviewButtonToolTip" xml:space="preserve"><value>Opens the wheel preview for this menu.</value></data>
+  <data name="Menus.PreviewButtonAutomation" xml:space="preserve"><value>Wheel preview for this menu</value></data>
+  <data name="Menus.ClosePreviewAutomation" xml:space="preserve"><value>Close preview</value></data>
   <data name="Menus.Legend" xml:space="preserve"><value>LEGEND</value></data>
   <data name="Menus.LegendAutomatic" xml:space="preserve"><value>automatic</value></data>
   <data name="Menus.LegendReplaces" xml:space="preserve"><value>replaces</value></data>

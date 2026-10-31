@@ -3,7 +3,7 @@
 ; Para compilar à mão: ISCC /DAppVersion=<versão> /DSourceDir=dist\RadialFlow-<versão>-win-x64 RadialFlow.iss
 
 #ifndef AppVersion
-  #define AppVersion "1.4.1"
+  #define AppVersion "1.5.0"
 #endif
 #ifndef SourceDir
   #define SourceDir "dist\RadialFlow-" + AppVersion + "-win-x64"

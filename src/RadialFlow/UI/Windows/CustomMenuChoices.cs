@@ -84,6 +84,8 @@ internal static class CustomMenuChoices
         return action.ToString();
     }
 
+    internal static string KindLabel(CustomMenuItemKind kind) => Loc.Get($"Choices.Kind.{kind}");
+
     /// <summary>
     /// Ícones locais da Segoe Fluent Icons (com fallback Segoe MDL2 Assets). Nada é baixado nem instalado:
     /// o conjunto é fixo e curado para os menus.

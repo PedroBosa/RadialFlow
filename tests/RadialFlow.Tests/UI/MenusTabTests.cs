@@ -7,6 +7,7 @@ using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
+using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
 using RadialFlow.Config;
@@ -43,6 +44,8 @@ public sealed class MenusTabTests : IDisposable
         RoutineEditorWindow.BeforeShowForTests = null;
         SettingsWindow.ChooseImportPathForTests = null;
         SettingsWindow.ChooseExportPathForTests = null;
+        SettingsWindow.ChooseExportProfilePathForTests = null;
+        SettingsWindow.KeyboardModifiersForTests = null;
         _temp.Dispose();
     }
 
@@ -305,41 +308,432 @@ public sealed class MenusTabTests : IDisposable
     }
 
     [Fact]
-    public void Secoes_UmAssuntoPorVezEMenuNovoComecaNosItens()
+    public void Workspace_MostraTresColunasECamadasFechadas()
     {
         RunSta(() =>
         {
             SettingsWindow window = OpenSettings();
             Click(Find<Button>(window, "BtnAddMenuProfile"));
 
-            var items = Find<Grid>(window, "PnlSectionItems");
-            var application = Find<Grid>(window, "PnlSectionApplication");
-            var preview = Find<Grid>(window, "PnlSectionPreview");
-            var segItems = Find<RadioButton>(window, "SegItems");
-            var segApplication = Find<RadioButton>(window, "SegApplication");
-            var segPreview = Find<RadioButton>(window, "SegPreview");
-
-            Assert.True(segItems.IsChecked);
-            Assert.Equal(Visibility.Visible, items.Visibility);
-            Assert.Equal(Visibility.Collapsed, application.Visibility);
-            Assert.Equal(Visibility.Collapsed, preview.Visibility);
-
-            segApplication.IsChecked = true;
-            Assert.Equal(Visibility.Collapsed, items.Visibility);
-            Assert.Equal(Visibility.Visible, application.Visibility);
-            Assert.Equal(Visibility.Collapsed, preview.Visibility);
-
-            segPreview.IsChecked = true;
-            Assert.Equal(Visibility.Collapsed, items.Visibility);
-            Assert.Equal(Visibility.Collapsed, application.Visibility);
-            Assert.Equal(Visibility.Visible, preview.Visibility);
-
-            // Criar um menu a partir de outra seção abre os itens: é o primeiro passo de quem cria.
-            Click(Find<Button>(window, "BtnNewMenuProfile"));
-            Assert.True(segItems.IsChecked);
-            Assert.Equal(Visibility.Visible, items.Visibility);
+            Assert.Equal(Visibility.Visible, Find<Grid>(window, "MenusWorkspace").Visibility);
+            Assert.Equal(Visibility.Visible, Find<Grid>(window, "PnlProfileEditor").Visibility);
+            Assert.Equal(Visibility.Visible, Find<Border>(window, "PnlNoItems").Visibility);
+            Assert.Equal(Visibility.Collapsed, Find<Grid>(window, "ConditionsOverlay").Visibility);
+            Assert.Equal(Visibility.Collapsed, Find<Grid>(window, "MenuPreviewOverlay").Visibility);
+            Assert.True(Find<Grid>(window, "MenusWorkspace").IsEnabled);
 
             CloseDiscarding(window);
+        });
+    }
+
+    // ------------------------------------------------------------------
+    // Busca e avisos
+    // ------------------------------------------------------------------
+
+    [Fact]
+    public void Busca_FiltraPerfisEItensSemFecharOEditor()
+    {
+        RunSta(() =>
+        {
+            var settings = AppSettings.CreateDefault();
+            settings.CustomProfiles.Add(new CustomMenuProfile
+            {
+                Name = "Blender",
+                ProcessName = "blender",
+                Contexts = { RadialContextKind.Generic },
+                Items =
+                {
+                    new CustomMenuItem { Label = "Abrir site", Kind = CustomMenuItemKind.OpenUrl, Target = "https://blender.org" },
+                    new CustomMenuItem { Label = "Copiar caminho", Kind = CustomMenuItemKind.Action, Action = RadialAction.CopyPath },
+                },
+            });
+            settings.CustomProfiles.Add(new CustomMenuProfile
+            {
+                Name = "Fotos",
+                ProcessName = "photos",
+                Contexts = { RadialContextKind.FileOrFolder },
+                Items =
+                {
+                    new CustomMenuItem { Label = "Abrir pasta", Kind = CustomMenuItemKind.OpenPath, Target = @"C:\Windows\System32\notepad.exe" },
+                },
+            });
+            SettingsService.OverrideCurrentForTests(settings);
+
+            SettingsWindow window = OpenSettings();
+            SelectTab(window, "Menus");
+            Pump(120);
+
+            var profiles = Find<ListBox>(window, "ListMenuProfiles");
+            var items = Find<ListBox>(window, "ListItems");
+            var noProfiles = Find<TextBlock>(window, "PnlNoProfileMatches");
+            var noItems = Find<TextBlock>(window, "PnlNoItemMatches");
+            Assert.Equal(2, profiles.Items.Count);
+            Assert.Equal(2, items.Items.Count);
+            Assert.Equal("Blender", Find<TextBox>(window, "TxtProfileName").Text);
+
+            // Um perfil escondido pelo filtro não pode fechar o editor: é o mesmo rascunho.
+            Find<TextBox>(window, "TxtSearchProfiles").Text = "foto";
+            Pump(30);
+            Assert.Single(profiles.Items);
+            Assert.Equal("Fotos", ((CustomMenuProfile)profiles.Items[0]).Name);
+            Assert.Equal("Blender", Find<TextBox>(window, "TxtProfileName").Text);
+            Assert.Equal(Visibility.Collapsed, noProfiles.Visibility);
+
+            Find<TextBox>(window, "TxtSearchProfiles").Text = "nada";
+            Pump(30);
+            Assert.Empty(profiles.Items);
+            Assert.Equal(Visibility.Visible, noProfiles.Visibility);
+            Assert.Equal("Blender", Find<TextBox>(window, "TxtProfileName").Text);
+
+            Find<TextBox>(window, "TxtSearchProfiles").Text = "";
+            Pump(30);
+            Assert.Equal(2, profiles.Items.Count);
+            Assert.Equal(Visibility.Collapsed, noProfiles.Visibility);
+            Assert.Equal("Blender", ((CustomMenuProfile)profiles.SelectedItem).Name);
+
+            Find<TextBox>(window, "TxtSearchItems").Text = "site";
+            Pump(30);
+            Assert.Single(items.Items);
+            Assert.Equal("Abrir site", ((CustomMenuItem)items.Items[0]).Label);
+            Assert.Equal(Visibility.Collapsed, noItems.Visibility);
+
+            Find<TextBox>(window, "TxtSearchItems").Text = "nada";
+            Pump(30);
+            Assert.Empty(items.Items);
+            Assert.Equal(Visibility.Visible, noItems.Visibility);
+
+            Find<TextBox>(window, "TxtSearchItems").Text = "";
+            Pump(30);
+            Assert.Equal(2, items.Items.Count);
+            Assert.Equal(Visibility.Collapsed, noItems.Visibility);
+
+            // Trocar de menu limpa a busca de itens para a lista nova aparecer inteira.
+            Find<TextBox>(window, "TxtSearchItems").Text = "copia";
+            Pump(30);
+            Assert.Single(items.Items);
+            profiles.SelectedIndex = 1;
+            Pump(30);
+            Assert.Equal("", Find<TextBox>(window, "TxtSearchItems").Text);
+            Assert.Single(items.Items);
+            Assert.Equal("Abrir pasta", ((CustomMenuItem)items.Items[0]).Label);
+
+            CloseDiscarding(window);
+        });
+    }
+
+    [Fact]
+    public void Aviso_ItemComAlvoInvalido_ApareceNaLinhaENoContador()
+    {
+        RunSta(() =>
+        {
+            var settings = AppSettings.CreateDefault();
+            settings.CustomProfiles.Add(new CustomMenuProfile
+            {
+                Name = "Menu",
+                Contexts = { RadialContextKind.Generic },
+                Items =
+                {
+                    new CustomMenuItem { Label = "Copiar caminho", Kind = CustomMenuItemKind.Action, Action = RadialAction.CopyPath },
+                    new CustomMenuItem { Label = "Site", Kind = CustomMenuItemKind.OpenUrl, Target = "file:///C:/Windows" },
+                },
+            });
+            SettingsService.OverrideCurrentForTests(settings);
+
+            SettingsWindow window = OpenSettings();
+            SelectTab(window, "Menus");
+            Pump(250);
+
+            TextBlock warning = Find<TextBlock>(window, "PreviewWarning");
+            Assert.Equal(Visibility.Visible, warning.Visibility);
+            Assert.Contains("1 item precisa de atenção", warning.Text);
+
+            var items = Find<ListBox>(window, "ListItems");
+            items.UpdateLayout();
+            var valid = (ListBoxItem)items.ItemContainerGenerator.ContainerFromIndex(0)!;
+            var invalid = (ListBoxItem)items.ItemContainerGenerator.ContainerFromIndex(1)!;
+            TextBlock validWarn = Descendants(valid).OfType<TextBlock>().Single(t => t.Text == "\uE7BA");
+            TextBlock invalidWarn = Descendants(invalid).OfType<TextBlock>().Single(t => t.Text == "\uE7BA");
+            Assert.Equal(Visibility.Collapsed, validWarn.Visibility);
+            Assert.Equal(Visibility.Visible, invalidWarn.Visibility);
+            Assert.True(string.IsNullOrEmpty(validWarn.ToolTip as string));
+            Assert.Contains("http://", (string)invalidWarn.ToolTip);
+
+            // Corrigir a URL tira o aviso da linha e o contador do cabeçalho.
+            items.SelectedIndex = 1;
+            Find<TextBox>(window, "TxtItemUrl").Text = "https://example.com";
+            Pump(350);
+
+            Assert.Equal(Visibility.Collapsed, warning.Visibility);
+            Assert.Equal("", warning.Text);
+
+            items.UpdateLayout();
+            invalid = (ListBoxItem)items.ItemContainerGenerator.ContainerFromIndex(1)!;
+            invalidWarn = Descendants(invalid).OfType<TextBlock>().Single(t => t.Text == "\uE7BA");
+            Assert.Equal(Visibility.Collapsed, invalidWarn.Visibility);
+
+            CloseDiscarding(window);
+        });
+    }
+
+    // ------------------------------------------------------------------
+    // Itens: duplicar, reordenar e exportar
+    // ------------------------------------------------------------------
+
+    private static string[] Labels(ListBox list) =>
+        list.Items.Cast<CustomMenuItem>().Select(i => i.Label).ToArray();
+
+    [Fact]
+    public void DuplicarItem_CopiaSelecionaEInsereDepoisDoOriginal()
+    {
+        RunSta(() =>
+        {
+            var settings = AppSettings.CreateDefault();
+            settings.CustomProfiles.Add(new CustomMenuProfile
+            {
+                Name = "Menu",
+                Contexts = { RadialContextKind.Generic },
+                Items =
+                {
+                    new CustomMenuItem
+                    {
+                        Label = "Copiar caminho",
+                        Description = "Atalho útil",
+                        Kind = CustomMenuItemKind.Action,
+                        Action = RadialAction.CopyPath,
+                    },
+                    new CustomMenuItem { Label = "Site", Kind = CustomMenuItemKind.OpenUrl, Target = "https://example.com" },
+                },
+            });
+            SettingsService.OverrideCurrentForTests(settings);
+
+            SettingsWindow window = OpenSettings();
+            SelectTab(window, "Menus");
+            var items = Find<ListBox>(window, "ListItems");
+            items.SelectedIndex = 0;
+
+            Click(Find<Button>(window, "BtnDuplicateMenuItem"));
+
+            Assert.Equal(3, items.Items.Count);
+            var original = (CustomMenuItem)items.Items[0];
+            var copy = (CustomMenuItem)items.Items[1];
+            Assert.Same(copy, items.SelectedItem);
+            Assert.NotSame(original, copy);
+            Assert.NotEqual(original.Id, copy.Id);
+            Assert.Equal("Copiar caminho (cópia)", copy.Label);
+            Assert.Equal(original.Action, copy.Action);
+            Assert.Equal("Atalho útil", copy.Description);
+            Assert.Equal("Copiar caminho (cópia)", Find<TextBox>(window, "TxtItemLabel").Text);
+
+            // Duplicar a cópia não empilha "(cópia) (cópia)": o nome ganha um número.
+            Click(Find<Button>(window, "BtnDuplicateMenuItem"));
+            Assert.Equal(4, items.Items.Count);
+            var second = (CustomMenuItem)items.Items[2];
+            Assert.Equal("Copiar caminho (cópia) 2", second.Label);
+            Assert.NotEqual(copy.Id, second.Id);
+
+            CloseDiscarding(window);
+        });
+    }
+
+    [Fact]
+    public void Reordenar_AltSetasEArrasteLogicoMovemOItem()
+    {
+        RunSta(() =>
+        {
+            var settings = AppSettings.CreateDefault();
+            settings.CustomProfiles.Add(new CustomMenuProfile
+            {
+                Name = "Menu",
+                Contexts = { RadialContextKind.Generic },
+                Items =
+                {
+                    new CustomMenuItem { Label = "A", Kind = CustomMenuItemKind.Action, Action = RadialAction.CopyPath },
+                    new CustomMenuItem { Label = "B", Kind = CustomMenuItemKind.Action, Action = RadialAction.Rename },
+                    new CustomMenuItem { Label = "C", Kind = CustomMenuItemKind.Action, Action = RadialAction.Close },
+                },
+            });
+            SettingsService.OverrideCurrentForTests(settings);
+
+            SettingsWindow window = OpenSettings();
+            SelectTab(window, "Menus");
+            var items = Find<ListBox>(window, "ListItems");
+            items.SelectedIndex = 1;
+
+            SettingsWindow.KeyboardModifiersForTests = () => ModifierKeys.Alt;
+            Assert.True(window.HandleReorderKey(Key.Up));
+
+            Assert.Equal(["B", "A", "C"], Labels(items));
+            Assert.Same(items.Items[0], items.SelectedItem);
+
+            Assert.True(window.HandleReorderKey(Key.Down));
+            Assert.Equal(["A", "B", "C"], Labels(items));
+
+            // Sem Alt as setas continuam sendo navegação da lista, não reordenação.
+            SettingsWindow.KeyboardModifiersForTests = () => ModifierKeys.None;
+            Assert.False(window.HandleReorderKey(Key.Down));
+            Assert.Equal(["A", "B", "C"], Labels(items));
+
+            // Caminho usado pelo Drop: mover um item para a posição calculada.
+            window.MoveItemToIndex((CustomMenuItem)items.Items[2], 0);
+            Assert.Equal(["C", "A", "B"], Labels(items));
+            Assert.Same(items.Items[0], items.SelectedItem);
+
+            CloseDiscarding(window);
+        });
+    }
+
+    [Fact]
+    public void ExportarMenu_Unico_GravaApenasOMenuSelecionado()
+    {
+        RunSta(() =>
+        {
+            var settings = AppSettings.CreateDefault();
+            settings.CustomProfiles.Add(new CustomMenuProfile
+            {
+                Name = "Primeiro",
+                Contexts = { RadialContextKind.Generic },
+                Items =
+                {
+                    new CustomMenuItem { Label = "Copiar caminho", Kind = CustomMenuItemKind.Action, Action = RadialAction.CopyPath },
+                },
+            });
+            settings.CustomProfiles.Add(new CustomMenuProfile
+            {
+                Name = "Segundo",
+                Contexts = { RadialContextKind.TitleBar },
+                Items =
+                {
+                    new CustomMenuItem { Label = "Fechar", Kind = CustomMenuItemKind.Action, Action = RadialAction.Close },
+                },
+            });
+            SettingsService.OverrideCurrentForTests(settings);
+
+            string path = _temp.Combine("um-menu.json");
+            SettingsWindow.ChooseExportProfilePathForTests = () => path;
+
+            SettingsWindow window = OpenSettings();
+            SelectTab(window, "Menus");
+            Find<ListBox>(window, "ListMenuProfiles").SelectedIndex = 1;
+
+            string? shown = null;
+            ShowMessageContaining("1 menu", text => shown = text);
+            Click(Find<Button>(window, "BtnExportMenuProfile"));
+
+            Assert.NotNull(shown);
+            Assert.True(File.Exists(path));
+            Assert.True(CustomMenuTransfer.TryImportFromJson(
+                File.ReadAllText(path), Array.Empty<string?>(), 0,
+                out List<CustomMenuProfile> imported, out string? reason), reason);
+
+            CustomMenuProfile exported = Assert.Single(imported);
+            Assert.Equal("Segundo", exported.Name);
+            Assert.Equal("Fechar", Assert.Single(exported.Items).Label);
+
+            CloseDiscarding(window);
+        });
+    }
+
+    [Fact]
+    public void Condicoes_AbremEmCamadaECancelarDevolveOsCamposSemSujar()
+    {
+        RunSta(() =>
+        {
+            // Perfil já salvo: o rascunho começa limpo, então cancelar as condições não pode sujá-lo.
+            var settings = AppSettings.CreateDefault();
+            settings.CustomProfiles.Add(new CustomMenuProfile { Name = "Teste" });
+            SettingsService.OverrideCurrentForTests(settings);
+
+            SettingsWindow window = OpenSettings();
+            SelectTab(window, "Menus");
+
+            var overlay = Find<Grid>(window, "ConditionsOverlay");
+            var process = Find<TextBox>(window, "TxtProfileProcess");
+
+            Click(Find<Button>(window, "BtnEditConditions"));
+            Assert.Equal(Visibility.Visible, overlay.Visibility);
+            Assert.False(Find<Grid>(window, "MenusWorkspace").IsEnabled);
+
+            process.Text = "blender";
+            Pump(30);
+            Assert.Contains("blender", Find<TextBlock>(window, "ProfileSummary").Text);
+
+            Click(Find<Button>(window, "BtnCancelConditions"));
+            Assert.Equal(Visibility.Collapsed, overlay.Visibility);
+            Assert.True(Find<Grid>(window, "MenusWorkspace").IsEnabled);
+            Assert.Equal("", process.Text);
+            Assert.DoesNotContain("blender", Find<TextBlock>(window, "ProfileSummary").Text);
+
+            // Cancelar desfez a única edição: fechar a janela não pede para descartar nada.
+            window.Close();
+            Assert.False(window.IsVisible);
+        });
+    }
+
+    [Fact]
+    public void Condicoes_ConcluirMantemAsAlteracoes()
+    {
+        RunSta(() =>
+        {
+            SettingsWindow window = OpenSettings();
+            SelectTab(window, "Menus");
+            Click(Find<Button>(window, "BtnAddMenuProfile"));
+
+            Click(Find<Button>(window, "BtnEditConditions"));
+            Find<TextBox>(window, "TxtProfileProcess").Text = "blender";
+            Pump(30);
+            Click(Find<Button>(window, "BtnDoneConditions"));
+
+            Assert.Equal(Visibility.Collapsed, Find<Grid>(window, "ConditionsOverlay").Visibility);
+            Assert.Equal("blender", Find<TextBox>(window, "TxtProfileProcess").Text);
+            Assert.Contains("blender", Find<TextBlock>(window, "ProfileSummary").Text);
+
+            CloseDiscarding(window);
+        });
+    }
+
+    [Fact]
+    public void Previa_AbreEmPainelEFechaPeloBotaoOuFora()
+    {
+        RunSta(() =>
+        {
+            var settings = AppSettings.CreateDefault();
+            settings.CustomProfiles.Add(new CustomMenuProfile
+            {
+                Name = "Downloads",
+                Items = { new CustomMenuItem { Label = "Renomear", Kind = CustomMenuItemKind.Action, Action = RadialAction.Rename } },
+            });
+            SettingsService.OverrideCurrentForTests(settings);
+
+            SettingsWindow window = OpenSettings();
+            SelectTab(window, "Menus");
+
+            var overlay = Find<Grid>(window, "MenuPreviewOverlay");
+            var host = Find<Border>(window, "MenuPreviewHost");
+            Assert.NotNull(host.Child);
+
+            Click(Find<Button>(window, "BtnShowWheelPreview"));
+            Assert.Equal(Visibility.Visible, overlay.Visibility);
+            Assert.False(Find<Grid>(window, "MenusWorkspace").IsEnabled);
+            Assert.NotEqual("", Find<TextBlock>(window, "PreviewContext").Text);
+
+            Click(Find<Button>(window, "BtnCloseMenuPreview"));
+            Assert.Equal(Visibility.Collapsed, overlay.Visibility);
+            Assert.True(Find<Grid>(window, "MenusWorkspace").IsEnabled);
+
+            Click(Find<Button>(window, "BtnShowWheelPreview"));
+            Assert.Equal(Visibility.Visible, overlay.Visibility);
+
+            // Clique fora do cartão fecha o painel.
+            overlay.RaiseEvent(new System.Windows.Input.MouseButtonEventArgs(
+                System.Windows.Input.Mouse.PrimaryDevice, 0, System.Windows.Input.MouseButton.Left)
+            {
+                RoutedEvent = System.Windows.UIElement.MouseDownEvent,
+            });
+            Pump(30);
+            Assert.Equal(Visibility.Collapsed, overlay.Visibility);
+
+            window.Close();
+            Assert.False(window.IsVisible);
         });
     }
 

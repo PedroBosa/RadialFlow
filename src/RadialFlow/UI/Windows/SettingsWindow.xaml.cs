@@ -74,6 +74,7 @@ public partial class SettingsWindow : Window
         MainTabs.SelectionChanged += (_, _) =>
         {
             if (_recordingHotkey) StopRecordingHotkey();
+            HideMenuOverlays();   // camadas da aba Menus não sobrevivem à troca de aba
         };
 
         _nonMenuBaseline = CaptureNonMenuSnapshot();
@@ -426,6 +427,12 @@ public partial class SettingsWindow : Window
 
     private void Window_PreviewKeyDown(object sender, KeyEventArgs e)
     {
+        if (!_recordingHotkey && e.Key == Key.Escape && HideMenuOverlays())
+        {
+            e.Handled = true;   // Esc fecha a camada da aba Menus antes de chegar ao botão Cancelar da janela
+            return;
+        }
+
         if (!_recordingHotkey) return;
 
         Key key = e.Key == Key.System ? e.SystemKey : e.Key;

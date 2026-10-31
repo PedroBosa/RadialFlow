@@ -86,7 +86,7 @@ Fechar com alterações não salvas pede confirmação e lista as seções.
 ## Menus personalizados
 
 Além das opções automáticas, crie menus em **Configurações → Menus**. Cada um vale só onde você escolher e **soma**
-seus itens à roda do contexto. Clique em **Novo**, dê um nome e preencha as condições (todas opcionais):
+seus itens à roda do contexto. Clique em **+**, dê um nome e use **Condições…** para definir (todas opcionais):
 
 - **Processo**: o aplicativo onde o menu vale, sem o `.exe` (por exemplo, `notepad`); vazio vale para todos.
 - **Título contém**: um trecho do título da janela (como o nome de uma aba); vazio vale para todos.
@@ -96,7 +96,12 @@ seus itens à roda do contexto. Clique em **Novo**, dê um nome e preencha as co
 - **Contextos**: arquivos e pastas, área de trabalho, barra de título, campos de texto ou genérico; nenhum vale para todos.
 - **Prioridade**: com vários menus ao mesmo tempo, todos entram; ela decide a ordem quando falta espaço na roda.
 
-Depois, adicione os itens. Cada um pode ser:
+A aba são três colunas: os menus, os itens do menu e o editor do item. As duas listas têm busca — **Buscar menu…** e
+**Buscar item…** —, e filtrar não fecha o menu em edição. No cabeçalho ficam o nome editável, a chave **Ativo**,
+**Condições…**, **Prévia** e as ações de duplicar, exportar e remover; um selo de aviso marca o menu ou o item que o
+**Salvar** recusaria, e o cabeçalho conta quantos itens precisam de atenção.
+
+Na coluna do meio, adicione os itens. Cada um pode ser:
 
 | Tipo | O que faz | Observação |
 |---|---|---|
@@ -110,10 +115,14 @@ Depois, adicione os itens. Cada um pode ser:
 | Rotina | Até 8 passos em sequência, com pausas | Abrir outra janela só no último passo. |
 | Submenu | Segundo anel com até 8 opções | 2 a 8 opções, exceto submenu e rotina. |
 
+Os itens podem ser reordenados com as setas, com **Alt+↑/↓** ou arrastando na lista; **Duplicar** insere uma cópia
+logo abaixo do original, com identificador novo e “(cópia)” no rótulo.
+
 **Submenus** funcionam como **Apps favoritos**: a fatia mostra ▾ e você a segura para abrir um segundo anel com 2 a 8
-opções montadas em **Editar opções…** (rótulo, ícone e ação). A **prévia da roda** marca as fatias do seu menu como
-**substitui** (ocupou o lugar de uma automática) ou **extra** (acrescentada): a roda cabe no máximo **8 fatias**, o
-que não couber fica de fora, e a prévia avisa quantos itens serão ignorados. São até 8 itens por menu e até 20 menus.
+opções montadas em **Editar opções…** (rótulo, ícone e ação). O botão **Prévia** abre um painel ao vivo que marca as
+fatias do seu menu como **substitui** (ocupou o lugar de uma automática) ou **extra** (acrescentada): a roda cabe no
+máximo **8 fatias**, o que não couber fica de fora, e a prévia avisa quantos itens serão ignorados. São até 8 itens por
+menu e até 20 menus.
 **Rotinas** encadeiam até 8 passos — ações do RadialFlow ou pausas de 50 a 2.000 ms (até 5 s) —, e ações que abrem
 outra janela, como **Pesquisar**, só podem ser o último; em **Editar passos…** você monta a sequência, e a prévia
 avisa se ela ficar inválida.
@@ -125,9 +134,10 @@ global nem o de outro menu, e importar menus recusa o arquivo inteiro se um atal
 Salvar vale para o próximo menu aberto; para voltar à roda automática, desative ou remova o menu. **Importar…** e
 **Exportar…** trocam somente os menus, num `.json` versionado: importar **acrescenta** cópias ao rascunho — a edição
 que só vale depois de **Salvar** —, desempata nomes com “(importado)” e recusa o arquivo inteiro se algo infringir as
-regras; exportar grava o rascunho, inclusive alterações não salvas. Os
-itens externos rodam sem administrador; os limites estão em [Segurança](#segurança). Exemplo: um menu com processo
-`notepad` e **Abrir executável** → `notepad.exe` só no Bloco de Notas.
+regras; exportar grava o rascunho, inclusive alterações não salvas. O botão de exportar no cabeçalho do menu grava
+**só ele**, sem depender do restante do rascunho. Os itens externos rodam sem administrador; os limites estão em
+[Segurança](#segurança). Exemplo: um menu com processo `notepad` e **Abrir executável** → `notepad.exe` só no Bloco de
+Notas.
 
 ## Converter arquivos
 
