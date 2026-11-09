@@ -16,6 +16,10 @@
   <img alt="Status do CI" src="https://github.com/PedroBosa/RadialFlow/actions/workflows/ci.yml/badge.svg">
 </p>
 
+<p align="center">
+  <img src="docs/images/roda.gif" alt="Demonstração do RadialFlow em uso no Windows" width="850">
+</p>
+
 ---
 
 ## Visão geral
