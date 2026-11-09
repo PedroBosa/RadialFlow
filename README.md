@@ -1,278 +1,219 @@
 # RadialFlow
 
-<p align="center">
-  <a href="https://github.com/PedroBosa/RadialFlow/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/PedroBosa/RadialFlow/actions/workflows/ci.yml/badge.svg"></a>
-  <a href="https://github.com/PedroBosa/RadialFlow/releases/latest"><img alt="Versão" src="https://img.shields.io/github/v/release/PedroBosa/RadialFlow?label=vers%C3%A3o&color=2563eb"></a>
-  <a href="LICENSE"><img alt="Licença MIT" src="https://img.shields.io/badge/licen%C3%A7a-MIT-2563eb"></a>
-  <img alt="Windows 10 e 11" src="https://img.shields.io/badge/Windows-10%20e%2011-2563eb">
-  <a href="https://github.com/PedroBosa/RadialFlow/releases/latest"><img alt="Baixar" src="https://img.shields.io/badge/baixar-instalador-16a34a"></a>
-</p>
-
-Um menu em forma de roda para o Windows. Segure o botão direito, arraste um pouco e a roda aparece embaixo do cursor.
-Solte sobre uma opção e pronto.
+> **Menu radial contextual de alta performance para o ecossistema Windows. Desenvolvido em .NET e C# com aceleração gráfica em WPF, interceptação de eventos via ganchos Win32 de baixo nível em thread dedicada e contenção de privilégios de interface (UIPI).**
 
 <p align="center">
-  <img src="docs/images/roda.gif" width="760" alt="A roda do RadialFlow aberta sobre um vídeo, escolhendo a conversão para GIF">
+  <a href="https://github.com/PedroBosa/RadialFlow/releases/latest"><img alt="Download da Versão" src="https://img.shields.io/badge/Download-Instalador-16a34a?style=for-the-badge&logo=windows"></a>
+  <a href="LICENSE"><img alt="Licença: MIT" src="https://img.shields.io/badge/Licen%C3%A7a-MIT-6366F1?style=for-the-badge"></a>
+  <a href="https://github.com/PedroBosa"><img alt="Autor: Pedro Bosa" src="https://img.shields.io/badge/Autor-Pedro%20Bosa-4F46E5?style=for-the-badge&logo=github"></a>
 </p>
 
-**Neste guia:** [O que a roda faz](#o-que-a-roda-faz) · [Instalar](#instalar) · [Configurar](#configurar) · [Menus](#menus-personalizados) · [Converter](#converter-arquivos) · [Problemas](#problemas-comuns) · [Desinstalar](#desinstalar) · [Desenvolvedores](#para-desenvolvedores) · [Segurança](#segurança) · [Licença](#licença)
+<p align="center">
+  <img alt=".NET 10" src="https://img.shields.io/badge/.NET-10.0-512BD4?style=flat&logo=dotnet">
+  <img alt="C# 12" src="https://img.shields.io/badge/C%23-12-239120?style=flat&logo=csharp">
+  <img alt="WPF / Win32" src="https://img.shields.io/badge/GUI-WPF%20%2F%20Win32-0078D4?style=flat&logo=windows">
+  <img alt="Windows 10 e 11" src="https://img.shields.io/badge/Plataforma-Windows%2010%20%2F%2011%20(x64)-2563EB?style=flat&logo=windows">
+  <img alt="Status do CI" src="https://github.com/PedroBosa/RadialFlow/actions/workflows/ci.yml/badge.svg">
+</p>
 
-## O que a roda faz
+---
 
-As opções mudam conforme o que está embaixo do cursor; o clique direito sem arrastar continua abrindo o menu de
-sempre do Windows.
+## Visão geral
 
-| Onde você abre a roda | O que aparece |
-|---|---|
-| Um arquivo ou pasta | Comprimir, Converter (só quando possível), Copiar caminho, Mover para, Enviar para, Renomear |
-| Barra de título de uma janela | Maximizar, encaixar à esquerda ou à direita, Transparência, Sempre no topo, Minimizar, Fechar |
-| Um campo de texto | Colar, Traduzir, Pesquisar, Negrito, Limpar |
-| Área de trabalho ou espaço vazio | Apps favoritos, Ajustes rápidos do Windows, Histórico da área de transferência, Bloquear |
+O **RadialFlow** é um sistema de produtividade e acesso contextual rápido baseado em geometria radial (*pie menu*) para estações de trabalho Windows.
 
-Opções com setinha ⌄, como **Converter**, abrem mais escolhas se você deixar o cursor parado sobre elas; para voltar,
-pare no centro da roda.
+Os menus de contexto tradicionais do sistema operacional baseiam-se em listas verticais lineares cuja usabilidade é restrita pela **Lei de Fitts**: o tempo necessário para mover o cursor até um item alvo é proporcional à distância linear percorrida e inversamente proporcional à largura do elemento ($T = a + b \log_2(2D/W + 1)$). Conforme mais aplicativos injetam extensões no registro do Windows Explorer, o menu torna-se mais extenso e lento, exigindo varreduras visuais contínuas e percursos motores imprecisos.
 
-Com a roda aberta, **1–8** escolhem a opção pela posição (1 no topo, em sentido horário), as **setas** circulam,
-**Enter** abre o submenu ou executa e **Esc** volta ou fecha; os atalhos valem só enquanto ela está na tela.
+O RadialFlow elimina esse gargalo distribuindo ações em fatias circulares equidistantes do ponto inicial do cursor ($D = \text{constante}$). Ao segurar o botão direito e realizar um microarrasto angular, a roda surge instantaneamente sob o cursor sem roubar o foco da janela ativa (`WS_EX_NOACTIVATE`), viabilizando acionamentos musculares em fração de segundo.
 
-Se preferir não arrastar, grave um **atalho global** em **Configurações → Geral**, como `Ctrl+Alt+Space`: a roda abre
-no cursor e se escolhe com um **clique**, o miolo volta um nível e um clique fora fecha. O botão direito, o **Esc** ou
-o próprio atalho fecham sem escolher; ele vale também na Blacklist e em tela cheia, exceto com o app pausado.
+---
 
-## Instalar
+## Destaques de engenharia
 
-1. Baixe o `RadialFlow-<versão>-Setup.exe` na página **Releases** deste repositório.
-2. Abra o arquivo, siga o assistente e, no fim, deixe marcado **Abrir o RadialFlow agora**; o programa fica em
-   `C:\Program Files\RadialFlow`.
-3. Na página de tarefas, marque os **conversores** que quiser; o FFmpeg já vem marcado.
+### 1. Cinemática de gesto e ganchos Win32 em thread dedicada
+A interceptação global do mouse utiliza o gancho de baixo nível `WH_MOUSE_LL` da API Win32. 
 
-Ele fica no canto da barra de tarefas, perto do relógio; se não aparecer, clique na setinha **^**. Clique para abrir
-as configurações; o botão direito pausa ou fecha. Ele pede permissão de administrador sempre que abre — é isso que
-deixa a roda funcionar em cima de janelas do sistema, como o Gerenciador de Tarefas.
+Em implementações ingênuas, o gancho executa na thread de despacho da interface gráfica (WPF). Qualquer operação bloqueante na interface (diálogos, consultas I/O de arquivos ou acessos à área de transferência) atrasa a resposta do gancho em nível de sistema; se o atraso ultrapassar o limite `LowLevelHooksTimeout` definido no registro do Windows, o sistema operacional desconecta o gancho silenciosamente.
 
-Prefere não instalar? Extraia **todos** os arquivos do `RadialFlow-<versão>-win-x64.zip` numa pasta e abra o
-`RadialFlow.exe`; o instalador ainda é recomendado: fica numa pasta que outros programas não alteram.
+O RadialFlow resolve este desafio arquitetural com:
+- **Thread STA isolada com message loop Win32 nativo:** o gancho opera em uma thread dedicada executando um loop puro `GetMessage` / `TranslateMessage` / `DispatchMessage`. Nenhuma chamada síncrona de I/O ocorre nessa thread; os eventos capturados (`DragStarted`, `DragMoved`, `DragCompleted`) são despachados de forma assíncrona para o `Dispatcher` do WPF.
+- **Zona morta quadrática (*deadzone*):** o cálculo de transição entre o clique estático do botão direito e o início do arrasto radial utiliza comparação quadrática:
+  
+  $$d^2 = (x - x_0)^2 + (y - y_0)^2 > r_{\text{deadzone}}^2$$
+  
+  com $r_{\text{deadzone}} \ge 15\text{ px}$. A formulação quadrática descarta a necessidade de invocar funções de raiz quadrada (`Math.Sqrt`) a cada mensagem `WM_MOUSEMOVE` de alta frequência reportada pelo mouse.
+- **Assinatura e reinjeção de cliques via `SendInput`:** quando o usuário realiza um clique direito simples (sem ultrapassar a zona morta), o RadialFlow reinjeta a sequência original `MOUSEEVENTF_RIGHTDOWN` e `MOUSEEVENTF_RIGHTUP` contendo a assinatura `0x52464C57` ("RFLW") no campo `dwExtraInfo`, instruindo o gancho a ignorar o evento reinjetado e garantindo a abertura pontual do menu nativo do Windows.
+- **Watchdog autorrecuperável:** um temporizador de watchdog verifica o estado do gancho a cada $10\text{ s}$ de repouso (`Idle`). Caso o subsistema do Windows tenha removido o gancho em segundo plano, a thread do serviço o reinstala preventivamente.
 
-### O Windows protegeu o computador
+### 2. Modelo de contenção de privilégios UIPI e *Unelevated Launcher*
+O executável do RadialFlow requer privilégios administrativos (`requireAdministrator` em seu `app.manifest`). Essa elevação é indispensável para permitir que o gancho global de entrada e as janelas transparentes do WPF interajam sobre aplicativos elevados do sistema (como o Gerenciador de Tarefas, editores de registro e terminais administrativos), contornando as restrições impostas pelo **UIPI** (*User Interface Privilege Isolation*).
 
-Na primeira vez, o Windows pode mostrar **"O Windows protegeu o computador"**: o RadialFlow não tem assinatura
-digital — um certificado pago que identifica quem fez o programa —, e isso não quer dizer que ele tenha vírus.
-Clique em **Mais informações** e **Executar assim mesmo**; quando o Windows perguntar, mostrando **Editor:
-Desconhecido**, clique em **Sim**.
+No entanto, executar ferramentas e comandos arbitrários herdando esse token de administrador configuraria uma vulnerabilidade de escalada de privilégios. Para assegurar isolamento total:
+- **Execução com token primário do Explorer:** todo aplicativo favorito, navegador web, pasta ou conversor CLI acionado pela roda é iniciado através da função nativa `CreateProcessWithTokenW`, extraindo o token primário não elevado do processo do shell do usuário (`explorer.exe`):
+  
+  $$\text{OpenProcess}(\text{explorer.exe}) \longrightarrow \text{OpenProcessToken} \longrightarrow \text{DuplicateTokenEx} \longrightarrow \text{CreateProcessWithTokenW}$$
+  
+  O processo filho resultante recebe estritamente o nível de integridade Médio (`S-1-16-8192`), destituído de quaisquer privilégios administrativos.
+- **Validação estrita de caminhos (`TrustedPath`):** todas as strings de alvo são validadas e normalizadas para seus caminhos canônicos absolutos antes de qualquer execução. O validador rejeita tentativas de travessia de diretório (`..`), identificadores de fluxos de dados alternados NTFS (*Alternate Data Streams* `:`), caracteres de controle e nomes reservados do MS-DOS (`CON`, `PRN`, `AUX`, `NUL`, `COM1-9`, `LPT1-9`).
 
-O aviso pode voltar a cada versão; para conferir o download, compare o hash com o do `SHA256SUMS.txt`:
+### 3. Motor de inferência contextual por predicados
+Ao abrir a roda, o sistema inspeciona dinamicamente as características do elemento localizado sob as coordenadas do cursor $(x, y)$:
+- A resolução de janelas utiliza `WindowFromPoint` e varredura na árvore de nós via `GetAncestor` e `GetGUIThreadInfo`.
+- Em janelas do Windows Explorer, o serviço consulta o catálogo de instâncias COM (`IShellWindows`) para extrair a lista exata de arquivos selecionados ou o diretório aberto no momento.
+- A composição de menus personalizados avalia em tempo real um predicado booleano composto:
+  
+  $$P(\text{alvo}) = C_{\text{processo}} \land C_{\text{título}} \land C_{\text{extensão}} \land C_{\text{classe}} \land C_{\text{contexto}}$$
+  
+  permitindo sobreposições específicas de menu para editores de código, navegadores ou tipos de arquivos individuais.
 
-```powershell
-Get-ChildItem .\RadialFlow-*-Setup.exe | Get-FileHash
+### 4. Empacotamento industrial e integridade de distribuição
+- O instalador oficial é gerado pelo compilador **Inno Setup 6** (`RadialFlow.iss`) com algoritmo de compressão sólida LZMA2 de nível máximo (`lzma2/max`).
+- Os binários são instalados no diretório protegido do sistema (`%ProgramFiles%\RadialFlow`), prevenindo modificação do executável por processos executados sob contas de usuário padrão.
+- O pipeline de automação em PowerShell (`publish.ps1`) compila a suíte com o .NET SDK, verifica a consistência da versão do manifesto contra a do compilador e gera manifestos de integridade criptográfica `SHA256SUMS.txt`.
+
+---
+
+## Recursos
+
+- **Acionamento duplo:** ativação intuitiva por microarrasto do botão direito ou por atalho de teclado global configurável (ex.: `Ctrl+Alt+Space`).
+- **Contextos nativos dinâmicos:**
+  - **Arquivos e pastas:** compactação ZIP segura, conversão de formatos com reconhecimento de ferramentas locais, cópia de caminho canônico e renomeação.
+  - **Barra de título:** controle geométrico de janelas (maximizar, minimizar, encaixar à esquerda/direita, transparência contínua e fixação sempre no topo).
+  - **Campos de texto:** operações de colagem, tradução, busca rápida, formatação e limpeza segura.
+  - **Área de trabalho e espaço livre:** inicialização de aplicativos favoritos e histórico da área de transferência.
+- **Motor de conversão inteligente:** integração automática com ferramentas CLI pré-instaladas (FFmpeg, ImageMagick, Pandoc, LibreOffice), executando pipelines de áudio, vídeo, imagem e documentos em diretórios temporários isolados com encerramento forçado após tempo limite.
+- **Navegação acessível:** suporte completo a navegação por teclado durante a exibição da roda (teclas `1` a `8` por fatia horária, setas direcionais, `Enter` para confirmação e `Esc` para cancelamento imediato).
+- **Temas de interface:** predefinições visuais (*Padrão*, *Compacto*, *Amplo* e *Alto Contraste* em superfícies sólidas) respeitando o modo claro/escuro nativo do Windows.
+
+---
+
+## Privacidade e segurança
+
+- **Execução estritamente local:** o RadialFlow opera inteiramente na máquina do usuário, sem rotinas de telemetria, análise de uso ou envio de dados para a internet.
+- **Proteção contra escalada de privilégios:** toda inicialização de programas é destituída de elevação através do `UnelevatedLauncher`, evitando que arquivos de configuração maliciosos executem binários como administrador.
+- **Manipulação segura de arquivos compactados:** a extração de pacotes ZIP valida as datas dos cabeçalhos, bloqueia substituições acidentais de arquivos preexistentes e previne ataques de extração fora do diretório de destino (*Zip Slip*).
+
+---
+
+## Estrutura do projeto
+
+```text
+RadialFlow/
+├── .github/
+│   ├── ISSUE_TEMPLATE/
+│   │   ├── bug_report.yml          # Formulário padronizado para relato de bugs
+│   │   ├── config.yml              # Configuração de issues e canal de segurança
+│   │   └── feature_request.yml     # Formulário padronizado para sugestões
+│   ├── workflows/
+│   │   ├── ci.yml                  # Esteira de restauração, build e testes automatizados
+│   │   └── release.yml             # Compilação e publicação de releases no GitHub
+│   ├── CODEOWNERS                  # Definição de propriedade de código (@PedroBosa)
+│   ├── dependabot.yml              # Atualização semanal de dependências NuGet e GitHub Actions
+│   ├── FUNDING.yml                 # Links de patrocínio e apoio comunitário
+│   └── PULL_REQUEST_TEMPLATE.md    # Checklist de verificação para pull requests
+├── src/
+│   └── RadialFlow/
+│       ├── Assets/                 # Ícones da aplicação (.ico) e recursos gráficos
+│       ├── Config/                 # Serialização JSON de configurações, validações e perfis
+│       ├── Context/                # Identificação de contexto, janelas e arquivos no Explorer
+│       ├── Infrastructure/         # P/Invoke Win32, wrappers de SafeHandle e logging local
+│       ├── Input/                  # Serviços de gancho global de mouse (WH_MOUSE_LL) e teclado
+│       ├── Resources/              # Recursos de internacionalização e dicionários de texto
+│       ├── Security/               # Validação de TrustedPath e integridade de executáveis
+│       ├── Services/               # UnelevatedLauncher, conversões CLI e compactação ZIP
+│       ├── UI/                     # Janelas WPF, controles radiais, temas e painel de ajustes
+│       ├── App.xaml                # Ponto de entrada XAML da aplicação WPF
+│       ├── app.manifest            # Manifesto Win32 solicitando requireAdministrator
+│       └── RadialFlow.csproj       # Projeto C# configurado com .NET 10 e análise estrita
+├── tests/
+│   └── RadialFlow.Tests/           # Suíte de testes unitários automatizados com xUnit
+├── tools/
+│   └── IconGenerator/              # Utilitário para geração de ícones a partir de vetores
+├── .editorconfig                   # Regras estritas de estilo C# e políticas de análise
+├── .gitattributes                  # Normalização de quebras de linha e arquivos de script
+├── .gitignore                      # Exclusão de artefatos de build (bin, obj, dist) e logs
+├── CHANGELOG.md                    # Histórico detalhado de versões seguindo Keep a Changelog
+├── CODE_OF_CONDUCT.md              # Código de conduta Contributor Covenant 2.1
+├── CONTRIBUTING.md                 # Guia de contribuição e convenções de compilação
+├── Directory.Build.props           # Metadados de empacotamento comuns e flags estritas do compilador
+├── global.json                     # Fixação da versão do SDK .NET
+├── LICENSE                         # Licença permissiva MIT
+├── publish.ps1                     # Script de automação de compilação, testes e release
+├── RadialFlow.iss                  # Script de compilação do instalador Inno Setup 6
+├── RadialFlow.sln                  # Arquivo de solução do Visual Studio
+├── README.md                       # Documentação técnica central do repositório
+└── SECURITY.md                     # Diretrizes de segurança e canal de reporte confidencial
 ```
 
-## Configurar
+---
 
-Clique no ícone do RadialFlow perto do relógio.
+## Primeiros passos
 
-- **Geral**: iniciar com o Windows, pausar em tela cheia, o arrasto e o tempo das opções extras, e o atalho global.
-- **Aparência**: cor de destaque, idioma — português, inglês ou espanhol — e o estilo da roda: **Padrão**,
-  **Compacto**, **Amplo** ou **Alto contraste**. O estilo muda o tamanho e a legibilidade; o **Alto contraste** usa
-  superfícies opacas, contornos fortes e o tema claro/escuro do Windows, sem o fundo desfocado. O idioma vale a partir
-  do próximo início.
-- **Blacklist**: programas em que a roda nunca abre (útil em programas 3D e jogos, que usam o botão direito).
-- **Apps favoritos**: os atalhos que aparecem quando você abre a roda na área de trabalho.
-- **Menus**: itens extras para certos aplicativos, janelas ou contextos (veja abaixo).
-- **Conversores**: instala os programas de conversão.
+### Pré-requisitos
+- Sistema operacional Windows 10 (compilação 1809 ou superior) ou Windows 11 (64 bits).
+- .NET 10 SDK instalado (verifique com `dotnet --version`).
+- PowerShell 5.1 ou superior.
 
-**Salvar** só fecha a janela depois de gravar o arquivo; se a gravação falhar, um aviso explica e nada é aplicado.
-Fechar com alterações não salvas pede confirmação e lista as seções.
+### Compilação local
+```powershell
+git clone https://github.com/PedroBosa/RadialFlow.git
+cd RadialFlow
+dotnet restore RadialFlow.sln
+dotnet build RadialFlow.sln -c Release
+```
 
-## Menus personalizados
+### Execução de testes unitários
+```powershell
+dotnet test RadialFlow.sln -c Release
+```
 
-Além das opções automáticas, crie menus em **Configurações → Menus**. Cada um vale só onde você escolher e **soma**
-seus itens à roda do contexto. Clique em **+**, dê um nome e use **Condições…** para definir (todas opcionais):
+### Geração de pacotes de distribuição
+Para gerar os pacotes finais (arquivo `.zip` portátil e instalador `Setup.exe` via Inno Setup):
+```powershell
+.\publish.ps1
+```
+Os artefatos compilados e o arquivo de assinaturas `SHA256SUMS.txt` serão gerados no diretório `dist/`.
 
-- **Processo**: o aplicativo onde o menu vale, sem o `.exe` (por exemplo, `notepad`); vazio vale para todos.
-- **Título contém**: um trecho do título da janela (como o nome de uma aba); vazio vale para todos.
-- **Extensões**: só com arquivos desses tipos, como `.pdf, .docx`; vazio vale para todos.
-- **Classe da janela**: a classe técnica da janela (como `CabinetWClass`, do Explorer), para alvos que o processo e o
-  título não distinguem; vazio vale para todos.
-- **Contextos**: arquivos e pastas, área de trabalho, barra de título, campos de texto ou genérico; nenhum vale para todos.
-- **Prioridade**: com vários menus ao mesmo tempo, todos entram; ela decide a ordem quando falta espaço na roda.
+---
 
-A aba são três colunas: os menus, os itens do menu e o editor do item. As duas listas têm busca — **Buscar menu…** e
-**Buscar item…** —, e filtrar não fecha o menu em edição. No cabeçalho ficam o nome editável, a chave **Ativo**,
-**Condições…**, **Prévia** e as ações de duplicar, exportar e remover; um selo de aviso marca o menu ou o item que o
-**Salvar** recusaria, e o cabeçalho conta quantos itens precisam de atenção.
+## Compatibilidade
 
-Na coluna do meio, adicione os itens. Cada um pode ser:
-
-| Tipo | O que faz | Observação |
+| Versão do Sistema Operacional | Arquitetura | Nível de Suporte |
 |---|---|---|
-| Ação do RadialFlow | Executa uma opção que já existe | Assume o lugar da fatia automática equivalente. |
-| Abrir executável | Abre um programa | Só de pastas protegidas e sem argumentos. |
-| Abrir site | Abre um site | Só `http://` e `https://`. |
-| Abrir arquivo ou pasta | Abre com o programa padrão | Executáveis, scripts e atalhos são recusados. |
-| Enviar atalho | Envia teclas, como `Ctrl+Shift+P` | Foco na janela onde a roda abriu. |
-| Colar texto | Cola um texto no campo em foco | Devolve o conteúdo anterior depois. |
-| Transformar texto | Muda a seleção: maiúsculas, minúsculas, título, frase, sem espaços sobrando ou em uma linha | Copia a seleção, transforma e cola por cima. |
-| Rotina | Até 8 passos em sequência, com pausas | Abrir outra janela só no último passo. |
-| Submenu | Segundo anel com até 8 opções | 2 a 8 opções, exceto submenu e rotina. |
+| Windows 11 (21H2, 22H2, 23H2, 24H2) | x64 / ARM64 (emulado) | Suporte integral nativo; integração com temas escuros e snap layouts. |
+| Windows 10 (1809, 20H2, 21H2, 22H2) | x64 | Suporte integral nativo. |
+| Windows 8.1 e anteriores | x64 / x86 | Não suportado (recursos de API Win32 ausentes). |
 
-Os itens podem ser reordenados com as setas, com **Alt+↑/↓** ou arrastando na lista; **Duplicar** insere uma cópia
-logo abaixo do original, com identificador novo e “(cópia)” no rótulo.
+---
 
-**Submenus** funcionam como **Apps favoritos**: a fatia mostra ▾ e você a segura para abrir um segundo anel com 2 a 8
-opções montadas em **Editar opções…** (rótulo, ícone e ação). O botão **Prévia** abre um painel ao vivo que marca as
-fatias do seu menu como **substitui** (ocupou o lugar de uma automática) ou **extra** (acrescentada): a roda cabe no
-máximo **8 fatias**, o que não couber fica de fora, e a prévia avisa quantos itens serão ignorados. São até 8 itens por
-menu e até 20 menus.
-**Rotinas** encadeiam até 8 passos — ações do RadialFlow ou pausas de 50 a 2.000 ms (até 5 s) —, e ações que abrem
-outra janela, como **Pesquisar**, só podem ser o último; em **Editar passos…** você monta a sequência, e a prévia
-avisa se ela ficar inválida.
+## Stack e tecnologias
 
-Cada menu aceita um **atalho próprio** (como `Ctrl+Alt+1`): ele abre a roda direto com os itens do menu, no cursor e
-sem exigir as condições, desde que o menu esteja ativo e tenha ao menos um item. O atalho não pode repetir o atalho
-global nem o de outro menu, e importar menus recusa o arquivo inteiro se um atalho for inválido ou repetido.
-
-Salvar vale para o próximo menu aberto; para voltar à roda automática, desative ou remova o menu. **Importar…** e
-**Exportar…** trocam somente os menus, num `.json` versionado: importar **acrescenta** cópias ao rascunho — a edição
-que só vale depois de **Salvar** —, desempata nomes com “(importado)” e recusa o arquivo inteiro se algo infringir as
-regras; exportar grava o rascunho, inclusive alterações não salvas. O botão de exportar no cabeçalho do menu grava
-**só ele**, sem depender do restante do rascunho. Os itens externos rodam sem administrador; os limites estão em
-[Segurança](#segurança). Exemplo: um menu com processo `notepad` e **Abrir executável** → `notepad.exe` só no Bloco de
-Notas.
-
-## Converter arquivos
-
-Abra a roda sobre um arquivo e segure em **Converter**: aparecem só os formatos que funcionam para ele neste
-computador; se nenhum funcionar, a opção nem aparece. Quando há mais de 8 formatos, a última opção vira
-**Mais…** e abre a página seguinte, na mesma ordem. O arquivo novo fica na mesma pasta e nada é sobrescrito: se já
-existir um, vira `nome (1).ext`. PDF não pode ser convertido para outros formatos.
-
-| Arquivo | Vira | O que precisa |
+| Tecnologia | Versão | Função na arquitetura |
 |---|---|---|
-| Imagem PNG, JPG, BMP, GIF, TIFF, ICO | PNG, JPG, PDF, ICO, GIF, BMP, TIFF | nada |
-| Foto WebP, HEIC, AVIF ou RAW de câmera | os mesmos formatos acima | extensões de Imagem HEIF, Imagem da Web e Imagem Bruta da Microsoft Store (o Windows 11 já costuma ter) |
-| Imagem para HEIC | HEIC | Extensões HEIF e de Vídeo HEVC |
-| Imagem para WEBP, SVG e outros | WEBP e outros | [ImageMagick](https://imagemagick.org) |
-| Vídeo | MP4, MKV, WEBM, MOV, GIF animado, MP3, M4A, WAV | [FFmpeg](https://ffmpeg.org) |
-| Áudio | MP3, M4A, WAV, FLAC, OGG, OPUS, AAC, AIFF | FFmpeg |
-| Word, ODT, RTF, TXT, HTML | PDF, DOCX, ODT, RTF, HTML | [LibreOffice](https://www.libreoffice.org) |
-| Markdown, EPUB (e Word ou HTML) | DOCX, HTML, ODT, RTF, EPUB, Markdown, TXT; PDF com o LibreOffice junto | [Pandoc](https://pandoc.org) |
-| Planilha (Excel, ODS, CSV) | PDF, XLSX, ODS, CSV | LibreOffice |
-| Apresentação (PowerPoint, ODP) | PDF, PPTX, ODP | LibreOffice |
+| .NET | 10.0 | Plataforma de execução gerenciada de alta performance |
+| C# | 12 / latest | Linguagem principal com recursos modernos de tipagem estrita e pattern matching |
+| WPF | Nativo | Renderização de interface acelerada por hardware com suporte a transparência |
+| Win32 API | P/Invoke | Ganchos de baixo nível (`WH_MOUSE_LL`), manipulação de processos e tokens de segurança |
+| xUnit | 2.9.2 | Framework de testes unitários automatizados |
+| Inno Setup | 6.x | Sistema de geração de instalador de alta compressão (LZMA2) |
 
-### Instalar os conversores
+---
 
-O RadialFlow instala os conversores gratuitos (FFmpeg, Pandoc, ImageMagick e LibreOffice) escolhidos no **instalador**
-ou em **Configurações → Conversores**. Os arquivos vêm do site oficial, numa versão fixa, e só são instalados se o
-SHA-256 conferir. Precisa de internet; o LibreOffice tem cerca de 360 MB e não substitui o Word ou o Excel.
+## Limitações conhecidas
 
-O FFmpeg sai na desinstalação; os outros viram programas normais, listados em **Aplicativos instalados**.
-Se instalar por conta própria, use uma pasta protegida, como `C:\Program Files`. Pelo
-[winget](https://learn.microsoft.com/windows/package-manager/winget/), `--scope machine` vale para todos os usuários
-— sem isso, o FFmpeg vai para a pasta do usuário e é ignorado.
+- **Elevação administrativa obrigatória:** devido à necessidade de interceptar entradas de forma consistente e sobrepor janelas do sistema sem bloqueios pelo UIPI, o RadialFlow solicita privilégios de administrador em sua inicialização.
+- **Filtro Windows SmartScreen:** os artefatos compilados são distribuídos sem assinatura digital comercial paga (certificado EV de alto custo). Em novas versões, o Windows SmartScreen pode exibir o alerta "O Windows protegeu o computador", exigindo a confirmação manual do usuário via "Mais informações" $\rightarrow$ "Executar assim mesmo". A integridade de qualquer download deve ser conferida contra os hashes do arquivo `SHA256SUMS.txt`.
+- **Jogos e aplicativos com proteções em kernel (Anti-Cheat):** jogos eletrônicos que utilizam drivers anti-cheat em nível de kernel (como Riot Vanguard ou BattlEye) podem suprimir ganchos de mouse de usuário (`WH_MOUSE_LL`). Nesses ambientes, recomenda-se adicionar o executável do jogo à lista negra (*Blacklist*) nas configurações do RadialFlow ou utilizar o atalho global de teclado.
 
-## Problemas comuns
+---
 
-**A roda não abre.** Veja se o ícone está perto do relógio e se o RadialFlow não está pausado. Ela também não abre
-em tela cheia nem na Blacklist, e é preciso arrastar um pouco.
+## Contribuindo
 
-**O atalho global não funciona.** Outro programa pode já usar a combinação: as Configurações avisam ao gravá-la e não
-salvam enquanto o conflito existir. Com o app pausado ele fica desligado; se for tomada depois, grave outra.
+Contribuições que fortaleçam a segurança de isolamento de processos ou aprimorem o desempenho dos ganchos de entrada são bem-vindas. Consulte o guia detalhado em [`CONTRIBUTING.md`](CONTRIBUTING.md) antes de submeter alterações. Relatos de vulnerabilidades de segurança devem seguir a política descrita em [`SECURITY.md`](SECURITY.md).
 
-**A opção Converter não aparece, ou não tem o formato que eu queria.** Falta o programa que faz a conversão (veja a
-tabela): instale-o em **Configurações → Conversores**. Não precisa reiniciar, espere um minuto.
-
-**A instalação de um conversor falhou.** A janela diz o motivo (sem internet, outra instalação em andamento...).
-Tente pela aba Conversores; o registro fica na pasta de logs (**Sobre → Abrir pasta de logs**).
-
-**Abri o RadialFlow de novo e só apareceram as configurações.** É o esperado: ele já estava aberto. Só uma cópia
-roda por vez.
-
-**O ícone sumiu do canto da barra de tarefas.** Clique na setinha **^** ao lado do relógio; se foi fechado, abra-o
-pelo menu Iniciar.
-
-**Algo deu errado e eu quero saber o quê.** Na aba **Sobre**, clique em **Abrir pasta de logs**: o `radialflow.log`
-registra o que aconteceu e os erros.
-
-## Desinstalar
-
-Abra **Configurações do Windows → Aplicativos → Aplicativos instalados**, procure **RadialFlow** e clique em
-**Desinstalar**. O desinstalador fecha o programa, remove a inicialização com o Windows e apaga o FFmpeg baixado;
-Pandoc, ImageMagick e LibreOffice continuam como programas próprios. Suas configurações e os logs ficam em
-`%LocalAppData%\RadialFlow`, caso você instale de novo — para apagar tudo, exclua a pasta.
-
-## Para desenvolvedores
-
-### Preparar o ambiente
-
-- Windows 10 ou 11 com o [.NET 10 SDK](https://dotnet.microsoft.com/download)
-- [Inno Setup 6](https://jrsoftware.org/isinfo.php), só para gerar o instalador
-
-```powershell
-dotnet build              # app, testes e gerador de ícone; qualquer aviso conta como erro
-dotnet test               # todos os testes
-```
-
-Para rodar, abra `src\RadialFlow\bin\Debug\net10.0-windows\RadialFlow.exe` como administrador; o `dotnet run` falha com o erro 740.
-
-### Gerar os arquivos de distribuição
-
-```powershell
-powershell -ExecutionPolicy Bypass -File .\publish.ps1
-```
-
-O script roda os testes e, se passarem, cria `dist\` (fora do Git) com o `.zip` portátil, o instalador `Setup.exe`
-(Inno Setup) e o `SHA256SUMS.txt`; a pasta `RadialFlow-<versão>-win-x64\` que os dois empacotam é apagada no fim
-(use `-KeepStaging` para mantê-la). O README, o CHANGELOG, a licença e `docs\` vão dentro do zip e do instalador.
-
-A versão vem do `<Version>` em `src\RadialFlow\RadialFlow.csproj`; o script falha se o `#define AppVersion` do
-`RadialFlow.iss` divergir. Feche o RadialFlow antes do script: aberto a partir de `bin\`, ele trava o `.exe`.
-
-**Assinatura digital (opcional).** Sem certificado, o Windows mostra o aviso do SmartScreen. Com um certificado
-instalado, informe a impressão digital e o script assina tudo, com carimbo de tempo (ou defina
-`RADIALFLOW_SIGN_THUMBPRINT`; use o `signtool.exe` do Windows SDK):
-
-```powershell
-.\publish.ps1 -CertThumbprint "<impressão digital do certificado>"
-```
-
-### Ícone
-
-O ícone é desenhado pelo código, com a geometria da roda (`src/RadialFlow/UI/Tray/AppIconRenderer.cs`); depois de mudar
-o desenho, gere-o com `dotnet run --project tools/IconGenerator`. Um teste falha se
-`src/RadialFlow/Assets/RadialFlow.ico` divergir.
-
-### Como o código está organizado
-
-| Pasta | O que tem |
-|---|---|
-| `src/RadialFlow/Input/` | o hook do mouse e a blacklist |
-| `src/RadialFlow/Context/` | descobre o que está sob o cursor e executa as ações |
-| `src/RadialFlow/Services/` | conversão, instalação de conversores, compactação e lançamento de programas sem administrador |
-| `src/RadialFlow/Security/` | validação de caminhos e de executáveis |
-| `src/RadialFlow/Config/` e `src/RadialFlow/Infrastructure/` | configurações, log, instância única e versão |
-| `src/RadialFlow/UI/` | a roda, as janelas, a bandeja e o tema |
-| `tests/RadialFlow.Tests/` | os testes, na mesma organização do app |
-| `tools/IconGenerator/` | gera o `src/RadialFlow/Assets/RadialFlow.ico` |
-
-## Segurança
-
-O RadialFlow roda como administrador e mexe em arquivos e programas de outros, então toma alguns cuidados:
-
-- Os conversores (FFmpeg e outros) **nunca** rodam como administrador; sem esse modo, a conversão é recusada.
-- Só executa programas de pastas que um usuário comum não consegue alterar — `C:\Program Files`, por exemplo.
-- Os conversores vêm de endereços fixos dos sites oficiais, só por HTTPS, e são baixados numa pasta protegida; nada
-  instala se tamanho ou SHA-256 não conferirem.
-- Todo caminho é conferido antes de ser usado: nada de `..`, nomes reservados do Windows ou truques com `:`.
-- Os itens dos menus não ganham novos poderes: executáveis só de pastas protegidas, sem argumentos nem
-  interpretadores (`cmd`, PowerShell, `wscript`); sites só `http`/`https`; executáveis, scripts e atalhos recusados
-  em **Abrir arquivo ou pasta**; apps de `%LocalAppData%` fora de **Abrir executável** (use **Apps favoritos**).
-  Tudo roda sem administrador.
-- Nada é sobrescrito sem perguntar: se já existe um arquivo com o mesmo nome, o novo vira `nome (1).ext`.
-
-As mudanças de cada versão estão no [CHANGELOG](CHANGELOG.md).
+---
 
 ## Licença
 
-[MIT](LICENSE) © 2026 Pedro Bosa. Você pode usar, copiar, modificar e distribuir o RadialFlow, desde que mantenha o
-aviso de copyright e a licença. Os conversores (FFmpeg, Pandoc, ImageMagick e LibreOffice) são programas à parte,
-com licenças próprias; o RadialFlow não os inclui, só os baixa dos sites oficiais quando você pede.
+Distribuído sob a licença MIT. Consulte [`LICENSE`](LICENSE) para mais informações.<br>
+Desenvolvido por [Pedro Bosa](https://github.com/PedroBosa).
