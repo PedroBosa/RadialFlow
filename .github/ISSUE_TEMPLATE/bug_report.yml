@@ -1,0 +1,49 @@
+name: Relato de Bug
+description: Crie um relatório para nos ajudar a reproduzir e corrigir um defeito no RadialFlow.
+title: 'fix: '
+labels: ['bug', 'triage']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Agradecemos pelo relato. Certifique-se de que o problema pode ser reproduzido na versão mais recente disponível na aba de Releases.
+  - type: textarea
+    id: description
+    attributes:
+      label: Descrição do problema
+      description: Explique de forma clara e objetiva o comportamento inesperado.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Passos para reprodução
+      description: Liste os passos necessários para reproduzir o problema.
+      placeholder: |
+        1. Abra o RadialFlow no Windows
+        2. Posicione o cursor sobre o alvo (ex.: Explorer, janela específica ou campo de texto)
+        3. Realize o gesto de arrasto do botão direito ou ative o atalho global
+        4. Observe a falha na exibição da roda, no clique ou na execução do comando
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Comportamento esperado
+      description: O que você esperava que acontecesse?
+    validations:
+      required: true
+  - type: input
+    id: windows_version
+    attributes:
+      label: Versão exata do Windows
+      placeholder: 'ex.: Windows 11 Pro 24H2 (Compilação 26100.2033)'
+    validations:
+      required: true
+  - type: input
+    id: app_version
+    attributes:
+      label: Versão do RadialFlow
+      placeholder: 'ex.: 1.5.0'
+    validations:
+      required: true

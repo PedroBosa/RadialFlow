@@ -1,8 +1,16 @@
-# Novidades
+# Registro de Alterações (Changelog)
 
-Cada versão, da mais nova para a mais antiga. O número da versão está em `RadialFlow.csproj`.
+Todas as alterações notáveis neste projeto serão documentadas neste arquivo.
 
-## 1.5.0 — 29/10/2026
+O formato baseia-se em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR/).
+
+## [Não lançado]
+
+### Adicionado
+- Padronização de governança open source (CODEOWNERS, dependabot, templates de issues e PR).
+- Configuração de CI estrita com permissões mínimas no GitHub Actions.
+
+## [1.5.0] - 2026-10-29
 
 ### Novo
 
@@ -21,7 +29,7 @@ Cada versão, da mais nova para a mais antiga. O número da versão está em `Ra
   cabeçalho, e **Prévia** abre um painel com as fatias do menu marcadas como **substitui** ou **extra** e os avisos de
   limite.
 
-## 1.4.1 — 28/10/2026
+## [1.4.1] - 2026-10-28
 
 ### Novo
 
@@ -53,7 +61,7 @@ Cada versão, da mais nova para a mais antiga. O número da versão está em `Ra
   CI no GitHub Actions que compila e roda a suíte a cada push, e `publish.ps1` conferindo a versão do `.iss` contra o
   `.csproj` antes de gerar os arquivos de distribuição.
 
-## 1.4.0 — 27/10/2026
+## [1.4.0] - 2026-10-27
 
 ### Novo
 
@@ -69,7 +77,7 @@ Cada versão, da mais nova para a mais antiga. O número da versão está em `Ra
   conversão e progresso mostram um fundo desfocado do que está atrás, opaco em **Alto contraste**, fora da tela ou se
   a captura falhar, e os controles ganham transições de 110 ms, respeitando a opção de animações do Windows.
 
-## 1.3.0 — 27/10/2026
+## [1.3.0] - 2026-10-27
 
 ### Novo
 
@@ -104,7 +112,7 @@ Cada versão, da mais nova para a mais antiga. O número da versão está em `Ra
   **Abrir arquivo ou pasta**; nada roda como administrador, e `%LocalAppData%` fica fora de **Abrir executável**.
   Itens importados passam pelas mesmas validações, e os presets visuais são só paleta e geometria locais.
 
-## 1.2.0 — 24/10/2026
+## [1.2.0] - 2026-10-24
 
 ### Novo
 
@@ -146,7 +154,7 @@ Cada versão, da mais nova para a mais antiga. O número da versão está em `Ra
 - Os conversores rodam **sem** administrador, e cancelar encerra o programa e o que ele abriu; só executam de pastas
   protegidas como `C:\Program Files`, e abrir pasta pela janela de progresso não dá administrador ao Explorer.
 
-## 1.1.0 — 23/10/2026
+## [1.1.0] - 2026-10-23
 
 ### Melhorias
 
@@ -167,3 +175,11 @@ Cada versão, da mais nova para a mais antiga. O número da versão está em `Ra
 
 - Navegador, apps favoritos e pastas abertos pela roda não recebem administrador, e conversores em pastas do usuário
   (como `C:\ffmpeg`) são ignorados — instale-os em `C:\Program Files`.
+
+[Não lançado]: https://github.com/PedroBosa/RadialFlow/compare/v1.5.0...HEAD
+[1.5.0]: https://github.com/PedroBosa/RadialFlow/compare/v1.4.1...v1.5.0
+[1.4.1]: https://github.com/PedroBosa/RadialFlow/compare/v1.4.0...v1.4.1
+[1.4.0]: https://github.com/PedroBosa/RadialFlow/compare/v1.3.0...v1.4.0
+[1.3.0]: https://github.com/PedroBosa/RadialFlow/compare/v1.2.0...v1.3.0
+[1.2.0]: https://github.com/PedroBosa/RadialFlow/compare/v1.1.0...v1.2.0
+[1.1.0]: https://github.com/PedroBosa/RadialFlow/releases/tag/v1.1.0

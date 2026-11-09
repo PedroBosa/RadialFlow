@@ -1,0 +1,30 @@
+name: Sugestão de Funcionalidade
+description: Proponha uma melhoria ou nova capacidade para o RadialFlow.
+title: 'feat: '
+labels: ['enhancement']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Obrigado por contribuir com ideias para o RadialFlow. Descreva a funcionalidade de forma técnica e objetiva.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problema ou caso de uso
+      description: Qual limitação técnica ou fluxo atual você deseja resolver?
+    validations:
+      required: true
+  - type: textarea
+    id: solution
+    attributes:
+      label: Solução proposta
+      description: Como você imagina a arquitetura ou o comportamento desta funcionalidade?
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternativas consideradas
+      description: Quais outras abordagens ou soluções de contorno foram avaliadas?
+    validations:
+      required: false
