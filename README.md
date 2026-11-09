@@ -3,7 +3,7 @@
 > **Menu radial contextual de alta performance para o ecossistema Windows. Desenvolvido em .NET e C# com aceleração gráfica em WPF, interceptação de eventos via ganchos Win32 de baixo nível em thread dedicada e contenção de privilégios de interface (UIPI).**
 
 <p align="center">
-  <a href="https://github.com/PedroBosa/RadialFlow/releases/latest"><img alt="Download da Versão" src="https://img.shields.io/badge/Download-Instalador-16a34a?style=for-the-badge&logo=windows"></a>
+  <a href="https://github.com/PedroBosa/RadialFlow/releases/latest"><img alt="Download da Versão" src="https://img.shields.io/badge/Download-Release-10B981?style=for-the-badge&logo=windows"></a>
   <a href="LICENSE"><img alt="Licença: MIT" src="https://img.shields.io/badge/Licen%C3%A7a-MIT-6366F1?style=for-the-badge"></a>
   <a href="https://github.com/PedroBosa"><img alt="Autor: Pedro Bosa" src="https://img.shields.io/badge/Autor-Pedro%20Bosa-4F46E5?style=for-the-badge&logo=github"></a>
 </p>
@@ -154,21 +154,20 @@ RadialFlow/
 - .NET 10 SDK instalado (verifique com `dotnet --version`).
 - PowerShell 5.1 ou superior.
 
-### Compilação local
-```powershell
+### Instalação e execução
+```bash
 git clone https://github.com/PedroBosa/RadialFlow.git
 cd RadialFlow
-dotnet restore RadialFlow.sln
-dotnet build RadialFlow.sln -c Release
+dotnet run --project src/RadialFlow
 ```
 
-### Execução de testes unitários
-```powershell
-dotnet test RadialFlow.sln -c Release
+### Build e verificação
+```bash
+dotnet build -c Release
+dotnet test -c Release
 ```
 
-### Geração de pacotes de distribuição
-Para gerar os pacotes finais (arquivo `.zip` portátil e instalador `Setup.exe` via Inno Setup):
+Para gerar os pacotes de distribuição portáteis e o instalador oficial via Inno Setup:
 ```powershell
 .\publish.ps1
 ```
@@ -215,5 +214,6 @@ Contribuições que fortaleçam a segurança de isolamento de processos ou aprim
 
 ## Licença
 
-Distribuído sob a licença MIT. Consulte [`LICENSE`](LICENSE) para mais informações.<br>
+Distribuído sob a licença MIT. Consulte [`LICENSE`](LICENSE) para mais informações.
+
 Desenvolvido por [Pedro Bosa](https://github.com/PedroBosa).
