@@ -1,5 +1,16 @@
 <Project>
 
+  <!-- Metadados de projeto e autoria -->
+  <PropertyGroup>
+    <Authors>Pedro Bosa</Authors>
+    <Company>Pedro Bosa</Company>
+    <Copyright>Copyright (c) 2026 Pedro Bosa</Copyright>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/PedroBosa/RadialFlow</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/PedroBosa/RadialFlow</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+  </PropertyGroup>
+
   <!-- Configurações comuns ao aplicativo e aos testes. -->
   <PropertyGroup>
     <LangVersion>latest</LangVersion>

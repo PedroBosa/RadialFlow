@@ -20,9 +20,9 @@
     <Product>RadialFlow</Product>
     <AssemblyTitle>RadialFlow</AssemblyTitle>
     <Description>Menu radial para o Windows</Description>
-    <Authors>Pedro Lucas Ferreira Bosa</Authors>
-    <Company>Pedro Lucas Ferreira Bosa</Company>
-    <Copyright>Copyright © 2026 Pedro Bosa</Copyright>
+    <Authors>Pedro Bosa</Authors>
+    <Company>Pedro Bosa</Company>
+    <Copyright>Copyright (c) 2026 Pedro Bosa</Copyright>
     <!-- Sem o hash do commit no número da versão exibido. -->
     <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
   </PropertyGroup>
